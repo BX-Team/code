@@ -1,0 +1,9 @@
+{
+  "name": "@bx-team/monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "bun@1.3.13"
+}
