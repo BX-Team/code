@@ -1,6 +1,32 @@
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
+
+  css: [
+    '~/assets/css/tailwind.css',
+  ],
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
+
+  modules: [
+    'shadcn-nuxt',
+  ],
+
+  shadcn: {
+    prefix: 'Ui',
+    componentDir: '@/components/ui',
+  },
+
   app: {
     head: {
       link: [
@@ -10,34 +36,15 @@ export default defineNuxtConfig({
       ],
     },
   },
-  css: ['~/assets/css/tailwind.css'],
-  compatibilityDate: '2025-01-01',
-  vite: {
-    plugins: [tailwindcss()],
-  },
-  components: [
-    { path: '~/components', pathPrefix: false },
-  ],
+
   runtimeConfig: {
     apiSecretKey: process.env.API_SECRET_KEY || '',
     r2PublicUrl: process.env.R2_PUBLIC_URL || '',
   },
-  modules: ['shadcn-nuxt'],
-  shadcn: {
-    /**
-     * Prefix for all the imported component.
-     * @default "Ui"
-     */
-    prefix: 'Ui',
-    /**
-     * Directory that the component lives in.
-     * Will respect the Nuxt aliases.
-     * @link https://nuxt.com/docs/api/nuxt-config#alias
-     * @default "@/components/ui"
-     */
-    componentDir: '@/components/ui',
-  },
+
   nitro: {
-    preset: "bun", 
+    preset: 'bun',
   },
+
+  compatibilityDate: '2025-01-01',
 })
