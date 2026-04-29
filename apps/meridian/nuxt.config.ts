@@ -18,6 +18,10 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components', pathPrefix: false },
   ],
+  runtimeConfig: {
+    apiSecretKey: process.env.API_SECRET_KEY || '',
+    r2PublicUrl: process.env.R2_PUBLIC_URL || '',
+  },
   modules: ['shadcn-nuxt'],
   shadcn: {
     /**
@@ -32,5 +36,8 @@ export default defineNuxtConfig({
      * @default "@/components/ui"
      */
     componentDir: '@/components/ui',
+  },
+  nitro: {
+    preset: "bun", 
   },
 })

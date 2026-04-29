@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgSchema, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgSchema, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const atlasSchema = pgSchema('atlas');
 
@@ -6,7 +6,7 @@ export const channelEnum = pgEnum('channel', ['ALPHA', 'BETA', 'STABLE']);
 
 export const supportStatusEnum = pgEnum('support_status', ['SUPPORTED', 'DEPRECATED', 'UNSUPPORTED']);
 
-export const projects = atlasSchema.table('projects', {
+export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
   key: text('key').notNull().unique(),
   name: text('name').notNull(),
@@ -17,7 +17,7 @@ export const projects = atlasSchema.table('projects', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const versions = atlasSchema.table('versions', {
+export const versions = pgTable('versions', {
   id: serial('id').primaryKey(),
   projectId: integer('project_id')
     .notNull()
@@ -29,7 +29,7 @@ export const versions = atlasSchema.table('versions', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const builds = atlasSchema.table('builds', {
+export const builds = pgTable('builds', {
   id: serial('id').primaryKey(),
   versionId: integer('version_id')
     .notNull()
@@ -41,7 +41,7 @@ export const builds = atlasSchema.table('builds', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const commits = atlasSchema.table('commits', {
+export const commits = pgTable('commits', {
   id: serial('id').primaryKey(),
   buildId: integer('build_id')
     .notNull()
@@ -52,7 +52,7 @@ export const commits = atlasSchema.table('commits', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const downloads = atlasSchema.table('downloads', {
+export const downloads = pgTable('downloads', {
   id: serial('id').primaryKey(),
   buildId: integer('build_id')
     .notNull()

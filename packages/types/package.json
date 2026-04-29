@@ -1,3 +1,10 @@
 {
-  "name": "@bx-team/types"
+  "name": "@bx-team/types",
+  "type": "module",
+  "exports": {
+    "./schema/atlas": "./src/schemas/atlas.ts"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
 }

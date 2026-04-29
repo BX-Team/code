@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@bx-team/stratus": "workspace:*",
+    "@bx-team/types": "workspace:*",
     "better-auth": "^1.6.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.2",
     "lucide-vue-next": "^1.0.0",
     "nuxt": "^4.0.0",
     "reka-ui": "^2.9.6",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
+    "@types/bun": "^1.3.13",
     "shadcn-nuxt": "^2.5.1",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2"
