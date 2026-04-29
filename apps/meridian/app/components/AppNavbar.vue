@@ -2,28 +2,38 @@
 import { Button } from '@/components/ui/button'
 
 const links = [
-  { label: 'Documentation', href: '#docs' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Downloads', href: '#downloads' },
-  { label: 'Team', href: '#team' },
-  { label: 'Status', href: '#status' },
+  { label: 'Downloads', to: '/downloads' },
+  { label: 'Documentation', to: '/docs' },
+  { label: 'Team', to: '/team' },
+  { label: 'Status', to: 'https://status.bxteam.org' },
+  { label: 'Maven', to: 'https://repo.bxteam.org' }
 ]
 </script>
 
 <template>
   <div class="navwrap">
     <nav class="bar">
-      <a href="#" class="brand">
+      <NuxtLink to="/" class="brand">
         <span class="brand-mark" aria-hidden="true" />
         BX Team
-      </a>
+      </NuxtLink>
 
       <div class="links">
-        <a v-for="l in links" :key="l.href" :href="l.href">{{ l.label }}</a>
+        <NuxtLink
+          v-for="l in links"
+          :key="l.to"
+          :to="l.to"
+          :external="l.to.startsWith('http')"
+          :target="l.to.startsWith('http') ? '_blank' : undefined"
+          :rel="l.to.startsWith('http') ? 'noopener noreferrer' : undefined"
+        >{{ l.label }}</NuxtLink>
       </div>
 
       <div class="right">
-        <Button as="a" href="#" variant="pill" size="nav">Login</Button>
+        <a href="https://discord.gg/bx-team" target="_blank" rel="noopener noreferrer" class="demo">Discord</a>
+        <Button as-child variant="pill" size="nav">
+          <NuxtLink to="/dashboard">Dashboard</NuxtLink>
+        </Button>
       </div>
     </nav>
   </div>
