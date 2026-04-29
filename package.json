@@ -1,6 +1,9 @@
 {
   "name": "@bx-team/monorepo",
   "private": true,
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
