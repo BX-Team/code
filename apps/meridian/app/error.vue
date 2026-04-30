@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home, ArrowLeft, AlertCircle } from 'lucide-vue-next'
+import { Home, ArrowLeft, AlertCircle } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 
 defineProps<{

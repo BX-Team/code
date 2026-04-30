@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar, Download, ExternalLink, GitCommit, Package } from 'lucide-vue-next'
+import { Calendar, Download, ExternalLink, GitCommit, Package } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { type Build, formatDate, formatFileSize, getChannelColor } from '@/lib/atlas'
 

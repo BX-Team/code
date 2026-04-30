@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AlertTriangle, Check, ChevronDown, FlaskConical, XCircle } from 'lucide-vue-next'
+import { AlertTriangle, Check, ChevronDown, FlaskConical, XCircle } from '@lucide/vue'
 import type { VersionWithBuilds } from '@/lib/atlas'
 
 const props = defineProps<{

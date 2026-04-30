@@ -13,7 +13,7 @@ import {
   Clock,
   CheckCircle2,
   Database,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 type SideItem = { id: string; label: string; icon: any }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from 'lucide-vue-next'
+import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue'
 import type { Build, VersionWithBuilds } from '@/lib/atlas'
 import VersionSelector from './VersionSelector.vue'
 import AtlasBuildCard from './AtlasBuildCard.vue'

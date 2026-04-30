@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Github } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
 interface TeamMember {
@@ -89,7 +88,7 @@ useHead({
           maintain and improve the BX Team projects.
         </p>
         <Button as="a" href="https://github.com/BX-Team" target="_blank" rel="noopener noreferrer" variant="default">
-          <Github :size="16" :stroke-width="1.7" />
+          <img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
           Visit our GitHub
         </Button>
       </header>

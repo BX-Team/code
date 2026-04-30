@@ -7,7 +7,7 @@ import {
   Box,
   ListOrdered,
   Users,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const tabs = [
   { id: 'docs', label: 'Documentation', icon: FileText },

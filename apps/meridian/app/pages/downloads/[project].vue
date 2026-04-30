@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { ArrowLeft, BookOpen, Download, Info, Github } from 'lucide-vue-next'
+import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue'
 import type { Build, Project, VersionWithBuilds } from '@/lib/atlas'
@@ -95,7 +95,7 @@ const docsUrl = computed(() => `/docs/${projectId}`)
               </NuxtLink>
             </Button>
             <Button as="a" :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="ghost" size="lg">
-              <Github :size="18" :stroke-width="1.7" /> Source Code
+              <img src="~/assets/external/github.svg" width="18" height="18" alt="" aria-hidden="true" class="btn-icon" /> Source Code
             </Button>
           </div>
         </div>
@@ -204,5 +204,9 @@ const docsUrl = computed(() => `/docs/${projectId}`)
   border-radius: 14px;
   padding: 22px;
   background: oklch(0.16 0.006 240 / .5);
+}
+.btn-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
 }
 </style>

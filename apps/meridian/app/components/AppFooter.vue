@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Github, MessageCircle } from 'lucide-vue-next'
+import GithubIcon from '~/assets/external/github.svg'
+import DiscordIcon from '~/assets/external/discord.svg'
 
 type FooterLink = { label: string; href: string; external?: boolean }
 type FooterColumn = { title: string; links: FooterLink[] }
@@ -32,12 +33,14 @@ const socials = [
   {
     label: 'GitHub',
     href: 'https://github.com/BX-Team',
-    icon: Github,
+    icon: GithubIcon,
+    isImg: true,
   },
   {
     label: 'Discord',
     href: 'https://discord.gg/qNyybSSPm5',
-    icon: MessageCircle,
+    icon: DiscordIcon,
+    isImg: true,
   },
 ]
 
@@ -70,7 +73,8 @@ const year = new Date().getFullYear()
               rel="noopener noreferrer"
               class="social-icon"
             >
-              <component :is="s.icon" :size="18" :stroke-width="1.7" />
+              <img v-if="s.isImg" :src="s.icon" :alt="s.label" width="18" height="18" aria-hidden="true" class="social-svg" />
+              <component v-else :is="s.icon" :size="18" :stroke-width="1.7" />
             </a>
           </div>
         </div>
@@ -191,6 +195,13 @@ const year = new Date().getFullYear()
 .social-icon:hover {
   color: var(--fg-hi);
   background: rgba(255, 255, 255, 0.05);
+}
+.social-svg {
+  filter: brightness(0) invert(0.45);
+  transition: filter 0.15s;
+}
+.social-icon:hover .social-svg {
+  filter: brightness(0) invert(1);
 }
 
 /* Link columns */
