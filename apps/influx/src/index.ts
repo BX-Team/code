@@ -1,9 +1,14 @@
-import { Hono } from 'hono'
+import { Hono } from 'hono';
+import { env } from './env';
+import { healthRoute } from './routes/health';
+import { ingestRoute } from './routes/ingest';
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+app.route('/', healthRoute);
+app.route('/api/v1', ingestRoute);
 
-export default app
+export default {
+  port: env.PORT,
+  fetch: app.fetch,
+};
