@@ -2,7 +2,8 @@
   "name": "@bx-team/types",
   "type": "module",
   "exports": {
-    "./schema/atlas": "./src/schemas/atlas.ts"
+    "./schema/atlas": "./src/schemas/atlas.ts",
+    "./schema/pulsify": "./src/schemas/pulsify.ts"
   },
   "dependencies": {
     "zod": "^4.3.6"
