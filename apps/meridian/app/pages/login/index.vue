@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { authClient } from '@/lib/auth-client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 definePageMeta({ layout: false })
 
@@ -38,7 +41,7 @@ async function oauthLogin(provider: 'github' | 'discord') {
 
     <div class="auth-card">
       <div class="auth-brand">
-        <div class="brand-mark-lg" aria-hidden="true" />
+        <AppBrandMark :size="30" />
         <span class="brand-name">BX ID</span>
       </div>
 
@@ -46,14 +49,14 @@ async function oauthLogin(provider: 'github' | 'discord') {
       <p class="auth-sub">Access your <strong>Pulsify Dashboard</strong></p>
 
       <div class="oauth-grid">
-        <button class="oauth-btn github" @click="oauthLogin('github')">
+        <Button variant="outline" class="oauth-btn github" @click="oauthLogin('github')">
           <img src="~/assets/external/github.svg" width="17" height="17" alt="" aria-hidden="true" />
           Continue with GitHub
-        </button>
-        <button class="oauth-btn discord" @click="oauthLogin('discord')">
+        </Button>
+        <Button variant="outline" class="oauth-btn discord" @click="oauthLogin('discord')">
           <img src="~/assets/external/discord.svg" width="17" height="17" alt="" aria-hidden="true" />
           Continue with Discord
-        </button>
+        </Button>
       </div>
 
       <div class="divider">
@@ -69,22 +72,25 @@ async function oauthLogin(provider: 'github' | 'discord') {
       <form v-else class="auth-form" @submit.prevent="sendMagicLink">
         <div class="field">
           <label for="email">Email</label>
-          <input
+          <Input
             id="email"
             v-model="email"
             type="email"
             placeholder="you@example.com"
             autocomplete="email"
             required
+            class="auth-input"
           />
         </div>
 
-        <p v-if="error" class="auth-error">{{ error }}</p>
+        <Alert v-if="error" variant="destructive">
+          <AlertDescription>{{ error }}</AlertDescription>
+        </Alert>
 
-        <button type="submit" class="submit-btn" :disabled="loading">
+        <Button type="submit" class="submit-btn" :disabled="loading">
           <span v-if="!loading">Send magic link</span>
           <span v-else class="spinner" />
-        </button>
+        </Button>
       </form>
     </div>
   </div>
@@ -126,35 +132,6 @@ async function oauthLogin(provider: 'github' | 'discord') {
   margin-bottom: 28px;
 }
 
-.brand-mark-lg {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  background: conic-gradient(from 200deg, var(--brand), var(--brand-2), oklch(0.55 var(--accent-c) var(--accent-h)), var(--brand));
-  box-shadow: 0 0 16px color-mix(in oklab, var(--brand-soft) 60%, var(--brand-soft-2));
-  position: relative;
-  flex-shrink: 0;
-}
-.brand-mark-lg::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  background: var(--bg-0);
-  border-radius: 3px;
-}
-.brand-mark-lg::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 7px;
-  height: 7px;
-  background: var(--brand);
-  border-radius: 1.5px;
-  z-index: 1;
-  box-shadow: 0 0 9px var(--brand);
-}
 
 .brand-name {
   font-weight: 700;
@@ -193,43 +170,27 @@ async function oauthLogin(provider: 'github' | 'discord') {
 }
 
 .oauth-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
   width: 100%;
   height: 41px;
   border-radius: 10px;
   font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  transition: opacity 0.15s, transform 0.1s;
-  border: 1px solid transparent;
-}
-
-.oauth-btn:hover {
-  opacity: 0.82;
-  transform: translateY(-1px);
-}
-.oauth-btn:active {
-  transform: translateY(0);
 }
 
 .oauth-btn img {
   filter: brightness(0) invert(1);
 }
 
-.oauth-btn.github {
-  background: var(--bg-3);
-  color: var(--fg);
-  border-color: var(--line-2);
+.oauth-btn.github img {
+  filter: brightness(0) invert(0.5);
 }
 
 .oauth-btn.discord {
   background: oklch(0.44 0.18 265);
   color: #fff;
   border-color: oklch(0.5 0.17 265);
+}
+.oauth-btn.discord:hover {
+  background: oklch(0.48 0.18 265);
 }
 
 /* Divider */
@@ -269,55 +230,19 @@ async function oauthLogin(provider: 'github' | 'discord') {
   color: var(--dim);
 }
 
-.field input {
-  width: 100%;
+.auth-input {
   height: 41px;
-  padding: 0 13px;
   background: var(--bg-2);
-  border: 1px solid var(--line);
+  border-color: var(--line);
   border-radius: 9px;
   color: var(--fg);
   font-size: 14px;
-  font-family: var(--font-sans);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.field input::placeholder {
-  color: var(--mute);
-}
-
-.field input:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft);
-}
-
-.auth-error {
-  font-size: 13px;
-  color: var(--destructive);
-  margin: -2px 0 0;
-  padding: 9px 13px;
-  background: oklch(0.65 0.21 25 / 0.1);
-  border: 1px solid oklch(0.65 0.21 25 / 0.28);
-  border-radius: 8px;
-  line-height: 1.4;
 }
 
 .submit-btn {
   width: 100%;
   height: 41px;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border: none;
   border-radius: 9px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin-top: 2px;
 }
 
@@ -325,11 +250,6 @@ async function oauthLogin(provider: 'github' | 'discord') {
   background: #fff;
   transform: translateY(-1px);
   box-shadow: 0 8px 24px -8px rgba(255, 255, 255, 0.3);
-}
-
-.submit-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .spinner {

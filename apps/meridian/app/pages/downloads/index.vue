@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Download, Clock, Package, GitCommit, ArrowRight } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { ProjectGroup, ProjectsResponse, Build } from '@/lib/atlas'
 import { formatFileSize, getChannelColor } from '@/lib/atlas'
 
@@ -51,7 +52,7 @@ useHead({
             </div>
             <div class="stat">
               <div class="stat-label">Channel</div>
-              <span class="ch-pill" :class="getChannelColor(p.latestBuild.channel)">{{ p.latestBuild.channel }}</span>
+              <Badge class="badge-channel" :class="getChannelColor(p.latestBuild.channel)">{{ p.latestBuild.channel }}</Badge>
             </div>
             <div class="stat">
               <div class="stat-label">Size</div>
@@ -180,21 +181,18 @@ useHead({
 
 .proj-foot { padding: 14px 24px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* Channel pill colors */
-.ch-pill {
-  display: inline-block;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 600;
+/* Channel badge colors */
+.badge-channel {
   font-family: var(--font-mono);
   border-radius: 4px;
-  border: 1px solid;
+  font-size: 11px;
+  font-weight: 600;
 }
-.channel-stable, .ch-pill.channel-stable { background: oklch(0.6 0.13 158 / .15); color: oklch(0.78 0.13 158); border-color: oklch(0.6 0.13 158 / .3); }
-.channel-beta, .ch-pill.channel-beta { background: oklch(0.6 0.13 200 / .15); color: oklch(0.78 0.13 200); border-color: oklch(0.6 0.13 200 / .3); }
-.channel-alpha, .ch-pill.channel-alpha { background: oklch(0.62 0.14 75 / .15); color: oklch(0.82 0.14 75); border-color: oklch(0.62 0.14 75 / .3); }
-.channel-experimental, .ch-pill.channel-experimental { background: oklch(0.6 0.13 295 / .15); color: oklch(0.78 0.13 295); border-color: oklch(0.6 0.13 295 / .3); }
-.channel-default, .ch-pill.channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
+.channel-stable { background: oklch(0.6 0.13 158 / .15); color: oklch(0.78 0.13 158); border-color: oklch(0.6 0.13 158 / .3); }
+.channel-beta { background: oklch(0.6 0.13 200 / .15); color: oklch(0.78 0.13 200); border-color: oklch(0.6 0.13 200 / .3); }
+.channel-alpha { background: oklch(0.62 0.14 75 / .15); color: oklch(0.82 0.14 75); border-color: oklch(0.62 0.14 75 / .3); }
+.channel-experimental { background: oklch(0.6 0.13 295 / .15); color: oklch(0.78 0.13 295); border-color: oklch(0.6 0.13 295 / .3); }
+.channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
 
 .empty {
   display: grid; place-items: center;

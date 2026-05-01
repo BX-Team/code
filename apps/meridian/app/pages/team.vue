@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface TeamMember {
   name: string
@@ -106,13 +107,10 @@ useHead({
             :rel="m.github ? 'noopener noreferrer' : undefined"
             class="member-card"
           >
-            <img
-              v-if="m.github"
-              :src="`https://github.com/${m.github}.png`"
-              :alt="`${m.name} avatar`"
-              class="avatar"
-            >
-            <div v-else class="avatar avatar-fallback">{{ m.name[0] }}</div>
+            <Avatar class="size-11 shrink-0">
+              <AvatarImage v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
+              <AvatarFallback>{{ m.name[0] }}</AvatarFallback>
+            </Avatar>
             <div>
               <h3>{{ m.name }}</h3>
               <p>{{ m.role }}</p>
@@ -135,7 +133,10 @@ useHead({
             rel="noopener noreferrer"
             class="contrib"
           >
-            <img :src="c.avatar_url" :alt="`${c.login} GitHub avatar`">
+            <Avatar class="size-14">
+              <AvatarImage :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
+              <AvatarFallback>{{ c.login[0] }}</AvatarFallback>
+            </Avatar>
           </a>
         </div>
       </section>
@@ -185,18 +186,6 @@ a.member-card:hover {
   background: oklch(0.18 0.006 240 / .8);
   transform: translateY(-1px);
 }
-.avatar {
-  width: 44px; height: 44px;
-  border-radius: 999px;
-  object-fit: cover;
-  background: var(--bg-2);
-  flex-shrink: 0;
-}
-.avatar-fallback {
-  display: grid; place-items: center;
-  font-weight: 600; color: var(--fg-hi);
-  border: 1px solid var(--line-2);
-}
 .member-card h3 {
   margin: 0 0 2px;
   font-size: 14px; font-weight: 600;
@@ -205,11 +194,6 @@ a.member-card:hover {
 .member-card p { margin: 0; color: var(--mute); font-size: 13px; }
 
 .contributors { display: flex; flex-wrap: wrap; gap: 12px; }
-.contrib img {
-  width: 56px; height: 56px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  transition: border-color .15s, transform .15s;
-}
-.contrib:hover img { border-color: var(--brand); transform: translateY(-2px); }
+.contrib { transition: transform .15s; }
+.contrib:hover { transform: translateY(-2px); }
 </style>

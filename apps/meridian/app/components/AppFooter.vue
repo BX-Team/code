@@ -54,7 +54,7 @@ const year = new Date().getFullYear()
       <div class="footer-top">
         <div class="footer-brand">
           <a href="/" class="brand-row">
-            <span class="brand-mark" aria-hidden="true" />
+            <AppBrandMark />
             <span class="brand-name">BX Team</span>
           </a>
           <p class="brand-blurb">
@@ -140,35 +140,6 @@ const year = new Date().getFullYear()
   font-size: 16px;
   color: var(--fg-hi);
   letter-spacing: -0.01em;
-}
-.brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: conic-gradient(from 200deg, var(--brand), oklch(0.55 var(--accent-c) var(--accent-h)), var(--brand));
-  box-shadow: 0 0 14px var(--brand-soft);
-  position: relative;
-  flex-shrink: 0;
-}
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  background: var(--bg-0);
-  border-radius: 3px;
-}
-.brand-mark::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
-  background: var(--brand);
-  border-radius: 1px;
-  z-index: 1;
-  box-shadow: 0 0 8px var(--brand);
 }
 .brand-name {
   white-space: nowrap;

@@ -63,7 +63,7 @@
   --brand-soft-2:  oklch(0.72 var(--accent-c2) var(--accent-h2) / 0.18);
   --brand-glow-2:  oklch(0.72 var(--accent-c2) var(--accent-h2) / 0.55);
 
-  --glow-strength: 1;
+  --glow-strength: 1.5;
 }
 
 /* Map our raw CSS vars into the @theme so Tailwind utilities
@@ -202,29 +202,6 @@ nav.bar .brand {
   white-space: nowrap;
 }
 nav.bar a { white-space: nowrap; }
-nav.bar .brand-mark {
-  width: 22px; height: 22px;
-  border-radius: 6px;
-  background: conic-gradient(from 200deg, var(--brand), var(--brand-2), oklch(0.55 var(--accent-c) var(--accent-h)), var(--brand));
-  box-shadow: 0 0 14px color-mix(in oklab, var(--brand-soft) 60%, var(--brand-soft-2));
-  position: relative;
-}
-nav.bar .brand-mark::after {
-  content: "";
-  position: absolute; inset: 5px;
-  background: var(--bg-0);
-  border-radius: 3px;
-}
-nav.bar .brand-mark::before {
-  content: "";
-  position: absolute;
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 6px; height: 6px;
-  background: var(--brand);
-  border-radius: 1px;
-  z-index: 1;
-  box-shadow: 0 0 8px var(--brand);
-}
 nav.bar .links { display: flex; gap: 2px; }
 nav.bar .links a {
   padding: 8px 14px;

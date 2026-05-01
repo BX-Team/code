@@ -37,7 +37,7 @@ async function logout() {
   <div class="navwrap">
     <nav class="bar">
       <NuxtLink to="/" class="brand">
-        <span class="brand-mark" aria-hidden="true" />
+        <AppBrandMark />
         BX Team
       </NuxtLink>
 

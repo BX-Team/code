@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Calendar, Download, ExternalLink, GitCommit, Package } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { type Build, formatDate, formatFileSize, getChannelColor } from '@/lib/atlas'
 
 const props = defineProps<{
@@ -20,7 +21,7 @@ function dl() {
       <div>
         <div class="title-row">
           <h3>Build #{{ build.id }}</h3>
-          <span class="ch-pill" :class="getChannelColor(build.channel)">{{ build.channel }}</span>
+          <Badge class="badge-channel" :class="getChannelColor(build.channel)">{{ build.channel }}</Badge>
         </div>
         <div class="meta">
           <div><Calendar :size="14" :stroke-width="1.7" /><span>{{ formatDate(build.time) }}</span></div>
@@ -67,11 +68,11 @@ function dl() {
 .meta { display: flex; gap: 16px; flex-wrap: wrap; color: var(--mute); font-size: 13px; }
 .meta div { display: inline-flex; align-items: center; gap: 6px; }
 
-.ch-pill {
-  padding: 2px 8px;
-  font-size: 11px; font-weight: 600;
+.badge-channel {
   font-family: var(--font-mono);
-  border-radius: 4px; border: 1px solid;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
 }
 .channel-stable { background: oklch(0.6 0.13 158 / .15); color: oklch(0.78 0.13 158); border-color: oklch(0.6 0.13 158 / .3); }
 .channel-beta { background: oklch(0.6 0.13 200 / .15); color: oklch(0.78 0.13 200); border-color: oklch(0.6 0.13 200 / .3); }

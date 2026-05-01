@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { Build, VersionWithBuilds } from '@/lib/atlas'
 import VersionSelector from './VersionSelector.vue'
 import AtlasBuildCard from './AtlasBuildCard.vue'
@@ -63,39 +64,33 @@ function onToggle(v: boolean) {
       @toggle-experimental="onToggle"
     />
 
-    <div v-if="selectedVersion === experimentalVersion" class="banner banner-info">
+    <Alert v-if="selectedVersion === experimentalVersion" class="banner-info">
       <FlaskConical :size="18" :stroke-width="1.7" />
-      <div>
-        <h4>Experimental Build</h4>
-        <p>Experimental builds may contain bugs or unstable features. Not recommended for production servers.</p>
-      </div>
-    </div>
+      <AlertTitle>Experimental Build</AlertTitle>
+      <AlertDescription>Experimental builds may contain bugs or unstable features. Not recommended for production servers.</AlertDescription>
+    </Alert>
 
-    <div v-if="getStatus(selectedVersion) === 'DEPRECATED'" class="banner banner-warn">
+    <Alert v-if="getStatus(selectedVersion) === 'DEPRECATED'" class="banner-warn">
       <AlertTriangle :size="18" :stroke-width="1.7" />
-      <div>
-        <h4>Deprecated Version</h4>
-        <p>This Minecraft version is deprecated. Consider upgrading to a newer version.</p>
-      </div>
-    </div>
+      <AlertTitle>Deprecated Version</AlertTitle>
+      <AlertDescription>This Minecraft version is deprecated. Consider upgrading to a newer version.</AlertDescription>
+    </Alert>
 
-    <div v-if="getStatus(selectedVersion) === 'UNSUPPORTED'" class="banner banner-err">
+    <Alert v-if="getStatus(selectedVersion) === 'UNSUPPORTED'" class="banner-err">
       <XCircle :size="18" :stroke-width="1.7" />
-      <div>
-        <h4>Unsupported Version</h4>
-        <p>This Minecraft version is no longer supported. Please upgrade to a supported version.</p>
-      </div>
-    </div>
+      <AlertTitle>Unsupported Version</AlertTitle>
+      <AlertDescription>This Minecraft version is no longer supported. Please upgrade to a supported version.</AlertDescription>
+    </Alert>
 
     <div v-if="loading" class="state">
       <Loader2 class="spin" :size="28" :stroke-width="1.7" />
       <p>Loading builds…</p>
     </div>
 
-    <div v-else-if="error" class="banner banner-err">
+    <Alert v-else-if="error" class="banner-err">
       <AlertCircle :size="18" :stroke-width="1.7" />
-      <p>{{ error }}</p>
-    </div>
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <div v-else-if="!builds.length" class="state">
       <p>No builds available for this version.</p>
@@ -114,18 +109,9 @@ function onToggle(v: boolean) {
 </template>
 
 <style scoped>
-.banner {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid;
-  margin-bottom: 14px;
-}
-.banner h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
-.banner p { margin: 0; font-size: 13px; line-height: 1.5; }
-.banner-info { background: oklch(0.6 0.13 200 / .1); border-color: oklch(0.6 0.13 200 / .25); color: oklch(0.78 0.13 200); }
-.banner-warn { background: oklch(0.62 0.14 75 / .1); border-color: oklch(0.62 0.14 75 / .25); color: oklch(0.82 0.14 75); }
-.banner-err  { background: oklch(0.65 0.21 25 / .1); border-color: oklch(0.65 0.21 25 / .25); color: oklch(0.78 0.21 25); }
+.banner-info { background: oklch(0.6 0.13 200 / .1); border-color: oklch(0.6 0.13 200 / .25); color: oklch(0.78 0.13 200); margin-bottom: 14px; }
+.banner-warn { background: oklch(0.62 0.14 75 / .1); border-color: oklch(0.62 0.14 75 / .25); color: oklch(0.82 0.14 75); margin-bottom: 14px; }
+.banner-err  { background: oklch(0.65 0.21 25 / .1); border-color: oklch(0.65 0.21 25 / .25); color: oklch(0.78 0.21 25); margin-bottom: 14px; }
 
 .state { display: grid; place-items: center; padding: 64px 16px; gap: 10px; color: var(--mute); }
 .spin { animation: spin 1s linear infinite; color: var(--mute); }
