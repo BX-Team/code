@@ -49,6 +49,7 @@
       "dependencies": {
         "@bx-team/stratus": "workspace:*",
         "@bx-team/types": "workspace:*",
+        "@clickhouse/client": "^1.18.3",
         "@lucide/vue": "^1.14.0",
         "@vueuse/core": "^14.3.0",
         "aws4fetch": "^1.0.20",
