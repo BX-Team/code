@@ -3,11 +3,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
     "dev": "nuxt dev",
+    "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "biome check .",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@bx-team/stratus": "workspace:*",
