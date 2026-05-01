@@ -492,12 +492,29 @@ nav.bar .demo:hover  { color: var(--fg-hi); background: rgba(255,255,255,.04); }
   border-left-color: var(--fg-hi);
 }
 
+/* ─── Mobile sheet nav ─── */
+.mobile-nav-link {
+  display: flex;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dim);
+  transition: color .15s, background .15s;
+}
+.mobile-nav-link:hover {
+  color: var(--fg-hi);
+  background: rgba(255,255,255,.04);
+}
+.mobile-nav-link--destructive { color: var(--color-destructive); }
+.mobile-nav-link--destructive:hover { background: color-mix(in oklab, var(--color-destructive) 10%, transparent); }
+
 /* ─── Mobile ─── */
 @media (max-width: 920px) {
   nav.bar .links { display: none; }
   nav.bar .brand { border-right: 0; margin-right: 0; padding-right: 0; }
   nav.bar .right { margin-left: 8px; padding-left: 8px; }
-  nav.bar .login, nav.bar .demo { display: none; }
+  nav.bar .login, nav.bar .demo, nav.bar .nav-login { display: none; }
   .pv-body { grid-template-columns: 1fr; }
   .pv-side, .pv-side-r { display: none; }
   .pv-hd .url { display: none; }
