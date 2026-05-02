@@ -20,11 +20,13 @@ This is the BX Team monorepo — it contains all BX Team projects, both frontend
 | ----------------- | --------------------------------------|
 | `stratus`         | Database schemas (Drizzle ORM)        |
 | `types`           | Shared TypeScript types (Zod schemas) |
+| `ui`              | Shared UI components (Vue 3, Tailwind) |
 
 ## Project-Specific Instructions
 Each project may have its own `CLAUDE.md` with detailed instructions:
 
 - [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
+- [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
 
 ## Code Guidelines
 

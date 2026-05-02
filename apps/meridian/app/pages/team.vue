@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@bx-team/ui'
 
 interface TeamMember {
   name: string
@@ -81,6 +80,8 @@ useHead({
 
 <template>
   <PageShell>
+    <div class="team-root">
+    <div class="team-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
       <header class="page-head">
         <h1>Meet our team</h1>
@@ -88,7 +89,7 @@ useHead({
           BX Team is a group of developers and contributors who work together to
           maintain and improve the BX Team projects.
         </p>
-        <Button as="a" href="https://github.com/BX-Team" target="_blank" rel="noopener noreferrer" variant="default">
+        <Button href="https://github.com/BX-Team" target="_blank" rel="noopener noreferrer" variant="primary">
           <img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
           Visit our GitHub
         </Button>
@@ -107,10 +108,10 @@ useHead({
             :rel="m.github ? 'noopener noreferrer' : undefined"
             class="member-card"
           >
-            <Avatar class="size-11 shrink-0">
-              <AvatarImage v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
-              <AvatarFallback>{{ m.name[0] }}</AvatarFallback>
-            </Avatar>
+            <div class="avatar avatar--44 shrink-0">
+              <img v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
+              <span v-else>{{ m.name[0] }}</span>
+            </div>
             <div>
               <h3>{{ m.name }}</h3>
               <p>{{ m.role }}</p>
@@ -133,19 +134,64 @@ useHead({
             rel="noopener noreferrer"
             class="contrib"
           >
-            <Avatar class="size-14">
-              <AvatarImage :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
-              <AvatarFallback>{{ c.login[0] }}</AvatarFallback>
-            </Avatar>
+            <div class="avatar avatar--56">
+              <img :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
+            </div>
           </a>
         </div>
       </section>
+    </div>
     </div>
   </PageShell>
 </template>
 
 <style scoped>
-.page-wrap { max-width: 1180px; margin: 0 auto; padding: 90px 24px 80px; }
+.team-root {
+	position: relative;
+	overflow: hidden;
+}
+
+.team-atmosphere {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 960px;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 0;
+}
+
+.team-atmosphere::before {
+	content: '';
+	position: absolute;
+	top: -200px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1200px;
+	height: 800px;
+	background: radial-gradient(
+		ellipse 50% 45% at 50% 50%,
+		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
+		transparent 70%
+	);
+	filter: blur(50px);
+	opacity: 0.55;
+}
+
+.team-atmosphere::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+	background-size: 56px 56px;
+	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+}
+
+.page-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 90px 24px 80px; }
 .page-head { max-width: 720px; margin: 0 auto 56px; text-align: center; }
 .page-head h1 {
   font-size: clamp(36px, 5vw, 52px);
@@ -196,4 +242,17 @@ a.member-card:hover {
 .contributors { display: flex; flex-wrap: wrap; gap: 12px; }
 .contrib { transition: transform .15s; }
 .contrib:hover { transform: translateY(-2px); }
+
+.avatar {
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-3);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 13px var(--font-sans);
+  color: var(--fg-hi);
+  flex-shrink: 0;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar--44 { width: 44px; height: 44px; }
+.avatar--56 { width: 56px; height: 56px; }
 </style>

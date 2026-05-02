@@ -1,5 +1,5 @@
 import { db } from '@bx-team/stratus'
-import { builds, commits, downloads, projects, versions } from '@bx-team/stratus/schema/atlas'
+import { atlasProjects, builds, commits, downloads, versions } from '@bx-team/stratus/schema/atlas'
 import { and, desc, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
 
   try {
-    const [project] = await db.select().from(projects).where(eq(projects.key, projectKey)).limit(1)
+    const [project] = await db.select().from(atlasProjects).where(eq(atlasProjects.key, projectKey)).limit(1)
 
     if (!project) {
       setResponseStatus(event, 404)

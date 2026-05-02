@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Download, Clock, Package, GitCommit, ArrowRight } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@bx-team/ui'
 import type { ProjectGroup, ProjectsResponse, Build } from '@/lib/atlas'
 import { formatFileSize, getChannelColor } from '@/lib/atlas'
 
@@ -30,6 +29,8 @@ useHead({
 
 <template>
   <PageShell>
+    <div class="dl-root">
+    <div class="dl-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
       <header class="page-head">
         <h1>Downloads</h1>
@@ -52,7 +53,7 @@ useHead({
             </div>
             <div class="stat">
               <div class="stat-label">Channel</div>
-              <Badge class="badge-channel" :class="getChannelColor(p.latestBuild.channel)">{{ p.latestBuild.channel }}</Badge>
+              <span class="badge-channel" :class="getChannelColor(p.latestBuild.channel)">{{ p.latestBuild.channel }}</span>
             </div>
             <div class="stat">
               <div class="stat-label">Size</div>
@@ -89,15 +90,13 @@ useHead({
           </div>
 
           <footer class="proj-foot">
-            <Button v-if="p.latestBuild" as="a" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="default">
+            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
               Download Latest
             </Button>
-            <Button as-child variant="ghost">
-              <NuxtLink :to="`/downloads/${p.project.id}`">
-                <ArrowRight :size="16" :stroke-width="1.7" />
-                All Builds
-              </NuxtLink>
+            <Button :href="`/downloads/${p.project.id}`" variant="secondary">
+              <ArrowRight :size="16" :stroke-width="1.7" />
+              All Builds
             </Button>
           </footer>
         </article>
@@ -109,11 +108,57 @@ useHead({
         <p>There are currently no projects available for download.</p>
       </div>
     </div>
+    </div>
   </PageShell>
 </template>
 
 <style scoped>
-.page-wrap { max-width: 1100px; margin: 0 auto; padding: 90px 24px 80px; }
+.dl-root {
+	position: relative;
+	overflow: hidden;
+}
+
+.dl-atmosphere {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 960px;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 0;
+}
+
+.dl-atmosphere::before {
+	content: '';
+	position: absolute;
+	top: -200px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1200px;
+	height: 800px;
+	background: radial-gradient(
+		ellipse 50% 45% at 50% 50%,
+		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
+		transparent 70%
+	);
+	filter: blur(50px);
+	opacity: 0.55;
+}
+
+.dl-atmosphere::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+	background-size: 56px 56px;
+	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+}
+
+.page-wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 90px 24px 80px; }
 .page-head { text-align: center; margin-bottom: 48px; }
 .page-head h1 {
   font-size: clamp(36px, 5vw, 52px);

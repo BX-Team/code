@@ -1,5 +1,5 @@
 import { db } from '@bx-team/stratus'
-import { builds, projects, versions } from '@bx-team/stratus/schema/atlas'
+import { atlasProjects, builds, versions } from '@bx-team/stratus/schema/atlas'
 import { and, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const versionKey = getRouterParam(event, 'version')!
 
   try {
-    const [project] = await db.select().from(projects).where(eq(projects.key, projectKey)).limit(1)
+    const [project] = await db.select().from(atlasProjects).where(eq(atlasProjects.key, projectKey)).limit(1)
 
     if (!project) {
       setResponseStatus(event, 404)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
+import { Button } from '@bx-team/ui'
 import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue'
 import type { Build, Project, VersionWithBuilds } from '@/lib/atlas'
 import { formatFileSize, getAllVersions } from '@/lib/atlas'
@@ -52,12 +52,12 @@ const docsUrl = computed(() => `/docs/${projectId}`)
 
 <template>
   <PageShell>
+    <div class="dl-root">
+    <div class="dl-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
       <div class="back-row">
-        <Button as-child variant="ghost" size="sm">
-          <NuxtLink to="/downloads">
-            <ArrowLeft :size="14" :stroke-width="1.8" /> Back to Downloads
-          </NuxtLink>
+        <Button href="/downloads" variant="ghost" size="sm">
+          <ArrowLeft :size="14" :stroke-width="1.8" /> Back to Downloads
         </Button>
       </div>
 
@@ -86,15 +86,13 @@ const docsUrl = computed(() => `/docs/${projectId}`)
           </div>
 
           <div class="cta-row">
-            <Button v-if="latestBuild" as="a" :href="latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="default" size="lg">
+            <Button v-if="latestBuild" :href="latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
               <Download :size="18" :stroke-width="1.7" /> Download Latest Build
             </Button>
-            <Button as-child variant="ghost" size="lg">
-              <NuxtLink :to="docsUrl">
-                <BookOpen :size="18" :stroke-width="1.7" /> Documentation
-              </NuxtLink>
+            <Button :href="docsUrl" variant="secondary" size="lg">
+              <BookOpen :size="18" :stroke-width="1.7" /> Documentation
             </Button>
-            <Button as="a" :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="ghost" size="lg">
+            <Button :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="secondary" size="lg">
               <img src="~/assets/external/github.svg" width="18" height="18" alt="" aria-hidden="true" class="btn-icon" /> Source Code
             </Button>
           </div>
@@ -127,11 +125,57 @@ const docsUrl = computed(() => `/docs/${projectId}`)
         </div>
       </section>
     </div>
+    </div>
   </PageShell>
 </template>
 
 <style scoped>
-.page-wrap { max-width: 1180px; margin: 0 auto; padding: 60px 24px 80px; }
+.dl-root {
+	position: relative;
+	overflow: hidden;
+}
+
+.dl-atmosphere {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 960px;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 0;
+}
+
+.dl-atmosphere::before {
+	content: '';
+	position: absolute;
+	top: -200px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1200px;
+	height: 800px;
+	background: radial-gradient(
+		ellipse 50% 45% at 50% 50%,
+		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
+		transparent 70%
+	);
+	filter: blur(50px);
+	opacity: 0.55;
+}
+
+.dl-atmosphere::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+	background-size: 56px 56px;
+	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+}
+
+.page-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 60px 24px 80px; }
 .back-row { margin-bottom: 18px; }
 
 .hero-card {

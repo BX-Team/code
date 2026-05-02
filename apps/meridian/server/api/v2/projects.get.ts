@@ -1,10 +1,10 @@
 import { db } from '@bx-team/stratus'
-import { projects, versions } from '@bx-team/stratus/schema/atlas'
+import { atlasProjects, versions } from '@bx-team/stratus/schema/atlas'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   try {
-    const allProjects = await db.select().from(projects)
+    const allProjects = await db.select().from(atlasProjects)
 
     const projectsResponse = await Promise.all(
       allProjects.map(async (project) => {

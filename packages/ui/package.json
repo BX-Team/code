@@ -1,0 +1,20 @@
+{
+  "name": "@bx-team/ui",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles": "./src/styles/tokens.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vue": "^3.5.33"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.3.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}
