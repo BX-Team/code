@@ -19,7 +19,23 @@ export async function handlePlayerEvent(event: PlayerEvent, projectId: string, c
       ],
       format: 'JSONEachRow',
     });
+    return;
   }
 
-  // player_quit is written to events table only — session duration is derived in queries
+  if (event.event === 'player_quit') {
+    await clickhouse.command({
+      query: `
+        ALTER TABLE player_sessions
+        UPDATE left_at = {left_at:DateTime}
+        WHERE project_id = {project_id:String}
+          AND player_uuid = {player_uuid:String}
+          AND left_at IS NULL
+      `,
+      query_params: {
+        left_at: ts,
+        project_id: projectId,
+        player_uuid: event.payload.player_uuid,
+      },
+    });
+  }
 }
