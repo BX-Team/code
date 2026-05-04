@@ -1,107 +1,227 @@
 <script setup lang="ts">
-import { type ColumnDef, h } from '#imports';
-import DataTable from '@/components/dashboard/DataTable.vue';
-import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' });
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 interface ErrorRow {
-  id: string;
-  plugin: string;
-  message: string;
-  stacktrace: string;
-  level: string;
-  count: number;
-  firstSeenAt: string;
-  lastSeenAt: string;
+	id: string
+	plugin: string
+	message: string
+	stacktrace: string
+	level: string
+	count: number
+	firstSeenAt: string
+	lastSeenAt: string
+}
+interface ErrorsResponse { errors: ErrorRow[]; total: number }
+
+const route = useRoute()
+const slug = computed(() => route.params.slug as string)
+
+const { data: projects } = await useProjects()
+const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
+
+const { data, pending } = await useAsyncData<ErrorsResponse | null>(`project-errors-page-${slug.value}`, () =>
+	project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+)
+
+function levelClass(level: string) {
+	if (level === 'error' || level === 'fatal') return 'err'
+	if (level === 'warning' || level === 'warn') return 'warn'
+	return 'info'
 }
 
-interface ErrorsResponse {
-  errors: ErrorRow[];
-  total: number;
+function relativeTime(iso: string) {
+	const diff = Date.now() - new Date(iso).getTime()
+	const m = Math.floor(diff / 60000)
+	if (m < 1) return 'just now'
+	if (m < 60) return `${m}m ago`
+	const h = Math.floor(m / 60)
+	if (h < 24) return `${h}h ago`
+	return `${Math.floor(h / 24)}d ago`
 }
 
-const route = useRoute();
-const slug = computed(() => route.params.slug as string);
-
-const { data: projects } = await useProjects();
-const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
-
-const { data, pending } = await useAsyncData<ErrorsResponse | null>(`project-errors-${slug.value}`, () =>
-  project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
-);
-
-const levelVariant = (level: string) => {
-  if (level === 'fatal') return 'destructive';
-  if (level === 'error') return 'destructive';
-  if (level === 'warning') return 'secondary';
-  return 'outline';
-};
-
-const columns: ColumnDef<ErrorRow, any>[] = [
-  {
-    accessorKey: 'level',
-    header: 'Level',
-    cell: ({ row }) => {
-      const level = row.getValue<string>('level');
-      return h(Badge, { variant: levelVariant(level), class: 'capitalize' }, () => level);
-    },
-  },
-  {
-    accessorKey: 'plugin',
-    header: 'Plugin',
-    cell: ({ row }) => h('span', { class: 'font-mono text-xs' }, row.getValue<string>('plugin') || '—'),
-  },
-  {
-    accessorKey: 'message',
-    header: 'Message',
-    cell: ({ row }) =>
-      h(
-        'span',
-        { class: 'block max-w-md truncate', title: row.getValue<string>('message') },
-        row.getValue<string>('message'),
-      ),
-  },
-  {
-    accessorKey: 'count',
-    header: 'Count',
-    cell: ({ row }) => h('span', { class: 'tabular-nums font-medium' }, row.getValue<number>('count')),
-  },
-  {
-    accessorKey: 'lastSeenAt',
-    header: 'Last seen',
-    cell: ({ row }) => {
-      const value = row.getValue<string>('lastSeenAt');
-      return h('span', { class: 'text-muted-foreground' }, value ? new Date(value).toLocaleString() : '—');
-    },
-  },
-];
+const expanded = ref<string | null>(null)
 </script>
 
 <template>
 	<div v-if="!project" class="px-4 lg:px-6">
-		<div class="border rounded-lg p-12 text-center text-muted-foreground">
-			Project not found.
-		</div>
+		<div class="not-found">Project not found.</div>
 	</div>
 	<template v-else>
 		<ProjectTabs :slug="project.slug" :project-type="project.type" />
+
 		<div class="px-4 lg:px-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>Errors ({{ data?.total ?? 0 }})</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<DataTable
-						:data="data?.errors ?? []"
-						:columns="columns"
-						:loading="pending"
-						empty-message="No errors reported. Nice."
-					/>
-				</CardContent>
-			</Card>
+			<div class="card err-card">
+				<div class="card-hd">
+					<div>
+						<h3>Issues</h3>
+						<p>{{ data?.total ?? 0 }} total · across all nodes</p>
+					</div>
+				</div>
+
+				<div v-if="pending" class="err-loading">
+					<div v-for="n in 5" :key="n" class="err-row-skeleton">
+						<span class="sk" style="width:60px" />
+						<span class="sk" style="width:100%;max-width:340px" />
+						<span class="sk" style="width:50px;margin-left:auto" />
+					</div>
+				</div>
+				<div v-else-if="!data?.errors.length" class="err-empty">
+					No issues reported. Nice.
+				</div>
+				<template v-else>
+					<div
+						v-for="err in data.errors"
+						:key="err.id"
+						class="err-row"
+						:class="{ expanded: expanded === err.id }"
+						@click="expanded = expanded === err.id ? null : err.id"
+					>
+						<div class="err-main">
+							<span class="lvl" :class="levelClass(err.level)">{{ err.level }}</span>
+							<div class="err-msg">
+								<div class="err-title">{{ err.message }}</div>
+								<div class="err-meta">{{ err.plugin }} · first seen {{ relativeTime(err.firstSeenAt) }}</div>
+							</div>
+							<div class="err-count">
+								{{ err.count.toLocaleString() }}
+								<span class="sub">events</span>
+							</div>
+							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
+						</div>
+						<div v-if="expanded === err.id && err.stacktrace" class="err-stack">
+							<pre>{{ err.stacktrace }}</pre>
+						</div>
+					</div>
+				</template>
+			</div>
 		</div>
 	</template>
 </template>
+
+<style scoped>
+.not-found {
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 48px;
+	text-align: center;
+	color: var(--mute);
+}
+
+.card {
+	background: var(--bg-1);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	overflow: hidden;
+}
+.err-card { padding: 0; }
+.card-hd {
+	padding: 18px 18px 12px;
+	border-bottom: 1px solid var(--line);
+}
+.card-hd h3 { margin: 0 0 2px; font: 600 14.5px var(--font-sans); color: var(--fg-hi); }
+.card-hd p  { margin: 0; font: 400 12.5px var(--font-sans); color: var(--mute); }
+
+.err-empty {
+	padding: 48px;
+	text-align: center;
+	font: 400 13px var(--font-sans);
+	color: var(--mute);
+}
+
+.err-loading { display: flex; flex-direction: column; }
+.err-row-skeleton {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--line);
+}
+.sk {
+	display: block;
+	height: 14px;
+	border-radius: 4px;
+	background: var(--bg-3);
+	animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+
+.err-row {
+	border-bottom: 1px solid var(--line);
+	cursor: pointer;
+}
+.err-row:last-child { border-bottom: 0; }
+.err-row:hover .err-main { background: var(--bg-2); }
+
+.err-main {
+	display: grid;
+	grid-template-columns: 80px 1fr 80px 90px;
+	gap: 12px;
+	padding: 12px 18px;
+	align-items: center;
+}
+
+.lvl {
+	display: inline-flex;
+	align-items: center;
+	font: 600 9.5px var(--font-mono);
+	padding: 3px 7px;
+	border-radius: 4px;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+.lvl.err {
+	background: color-mix(in oklab, var(--err) 22%, transparent);
+	color: var(--err);
+	border: 1px solid color-mix(in oklab, var(--err) 50%, transparent);
+}
+.lvl.warn {
+	background: color-mix(in oklab, var(--warn) 20%, transparent);
+	color: var(--warn);
+	border: 1px solid color-mix(in oklab, var(--warn) 45%, transparent);
+}
+.lvl.info {
+	background: color-mix(in oklab, var(--info) 20%, transparent);
+	color: var(--info);
+	border: 1px solid color-mix(in oklab, var(--info) 45%, transparent);
+}
+
+.err-msg { min-width: 0; }
+.err-title {
+	font: 500 13px var(--font-sans);
+	color: var(--fg-hi);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.err-meta {
+	font: 400 11.5px var(--font-mono);
+	color: var(--mute);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-top: 2px;
+}
+
+.err-count { font: 600 13px var(--font-mono); color: var(--fg-hi); text-align: right; }
+.err-count .sub { display: block; font: 400 10.5px var(--font-mono); color: var(--mute); }
+.err-when { font: 400 11.5px var(--font-mono); color: var(--mute); text-align: right; }
+
+.err-stack {
+	border-top: 1px solid var(--line);
+	background: var(--bg-0);
+	padding: 14px 18px;
+}
+.err-stack pre {
+	margin: 0;
+	font: 400 11.5px var(--font-mono);
+	color: var(--dim);
+	white-space: pre-wrap;
+	word-break: break-all;
+	line-height: 1.6;
+}
+
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+@media (min-width: 1024px) { .lg\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+</style>
