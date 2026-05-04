@@ -156,6 +156,10 @@ props: { eyebrow?: string; heading: string }
 // default slot: <ProjectCard> children
 ```
 
+## Responsive design
+
+All components must work on both desktop and mobile. Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`) — never write desktop-only layouts. Touch targets must be at least 44×44px. Avoid hover-only interactions; ensure equivalent tap/touch behaviour on mobile.
+
 ## Code guidelines
 
 - **Indentation:** TAB everywhere, never spaces.
