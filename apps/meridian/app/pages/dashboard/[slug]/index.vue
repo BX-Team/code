@@ -12,6 +12,8 @@ const slug = computed(() => route.params.slug as string)
 const { data: projects } = await useProjects()
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
 
+useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' })
+
 const range = ref<'24h' | '7d' | '30d'>('24h')
 
 interface TimePoint {

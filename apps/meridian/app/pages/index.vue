@@ -12,7 +12,8 @@ import {
 import { Activity, Users, AlertCircle, Box, Database, Zap } from '@lucide/vue'
 
 useHead({
-	title: 'Pulsify — Observability for Minecraft · BX Team',
+	title: 'BX Team',
+	titleTemplate: null,
 })
 
 const features = [

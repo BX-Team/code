@@ -22,7 +22,7 @@ const { data: projects } = await useAsyncData<ProjectGroup[]>(
 )
 
 useHead({
-  title: 'Downloads | BX Team',
+  title: 'Downloads',
   meta: [{ name: 'description', content: 'Download the latest builds of our Minecraft server software.' }],
 })
 </script>

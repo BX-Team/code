@@ -6,6 +6,7 @@ import SectionCards from '@/components/dashboard/SectionCards.vue'
 import type { ChartConfig } from '@/components/ui/chart'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Dashboard', titleTemplate: '%s | Pulsify' })
 
 interface OverviewResponse {
 	summary: {

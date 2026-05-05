@@ -55,10 +55,10 @@ const props = withDefaults(defineProps<{
 			],
 		},
 	],
-	blurb: 'An open source community building high-quality Minecraft server software. Stable out of the box, easy to maintain, optimized for real production servers.',
+	blurb: 'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players.',
 	status: 'All systems normal',
 	githubHref: 'https://github.com/BX-Team',
-	discordHref: 'https://discord.gg/bxteam',
+	discordHref: 'https://discord.gg/qNyybSSPm5',
 })
 </script>
 

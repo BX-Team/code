@@ -19,6 +19,8 @@ const slug = computed(() => route.params.slug as string)
 const { data: projects } = await useProjects()
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
 
+useHead({ title: computed(() => project.value?.name ? `${project.value.name} Settings` : 'Settings'), titleTemplate: '%s | Pulsify' })
+
 const { data: tokens, refresh: refreshTokens, pending } = await useAsyncData<DsnToken[]>(
 	`project-tokens-${slug.value}`,
 	() => project.value ? $fetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),

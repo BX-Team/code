@@ -4,6 +4,8 @@ import { authClient } from '@/lib/auth-client'
 
 definePageMeta({ layout: false })
 
+useHead({ title: 'Sign In' })
+
 const headers = useRequestHeaders(['cookie'])
 const { data: existingSession } = await authClient.getSession({ fetchOptions: { headers } })
 if (existingSession) {

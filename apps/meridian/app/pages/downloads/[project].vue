@@ -42,7 +42,7 @@ const versionsMetadata = computed(() => data.value!.versionsMetadata)
 const initialBuilds = computed(() => data.value!.initialBuilds)
 
 useHead({
-  title: computed(() => `${project.value.name} Downloads | BX Team`),
+  title: computed(() => project.value.name),
   meta: [{ name: 'description', content: computed(() => `Download the latest ${project.value.name} builds.`) }],
 })
 

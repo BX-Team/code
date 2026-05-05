@@ -73,7 +73,7 @@ const { data: contributors } = await useAsyncData<GithubContributor[]>(
 )
 
 useHead({
-  title: 'Team | BX Team',
+  title: 'Team',
   meta: [{ name: 'description', content: 'Meet the BX Team developers and contributors.' }],
 })
 </script>

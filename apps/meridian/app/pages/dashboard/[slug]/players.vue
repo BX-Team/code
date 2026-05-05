@@ -3,6 +3,7 @@ import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
 import SectionCards from '@/components/dashboard/SectionCards.vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Players', titleTemplate: '%s | Pulsify' })
 
 interface PlayerSession {
 	player_uuid: string

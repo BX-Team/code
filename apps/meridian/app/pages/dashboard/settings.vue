@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { authClient } from '@/lib/auth-client'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Settings', titleTemplate: '%s | Pulsify' })
 
 const { data: session, refresh } = await useSession()
 const user = computed(() => session.value?.user ?? null)

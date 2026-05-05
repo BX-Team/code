@@ -2,6 +2,7 @@
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' })
 
 interface ErrorRow {
 	id: string

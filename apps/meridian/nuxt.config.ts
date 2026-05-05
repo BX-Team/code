@@ -26,6 +26,11 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      titleTemplate: '%s | BX Team',
+      meta: [
+        { name: 'description', content: 'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players' },
+        { name: 'keywords', content: 'Pulsify, BX Team, Minecraft, observability, analytics, plugins, mods, error tracking' },
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
