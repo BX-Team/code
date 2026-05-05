@@ -2,6 +2,9 @@ import { account, db, session, user, verification } from "@bx-team/stratus";
 import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -18,10 +21,20 @@ export const auth = betterAuth({
   },
   plugins: [
     magicLink({
-      sendMagicLink: async ({ email, token, url, metadata }, ctx) => {
-        // TODO: implement email sending
-      }
-    })
+      sendMagicLink: async ({ email, url }) => {
+        await resend.emails.send({
+          from: "BX Team <account@bxteam.org>",
+          to: email,
+          template: {
+            id: process.env.RESEND_MAGIC_LINK_TEMPLATE_ID as string,
+            variables: {
+              magic_link: url,
+              email,
+            },
+          },
+        });
+      },
+    }),
   ],
   socialProviders: {
     github: {

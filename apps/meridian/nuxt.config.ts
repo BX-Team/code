@@ -5,6 +5,11 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    optimizeDeps: {
+      include: [
+        '@lucide/vue',
+      ]
+    }
   },
 
   css: [
