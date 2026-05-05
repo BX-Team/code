@@ -17,6 +17,7 @@
     "@bx-team/ui": "workspace:*",
     "@clickhouse/client": "^1.18.3",
     "@lucide/vue": "^1.14.0",
+    "@nuxt/fonts": "^0.14.0",
     "@tanstack/vue-table": "^8.21.3",
     "@unovis/ts": "^1.6.5",
     "@unovis/vue": "^1.6.5",

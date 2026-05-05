@@ -13,8 +13,16 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@nuxt/fonts',
     'nuxt-umami'
   ],
+
+  fonts: {
+    families: [
+      { name: 'Inter', provider: 'google', weights: [100, 200, 300, 400, 500, 600, 700, 800, 900], styles: ['normal', 'italic'] },
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
+    ],
+  },
 
   css: [
     '~/assets/css/tailwind.css',
@@ -30,11 +38,6 @@ export default defineNuxtConfig({
       meta: [
         { name: 'description', content: 'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players' },
         { name: 'keywords', content: 'Pulsify, BX Team, Minecraft, observability, analytics, plugins, mods, error tracking' },
-      ],
-      link: [
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600&display=swap' },
       ],
     },
   },

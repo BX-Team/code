@@ -1,10 +1,8 @@
 /* ===========================================================
    BX Team / Pulsify — Design Tokens
    Dark-first: cyan→green brand on near-black slate canvas.
-   Inter UI · JetBrains Mono code.
+   Inter UI · JetBrains Mono code. (imported by frontend with @nuxt/fonts)
    =========================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
 	/* ── Surfaces ── */
