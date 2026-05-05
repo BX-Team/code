@@ -12,6 +12,10 @@ export default defineNuxtConfig({
     }
   },
 
+  modules: [
+    'nuxt-umami'
+  ],
+
   css: [
     '~/assets/css/tailwind.css',
   ],
@@ -28,6 +32,12 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;600&display=swap' },
       ],
     },
+  },
+
+  umami: {
+    id: '73b3992f-6a02-4cbd-a0d5-937aa585b8ae',
+    host: 'https://analytics.bxteam.org',
+    autoTrack: true,
   },
 
   runtimeConfig: {
