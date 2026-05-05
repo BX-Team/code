@@ -10,11 +10,27 @@ import {
 	ProjectsGrid,
 } from '@bx-team/ui'
 import { Activity, Users, AlertCircle, Box, Database, Zap } from '@lucide/vue'
+import { DISCORD_URL } from '~/config/links'
+
+const { data: session } = await useSession()
+const loggedIn = computed(() => !!session.value?.user)
 
 useHead({
 	title: 'BX Team',
 	titleTemplate: null,
 })
+
+const heroWords = ['Observability', 'Performance', 'Server plugins', 'Runtime deps']
+const heroWordIdx = ref(0)
+const heroWord = computed(() => heroWords[heroWordIdx.value])
+
+let wordTimer: ReturnType<typeof setInterval>
+onMounted(() => {
+	wordTimer = setInterval(() => {
+		heroWordIdx.value = (heroWordIdx.value + 1) % heroWords.length
+	}, 4500)
+})
+onUnmounted(() => clearInterval(wordTimer))
 
 const features = [
 	{
@@ -45,7 +61,7 @@ const features = [
 	{
 		icon: Zap,
 		title: '202 Accepted, always',
-		body: 'Ingest is fire-and-forget. Hono validates auth, drops the batch onto BullMQ, returns immediately.',
+		body: 'Ingest is fire-and-forget. The gateway validates auth, drops the batch onto the queue, returns immediately.',
 	},
 ]
 
@@ -65,20 +81,25 @@ const projects = [
 		<div class="lp-atmosphere" aria-hidden="true" />
 
 		<!-- Floating pill navbar -->
-		<Navbar />
+		<Navbar :discord-href="DISCORD_URL" :logged-in="loggedIn" />
 
 		<!-- Hero -->
 		<Hero
-			kicker="Now in early access"
-			lede="Heartbeats, players, errors, custom metrics — all in one place. Drop in the Java SDK, expose a DSN, and the dashboard fills in."
+			kicker="Pulsify · Open Beta"
+			lede="BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players."
 			no-atmosphere
 		>
 			<template #title>
-				<span class="bx-text-grad">Observability</span> for Minecraft.
+				<span class="hero-word-wrap">
+					<Transition name="word" mode="out-in">
+						<span :key="heroWord" class="bx-text-grad">{{ heroWord }}</span>
+					</Transition>
+				</span>
+				for Minecraft.
 			</template>
 			<template #cta>
-				<Button variant="primary" href="/docs">Get started</Button>
-				<Button variant="secondary" href="/pulsify">Read the docs</Button>
+				<Button variant="primary" href="/docs" @click="umTrackEvent('cta_click', { action: 'explore_docs' })">Explore docs</Button>
+				<Button variant="secondary" href="/dashboard" @click="umTrackEvent('cta_click', { action: 'try_pulsify' })">Try Pulsify</Button>
 			</template>
 		</Hero>
 
@@ -87,7 +108,7 @@ const projects = [
 
 		<!-- Feature grid -->
 		<FeatureGrid
-			eyebrow="What ships in v1"
+			eyebrow="What is Pulsify?"
 			heading="Observability built for the game loop."
 			lede="Pulsify sits between your server and a low-latency ingest pipeline. Drop in the Java SDK, expose a DSN, and the dashboard fills in."
 		>
@@ -123,11 +144,29 @@ const projects = [
 		</ProjectsGrid>
 
 		<!-- Footer -->
-		<Footer />
+		<Footer :discord-href="DISCORD_URL" />
 	</div>
 </template>
 
 <style scoped>
+.hero-word-wrap {
+	display: inline-block;
+	position: relative;
+}
+
+.word-enter-active,
+.word-leave-active {
+	transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.word-enter-from {
+	opacity: 0;
+	transform: translateY(10px);
+}
+.word-leave-to {
+	opacity: 0;
+	transform: translateY(-10px);
+}
+
 .lp {
 	position: relative;
 	min-height: 100vh;

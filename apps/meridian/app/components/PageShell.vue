@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Navbar, Footer } from '@bx-team/ui'
+import { DISCORD_URL } from '~/config/links'
 </script>
 
 <template>
 	<div class="shell">
-		<Navbar />
+		<Navbar :discord-href="DISCORD_URL" />
 		<slot />
-		<Footer />
+		<Footer :discord-href="DISCORD_URL" />
 	</div>
 </template>
 

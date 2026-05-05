@@ -26,6 +26,10 @@ interface OverviewResponse {
 
 const range = ref<'24h' | '7d' | '30d'>('7d')
 
+watch(range, r => umTrackEvent('dashboard_range_change', { range: r }))
+
+onMounted(() => umTrackView())
+
 const { data: overview, pending } = await useAsyncData<OverviewResponse>(
 	'v3-overview',
 	() => $fetch<OverviewResponse>('/api/v3/overview', { query: { range: range.value } }),

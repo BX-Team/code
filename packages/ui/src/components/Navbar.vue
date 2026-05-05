@@ -12,7 +12,9 @@ const props = withDefaults(defineProps<{
 	links?: NavLink[]
 	brandHref?: string
 	loginHref?: string
+	dashboardHref?: string
 	discordHref?: string
+	loggedIn?: boolean
 }>(), {
 	active: '',
 	links: () => [
@@ -23,7 +25,9 @@ const props = withDefaults(defineProps<{
 	],
 	brandHref: '/',
 	loginHref: '/login',
-	discordHref: 'https://discord.gg/bxteam',
+	dashboardHref: '/dashboard',
+	discordHref: 'https://discord.gg/qNyybSSPm5',
+	loggedIn: false,
 })
 
 const emit = defineEmits<{
@@ -57,7 +61,8 @@ const emit = defineEmits<{
 					<a :href="discordHref" class="bx-bar__ghost" target="_blank" rel="noopener">
 						Discord
 					</a>
-					<a :href="loginHref" class="bx-bar__login">Login</a>
+					<a v-if="loggedIn" :href="dashboardHref" class="bx-bar__login">Dashboard</a>
+					<a v-else :href="loginHref" class="bx-bar__login">Login</a>
 				</div>
 			</slot>
 		</nav>

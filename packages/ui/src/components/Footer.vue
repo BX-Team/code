@@ -23,35 +23,24 @@ const props = withDefaults(defineProps<{
 			title: 'BX Team',
 			links: [
 				{ label: 'Documentation', href: '/docs' },
-				{ label: 'Our team',       href: '/team' },
-				{ label: 'Status',         href: '/status' },
-				{ label: 'Maven Repo',     href: 'https://repo.bxteam.org' },
-			],
-		},
-		{
-			title: 'Pulsify',
-			links: [
-				{ label: 'Product',       href: '/pulsify' },
-				{ label: 'SDK reference', href: '/docs/sdk' },
-				{ label: 'Changelog',     href: '/changelog' },
-				{ label: 'Pricing',       href: '/pricing' },
-			],
-		},
-		{
-			title: 'Resources',
-			links: [
-				{ label: 'Flags Generator', href: '/flags' },
-				{ label: 'Server software', href: '/downloads' },
-				{ label: 'Plugins',         href: '/plugins' },
+				{ label: 'Downloads',     href: '/downloads' },
+				{ label: 'Our team',      href: '/team' },
+				{ label: 'Status',        href: '/status' },
 			],
 		},
 		{
 			title: 'Community',
 			links: [
-				{ label: 'Discord',        href: 'https://discord.gg/bxteam' },
-				{ label: 'GitHub',         href: 'https://github.com/BX-Team' },
-				{ label: 'Contribute',     href: '/contribute' },
-				{ label: 'Code of conduct', href: '/conduct' },
+				{ label: 'Discord',    href: 'https://discord.gg/qNyybSSPm5' },
+				{ label: 'GitHub',     href: 'https://github.com/BX-Team' },
+				{ label: 'Contribute', href: '/contribute' },
+			],
+		},
+		{
+			title: 'Legal',
+			links: [
+				{ label: 'Terms of use',    href: '/legal/terms-of-use' },
+				{ label: 'Privacy policy',  href: '/legal/privacy-policy' },
 			],
 		},
 	],
@@ -185,7 +174,7 @@ const props = withDefaults(defineProps<{
 
 .bx-footer__cols {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 	gap: 18px;
 }
 

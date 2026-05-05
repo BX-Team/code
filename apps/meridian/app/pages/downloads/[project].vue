@@ -86,13 +86,13 @@ const docsUrl = computed(() => `/docs/${projectId}`)
           </div>
 
           <div class="cta-row">
-            <Button v-if="latestBuild" :href="latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
+            <Button v-if="latestBuild" :href="latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg" @click="umTrackEvent('download', { project: project.name, build: latestBuild.id, channel: latestBuild.channel })">
               <Download :size="18" :stroke-width="1.7" /> Download Latest Build
             </Button>
             <Button :href="docsUrl" variant="secondary" size="lg">
               <BookOpen :size="18" :stroke-width="1.7" /> Documentation
             </Button>
-            <Button :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="secondary" size="lg">
+            <Button :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="secondary" size="lg" @click="umTrackEvent('github_click', { project: project.name, location: 'downloads' })">
               <img src="~/assets/external/github.svg" width="18" height="18" alt="" aria-hidden="true" class="btn-icon" /> Source Code
             </Button>
           </div>

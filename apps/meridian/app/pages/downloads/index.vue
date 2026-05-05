@@ -90,7 +90,7 @@ useHead({
           </div>
 
           <footer class="proj-foot">
-            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary">
+            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" @click="umTrackEvent('download', { project: p.project.name, build: p.latestBuild.id, channel: p.latestBuild.channel })">
               <Download :size="16" :stroke-width="1.7" />
               Download Latest
             </Button>

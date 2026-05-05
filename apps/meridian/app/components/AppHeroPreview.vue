@@ -1,25 +1,49 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Activity, Users, AlertCircle, Box, Database, Search, Zap, Check, ArrowRight } from '@lucide/vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Activity, Users, AlertCircle, Box, Database, Search, Zap } from '@lucide/vue'
 
-type Tab = 'search' | 'dashboard' | 'errors'
+type Tab = 'docs' | 'dashboard' | 'errors'
+
+const TAB_ORDER: Tab[] = ['docs', 'dashboard', 'errors']
+const TAB_MS = 4500
 
 const activeTab = ref<Tab>('dashboard')
+const paused = ref(false)
+
+let timer: ReturnType<typeof setInterval>
+
+function startTimer() {
+	clearInterval(timer)
+	timer = setInterval(() => {
+		if (!paused.value) {
+			const idx = TAB_ORDER.indexOf(activeTab.value)
+			activeTab.value = TAB_ORDER[(idx + 1) % TAB_ORDER.length]
+		}
+	}, TAB_MS)
+}
+
+function selectTab(id: Tab) {
+	activeTab.value = id
+	startTimer()
+}
+
+onMounted(startTimer)
+onUnmounted(() => clearInterval(timer))
 
 const tabs: { id: Tab; label: string }[] = [
-	{ id: 'search',    label: 'Search' },
+	{ id: 'docs',      label: 'Docs' },
 	{ id: 'dashboard', label: 'Dashboard' },
 	{ id: 'errors',    label: 'Errors' },
 ]
 
-const sidebarActive = ref('quickstart')
+const docsSideActive = ref('installation')
 const dashSideActive = ref('creative-hub')
 const dashSegment = ref<'24h' | '7d' | '30d'>('24h')
 
 const previewUrls: Record<Tab, string> = {
-	search:    'docs.bxteam.org/pulsify/quickstart',
-	dashboard: 'app.bxteam.org/creative-hub/overview',
-	errors:    'app.bxteam.org/creative-hub/errors',
+	docs:      'bxteam.org/docs/divinemc/getting-started/installation',
+	dashboard: 'bxteam.org/dashboard/creative-hub',
+	errors:    'bxteam.org/dashboard/creative-hub/errors',
 }
 
 /* ── Chart ── */
@@ -39,15 +63,16 @@ const { chartLine, chartArea } = (() => {
 <template>
 	<div class="pv-wrap">
 		<!-- Tab selector -->
-		<div class="pv-tabs">
+		<div class="pv-tabs" @mouseenter="paused = true" @mouseleave="paused = false">
 			<button
 				v-for="tab in tabs"
 				:key="tab.id"
 				class="pv-tab"
 				:class="{ 'pv-tab--active': activeTab === tab.id }"
-				@click="activeTab = tab.id"
+				@click="selectTab(tab.id)"
 			>
 				{{ tab.label }}
+				<span v-if="activeTab === tab.id" :key="activeTab" class="pv-tab-prog" :style="`--dur:${TAB_MS}ms`" />
 			</button>
 		</div>
 
@@ -66,90 +91,76 @@ const { chartLine, chartArea } = (() => {
 			</div>
 
 			<!-- Window body -->
-			<div class="pv-body">
-				<!-- ── Search tab ── -->
-				<template v-if="activeTab === 'search'">
+			<Transition name="tab" mode="out-in">
+			<div :key="activeTab" class="pv-body">
+				<!-- ── Docs tab ── -->
+				<template v-if="activeTab === 'docs'">
 					<aside class="pv-side">
-						<h5>Getting started</h5>
+						<div class="pv-proj-btn">
+							<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>
+							<span>DivineMC</span>
+						</div>
+						<h5>Overview</h5>
 						<ul>
-							<li :class="{ active: sidebarActive === 'quickstart' }" @click="sidebarActive = 'quickstart'">
-								<span class="ic"><Zap :size="13" :stroke-width="1.6" /></span>Quickstart
+							<li :class="{ active: docsSideActive === 'overview' }" @click="docsSideActive = 'overview'">
+								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Introduction
 							</li>
-							<li :class="{ active: sidebarActive === 'install' }" @click="sidebarActive = 'install'">
-								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Installation
+						</ul>
+						<h5>Getting Started</h5>
+						<ul>
+							<li :class="{ active: docsSideActive === 'installation' }" @click="docsSideActive = 'installation'">
+								<span class="ic"><Zap :size="13" :stroke-width="1.6" /></span>Installation
 							</li>
-							<li :class="{ active: sidebarActive === 'sdk' }" @click="sidebarActive = 'sdk'">
-								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Java SDK
+							<li :class="{ active: docsSideActive === 'plugins' }" @click="docsSideActive = 'plugins'">
+								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Plugins
 							</li>
-							<li :class="{ active: sidebarActive === 'config' }" @click="sidebarActive = 'config'">
+						</ul>
+						<h5>Features</h5>
+						<ul>
+							<li :class="{ active: docsSideActive === 'parallel' }" @click="docsSideActive = 'parallel'">
+								<span class="ic"><Activity :size="13" :stroke-width="1.6" /></span>Parallel Ticking
+							</li>
+							<li :class="{ active: docsSideActive === 'chunks' }" @click="docsSideActive = 'chunks'">
+								<span class="ic"><Database :size="13" :stroke-width="1.6" /></span>Chunk Ticking
+							</li>
+						</ul>
+						<h5>Reference</h5>
+						<ul>
+							<li :class="{ active: docsSideActive === 'config' }" @click="docsSideActive = 'config'">
 								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Configuration
 							</li>
-						</ul>
-						<h5>Projects</h5>
-						<ul>
-							<li :class="{ active: sidebarActive === 'pulsify' }" @click="sidebarActive = 'pulsify'">
-								<span class="ic"><Activity :size="13" :stroke-width="1.6" /></span>Pulsify
-							</li>
-							<li :class="{ active: sidebarActive === 'divine' }" @click="sidebarActive = 'divine'">
-								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>DivineMC
-							</li>
-							<li :class="{ active: sidebarActive === 'quark' }" @click="sidebarActive = 'quark'">
-								<span class="ic"><Database :size="13" :stroke-width="1.6" /></span>Quark
-							</li>
-						</ul>
-						<h5>References</h5>
-						<ul>
-							<li :class="{ active: sidebarActive === 'api' }" @click="sidebarActive = 'api'">
-								<span class="ic"><Database :size="13" :stroke-width="1.6" /></span>Ingest API
-							</li>
-							<li :class="{ active: sidebarActive === 'metrics' }" @click="sidebarActive = 'metrics'">
-								<span class="ic"><Activity :size="13" :stroke-width="1.6" /></span>Custom Metrics
-							</li>
-							<li :class="{ active: sidebarActive === 'errors' }" @click="sidebarActive = 'errors'">
-								<span class="ic"><AlertCircle :size="13" :stroke-width="1.6" /></span>Error Tracker
+							<li :class="{ active: docsSideActive === 'props' }" @click="docsSideActive = 'props'">
+								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>System Properties
 							</li>
 						</ul>
 					</aside>
 
-					<main class="pv-main">
-						<div class="pv-search">
-							<Search :size="14" :stroke-width="1.6" />
-							<span class="pv-search__q">How do I install the Pulsify SDK<span class="pv-cursor" /></span>
-							<span class="pv-esc">ESC</span>
-						</div>
+					<main class="pv-main pv-doc">
+						<div class="doc-breadcrumb">DivineMC › Getting Started</div>
+						<h2 class="doc-title">Installation</h2>
+						<p class="doc-lede">Download the latest DivineMC jar and drop it into your server directory.</p>
 
-						<div class="pv-result">
-							<div class="pv-result__ic">
-								<Zap :size="14" :stroke-width="1.6" />
+						<div class="doc-steps">
+							<div class="doc-step">
+								<div class="step-num">1</div>
+								<div class="step-body">
+									<div class="step-title">Download the JAR</div>
+									<div class="step-desc">Go to Downloads and grab the latest build for your Minecraft version.</div>
+								</div>
 							</div>
-							<div class="pv-result__body">
-								<h6>Can you tell me about Pulsify event types?</h6>
-								<p>Use AI to find answers about heartbeats, player events, and custom metrics.</p>
+							<div class="doc-step">
+								<div class="step-num">2</div>
+								<div class="step-body">
+									<div class="step-title">Replace your server jar</div>
+									<div class="step-desc">Rename the downloaded file to <code>server.jar</code> and place it in your root directory.</div>
+								</div>
 							</div>
-							<span class="pv-result__arr"><ArrowRight :size="14" :stroke-width="1.6" /></span>
-						</div>
-
-						<div class="pv-section-label">Documentation › SDK</div>
-
-						<div class="pv-result">
-							<div class="pv-result__body">
-								<h6>Initialize StatClient in your plugin</h6>
-								<p>Configure the DSN, set a flush interval, and register the client in onEnable().</p>
-							</div>
-						</div>
-						<div class="pv-result">
-							<div class="pv-result__body">
-								<h6>Sending custom metrics</h6>
-								<p>Track player counts, plugin uptime, or any numeric value with a labelled metric.</p>
-							</div>
-						</div>
-						<div class="pv-result pv-result--featured">
-							<div class="pv-result__ic pv-result__ic--featured">
-								<Check :size="14" :stroke-width="2" />
-							</div>
-							<div class="pv-result__body">
-								<h6><span class="pv-tag">RUN</span>Generate optimized server flags</h6>
-								<p>Output JVM flags tailored to your hardware and player count.</p>
+							<div class="doc-step">
+								<div class="step-num doc-step-active">3</div>
+								<div class="step-body">
+									<div class="step-title">Start the server</div>
+									<div class="step-desc">Run your start script. DivineMC is a drop-in replacement — no extra configuration required.</div>
+								</div>
 							</div>
 						</div>
 					</main>
@@ -157,12 +168,15 @@ const { chartLine, chartArea } = (() => {
 					<aside class="pv-side-r">
 						<h5>On this page</h5>
 						<ul>
-							<li class="active">Quickstart</li>
-							<li>Installation</li>
+							<li class="active">Installation</li>
+							<li>Prerequisites</li>
+							<li>Download</li>
 							<li>Configuration</li>
-							<li>First event</li>
-							<li>Verifying ingestion</li>
 						</ul>
+						<div class="toc-foot-mini">
+							<span>Edit on GitHub</span>
+							<span>Report an issue</span>
+						</div>
 					</aside>
 				</template>
 
@@ -219,24 +233,36 @@ const { chartLine, chartArea } = (() => {
 
 						<div class="dash-stats">
 							<div class="stat">
-								<div class="stat-l">Online now</div>
+								<div class="stat-row">
+									<div class="stat-l">Online now</div>
+									<span class="stat-trend up">↗ +12</span>
+								</div>
 								<div class="stat-v">142</div>
-								<div class="stat-d">+12</div>
+								<div class="stat-cap">players connected</div>
 							</div>
 							<div class="stat">
-								<div class="stat-l">Peak today</div>
+								<div class="stat-row">
+									<div class="stat-l">Peak today</div>
+									<span class="stat-trend up">↗ +4%</span>
+								</div>
 								<div class="stat-v">218</div>
-								<div class="stat-d">+4%</div>
+								<div class="stat-cap">highest concurrent</div>
 							</div>
 							<div class="stat">
-								<div class="stat-l">Errors (24h)</div>
+								<div class="stat-row">
+									<div class="stat-l">Errors (24h)</div>
+									<span class="stat-trend down">↘ −2</span>
+								</div>
 								<div class="stat-v">3</div>
-								<div class="stat-d stat-d--ok">−2</div>
+								<div class="stat-cap">across all nodes</div>
 							</div>
 							<div class="stat">
-								<div class="stat-l">Sessions</div>
+								<div class="stat-row">
+									<div class="stat-l">Sessions</div>
+									<span class="stat-trend up">↗ +96</span>
+								</div>
 								<div class="stat-v">1,284</div>
-								<div class="stat-d">+96</div>
+								<div class="stat-cap">last 24 hours</div>
 							</div>
 						</div>
 
@@ -290,7 +316,11 @@ const { chartLine, chartArea } = (() => {
 				<!-- ── Errors tab ── -->
 				<template v-else>
 					<aside class="pv-side">
-						<h5>Workspace</h5>
+						<div class="pv-proj-btn">
+							<span class="ic"><Activity :size="13" :stroke-width="1.6" /></span>
+							<span>Pulsify</span>
+						</div>
+						<h5>Navigation</h5>
 						<ul>
 							<li>
 								<span class="ic"><Activity :size="13" :stroke-width="1.6" /></span>Overview
@@ -299,11 +329,8 @@ const { chartLine, chartArea } = (() => {
 								<span class="ic"><Users :size="13" :stroke-width="1.6" /></span>Players
 							</li>
 							<li class="active">
-								<span class="ic"><AlertCircle :size="13" :stroke-width="1.6" /></span>Errors
+								<span class="ic"><AlertCircle :size="13" :stroke-width="1.6" /></span>Issues
 								<span class="badge-num">3</span>
-							</li>
-							<li>
-								<span class="ic"><Box :size="13" :stroke-width="1.6" /></span>Plugins
 							</li>
 						</ul>
 						<h5>Projects</h5>
@@ -318,50 +345,49 @@ const { chartLine, chartArea } = (() => {
 					</aside>
 
 					<main class="pv-main">
-						<div class="dash-hd">
-							<div>
-								<div style="font: 600 10.5px var(--font-sans); text-transform: uppercase; letter-spacing: .08em; color: var(--mute); margin-bottom: 4px;">
-									creative-hub · Errors
+						<div class="err-card">
+							<div class="err-card-hd">
+								<div>
+									<div class="err-card-title">Issues</div>
+									<div class="err-card-sub">3 total · across all nodes</div>
 								</div>
-								<div class="dash-title">3 issues</div>
+								<div class="dash-live">
+									<span class="lvl lvl--err" style="padding: 3px 8px;">2 ERR</span>
+									<span class="lvl lvl--warn" style="padding: 3px 8px;">1 WARN</span>
+								</div>
 							</div>
-							<div class="dash-live">
-								<span class="b-mono">24h</span>
-								<span class="lvl lvl--err" style="padding: 3px 8px; font-size: 10px;">2 ERR</span>
-								<span class="lvl lvl--warn" style="padding: 3px 8px; font-size: 10px;">1 WARN</span>
-							</div>
-						</div>
 
-						<div class="err-table">
-							<div class="err-table-row err-table-row--header">
-								<span>Level</span>
-								<span>Message</span>
-								<span>Count</span>
-								<span>Last seen</span>
-							</div>
-							<div class="err-table-row err-table-row--err">
-								<span><span class="lvl lvl--err">ERR</span></span>
-								<span>NullPointerException at WorldGenRegion.getBlock</span>
-								<span>47</span>
-								<span class="err-time">2h ago</span>
-							</div>
-							<div class="err-table-row err-table-row--warn">
-								<span><span class="lvl lvl--warn">WARN</span></span>
-								<span>Plugin load took 1840ms · NDailyRewards</span>
-								<span>12</span>
-								<span class="err-time">4h ago</span>
-							</div>
-							<div class="err-table-row err-table-row--err">
-								<span><span class="lvl lvl--err">ERR</span></span>
-								<span>ConcurrentModificationException · NDailyRewards</span>
-								<span>3</span>
-								<span class="err-time">1d ago</span>
+							<div class="err-table">
+								<div class="err-table-row err-table-row--header">
+									<span>Level</span>
+									<span>Message</span>
+									<span>Count</span>
+									<span>Last seen</span>
+								</div>
+								<div class="err-table-row err-table-row--err">
+									<span><span class="lvl lvl--err">ERR</span></span>
+									<span>NullPointerException at WorldGenRegion.getBlock</span>
+									<span>47</span>
+									<span class="err-time">2h ago</span>
+								</div>
+								<div class="err-table-row err-table-row--warn">
+									<span><span class="lvl lvl--warn">WARN</span></span>
+									<span>Plugin load took 1840ms · NDailyRewards</span>
+									<span>12</span>
+									<span class="err-time">4h ago</span>
+								</div>
+								<div class="err-table-row err-table-row--err">
+									<span><span class="lvl lvl--err">ERR</span></span>
+									<span>ConcurrentModificationException · NDailyRewards</span>
+									<span>3</span>
+									<span class="err-time">1d ago</span>
+								</div>
 							</div>
 						</div>
 					</main>
 
 					<aside class="pv-side-r">
-						<h5>Top error</h5>
+						<h5>Top issue</h5>
 						<div style="font: 500 11px var(--font-mono); color: var(--err); margin-bottom: 8px;">NullPointerException</div>
 						<div style="font: 400 11px/1.5 var(--font-mono); color: var(--dim); word-break: break-word;">
 							at WorldGenRegion.getBlock(WorldGenRegion.java:158)<br>
@@ -370,12 +396,13 @@ const { chartLine, chartArea } = (() => {
 						</div>
 						<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);">
 							<div class="stat-l" style="margin-bottom: 6px;">Occurrences</div>
-							<div style="font: 600 18px var(--font-sans); color: var(--fg-hi);">47</div>
+							<div style="font: 600 22px var(--font-sans); color: var(--fg-hi); letter-spacing: -0.02em;">47</div>
 							<div style="font: 500 11px var(--font-mono); color: var(--brand-2); margin-top: 2px;">↑ +12 today</div>
 						</div>
 					</aside>
 				</template>
 			</div>
+			</Transition>
 		</div>
 	</div>
 </template>
@@ -398,6 +425,7 @@ const { chartLine, chartArea } = (() => {
 }
 
 .pv-tab {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -409,6 +437,7 @@ const { chartLine, chartArea } = (() => {
 	font-family: inherit;
 	border-radius: var(--r-full);
 	cursor: pointer;
+	overflow: hidden;
 	transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
@@ -418,6 +447,23 @@ const { chartLine, chartArea } = (() => {
 	background: color-mix(in oklab, var(--bg-1) 80%, transparent);
 	border-color: var(--line);
 }
+
+.pv-tab-prog {
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	width: 0%;
+	height: 2px;
+	background: linear-gradient(90deg, var(--brand), var(--brand-2));
+	border-radius: 1px;
+	animation: tab-prog var(--dur, 4500ms) linear forwards;
+}
+@keyframes tab-prog { to { width: 100%; } }
+
+.tab-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.tab-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
+.tab-enter-from   { opacity: 0; transform: translateY(6px); }
+.tab-leave-to     { opacity: 0; transform: translateY(-4px); }
 
 /* ── Window chrome ── */
 .pv-window {
@@ -853,5 +899,176 @@ li.active .ic { color: var(--brand); }
 .err-time {
 	font: 400 11px var(--font-mono);
 	color: var(--mute);
+}
+
+/* ── Docs tab ── */
+.pv-proj-btn {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: var(--r-sm);
+	font: 500 12.5px var(--font-sans);
+	color: var(--fg-hi);
+	margin-bottom: 14px;
+	cursor: pointer;
+}
+
+.pv-doc {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.doc-breadcrumb {
+	font: 500 11px var(--font-mono);
+	color: var(--mute);
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+
+.doc-title {
+	margin: 0;
+	font: 600 20px var(--font-sans);
+	color: var(--fg-hi);
+	letter-spacing: -0.01em;
+}
+
+.doc-lede {
+	margin: 0;
+	font: 400 13px/1.6 var(--font-sans);
+	color: var(--dim);
+}
+
+.doc-steps {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.doc-step {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 12px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+}
+
+.step-num {
+	width: 22px;
+	height: 22px;
+	display: inline-grid;
+	place-items: center;
+	border-radius: 50%;
+	background: var(--bg-3);
+	border: 1px solid var(--line);
+	font: 600 11px var(--font-mono);
+	color: var(--mute);
+	flex-shrink: 0;
+}
+
+.doc-step-active {
+	background: var(--brand);
+	border-color: transparent;
+	color: var(--bg-0);
+}
+
+.step-title {
+	font: 600 12.5px var(--font-sans);
+	color: var(--fg-hi);
+	margin-bottom: 3px;
+}
+
+.step-desc {
+	font: 400 12px/1.5 var(--font-sans);
+	color: var(--dim);
+}
+
+.step-desc code {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	background: var(--bg-3);
+	border: 1px solid var(--line);
+	padding: 1px 4px;
+	border-radius: 3px;
+	color: var(--brand);
+}
+
+.toc-foot-mini {
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid var(--line);
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.toc-foot-mini span {
+	font: 500 11.5px var(--font-sans);
+	color: var(--dim);
+	cursor: pointer;
+	padding: 3px 0;
+}
+
+.toc-foot-mini span:hover { color: var(--fg-hi); }
+
+/* ── Errors card wrapper ── */
+.err-card {
+	background: var(--bg-1);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.err-card-hd {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--line);
+}
+
+.err-card-title {
+	font: 600 14px var(--font-sans);
+	color: var(--fg-hi);
+	margin-bottom: 2px;
+}
+
+.err-card-sub {
+	font: 400 12px var(--font-sans);
+	color: var(--mute);
+}
+
+/* ── Dashboard KPI trends ── */
+.stat-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.stat-trend {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 7px;
+	border-radius: 9999px;
+	border: 1px solid var(--line);
+	font: 500 10.5px var(--font-mono);
+	background: var(--bg-3);
+	color: var(--fg-hi);
+}
+
+.stat-trend.up   { color: var(--brand-2); border-color: color-mix(in oklab, var(--brand-2) 40%, var(--line)); }
+.stat-trend.down { color: var(--err);     border-color: color-mix(in oklab, var(--err) 40%, var(--line)); }
+
+.stat-cap {
+	margin-top: 6px;
+	font: 500 11px var(--font-sans);
+	color: var(--fg-hi);
 }
 </style>

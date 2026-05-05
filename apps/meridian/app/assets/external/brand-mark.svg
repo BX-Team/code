@@ -1,17 +1,13 @@
-<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg class="mark" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
-    <linearGradient id="bm-grad" x1="22" y1="0" x2="0" y2="22" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#4BC5D8"/>
-      <stop offset="40%"  stop-color="#4DD8A8"/>
-      <stop offset="72%"  stop-color="#2B8FA3"/>
-      <stop offset="100%" stop-color="#4BC5D8"/>
+    <linearGradient id="bm-grad-docs" x1="22" y1="0" x2="0" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4BC5D8" />
+      <stop offset="40%" stop-color="#4DD8A8" />
+      <stop offset="72%" stop-color="#2B8FA3" />
+      <stop offset="100%" stop-color="#4BC5D8" />
     </linearGradient>
-    <filter id="bm-glow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
-  <rect width="22" height="22" rx="6" fill="url(#bm-grad)"/>
-  <rect x="5" y="5" width="12" height="12" rx="3" fill="#121418"/>
-  <rect x="8" y="8" width="6" height="6" rx="1" fill="#4BC5D8" filter="url(#bm-glow)"/>
+  <rect width="22" height="22" rx="6" fill="url(#bm-grad-docs)" />
+  <rect x="5" y="5" width="12" height="12" rx="3" fill="#121418" />
+  <rect x="8" y="8" width="6" height="6" rx="1" fill="#4BC5D8" />
 </svg>

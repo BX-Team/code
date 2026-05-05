@@ -1,0 +1,17 @@
+export const DISCORD_URL = 'https://discord.gg/qNyybSSPm5'
+
+const DOCS_GITHUB_ORG = 'BX-Team'
+const DOCS_GITHUB_REPO = 'docs'
+const DOCS_GITHUB_BRANCH = 'master'
+const DOCS_CONTENT_DIR = 'content'
+
+export function docsEditUrl(stem: string, extension = 'md'): string {
+	return `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/edit/${DOCS_GITHUB_BRANCH}/${DOCS_CONTENT_DIR}/${stem}.${extension}`
+}
+
+export function docsIssueUrl(title?: string): string {
+	const base = `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/issues/new`
+	return title
+		? `${base}?title=${encodeURIComponent(`Issue with: ${title}`)}&labels=documentation`
+		: base
+}

@@ -1,53 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { getCurrentInstance } from 'vue'
 
 const props = withDefaults(defineProps<{ size?: number }>(), { size: 22 })
 
-const r = (n: number) => `${Math.round(props.size * n)}px`
-const style = computed(() => ({
-	width: `${props.size}px`,
-	height: `${props.size}px`,
-	'--bm-r':        r(0.273),
-	'--bm-glow':     r(0.636),
-	'--bm-inset':    r(0.227),
-	'--bm-inner-r':  r(0.136),
-	'--bm-dot':      r(0.273),
-	'--bm-dot-r':    r(0.045),
-	'--bm-dot-glow': r(0.364),
-}))
+const uid = getCurrentInstance()?.uid ?? 0
+const gradId = `bm-g-${uid}`
 </script>
 
 <template>
-	<span class="bm" :style="style" aria-hidden="true" />
+	<svg :width="props.size" :height="props.size" viewBox="0 0 22 22" fill="none" aria-hidden="true" style="flex-shrink:0;display:inline-block">
+		<defs>
+			<linearGradient :id="gradId" x1="22" y1="0" x2="0" y2="22" gradientUnits="userSpaceOnUse">
+				<stop offset="0%"   stop-color="var(--brand)" />
+				<stop offset="40%"  stop-color="var(--brand-2)" />
+				<stop offset="72%"  stop-color="var(--brand)" />
+				<stop offset="100%" stop-color="var(--brand-2)" />
+			</linearGradient>
+		</defs>
+		<rect width="22" height="22" rx="6" :fill="`url(#${gradId})`" />
+		<rect x="5" y="5" width="12" height="12" rx="3" fill="var(--bg-0)" />
+		<rect x="8" y="8" width="6" height="6" rx="1" fill="var(--brand)" />
+	</svg>
 </template>
-
-<style scoped>
-.bm {
-	display: inline-block;
-	flex-shrink: 0;
-	position: relative;
-	border-radius: var(--bm-r);
-	background: conic-gradient(from 200deg, var(--brand), var(--brand-2), oklch(0.55 0.13 200), var(--brand));
-	box-shadow: 0 0 var(--bm-glow) color-mix(in oklab, var(--brand-soft) 60%, var(--brand-soft-2));
-}
-.bm::after {
-	content: "";
-	position: absolute;
-	inset: var(--bm-inset);
-	background: var(--bg-0);
-	border-radius: var(--bm-inner-r);
-}
-.bm::before {
-	content: "";
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: var(--bm-dot);
-	height: var(--bm-dot);
-	background: var(--brand);
-	border-radius: var(--bm-dot-r);
-	z-index: 1;
-	box-shadow: 0 0 var(--bm-dot-glow) var(--brand);
-}
-</style>
