@@ -70,6 +70,79 @@ const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
 			: Promise.resolve(null),
 )
 
+interface ClientVersionsResponse {
+	versions: Array<{ version: string; count: number; pct: number }>
+	total: number
+}
+
+interface GeographyResponse {
+	countries: Array<{ code: string; count: number; pct: number }>
+	total: number
+}
+
+interface SessionDurationResponse {
+	avg_seconds: number
+	median_seconds: number
+	total_sessions: number
+	distribution: Array<{ label: string; count: number; pct: number }>
+}
+
+interface RetentionResponse {
+	d1: { cohort: number; retained: number; pct: number }
+	d7: { cohort: number; retained: number; pct: number }
+}
+
+interface PluginInsightsResponse {
+	total_installs: number
+	enabled_installs: number
+	latest_version: string | null
+	latest_version_adoption: number
+	versions: Array<{ version: string; count: number; pct: number }>
+}
+
+const { data: clientVersions } = await useAsyncData<ClientVersionsResponse | null>(
+	`project-client-versions-${slug.value}`,
+	() =>
+		project.value?.type === 'server'
+			? $fetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, { query: { range: range.value } })
+			: Promise.resolve(null),
+	{ watch: [range] },
+)
+
+const { data: geography } = await useAsyncData<GeographyResponse | null>(
+	`project-geography-${slug.value}`,
+	() =>
+		project.value?.type === 'server'
+			? $fetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
+			: Promise.resolve(null),
+	{ watch: [range] },
+)
+
+const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | null>(
+	`project-session-duration-${slug.value}`,
+	() =>
+		project.value?.type === 'server'
+			? $fetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, { query: { range: range.value } })
+			: Promise.resolve(null),
+	{ watch: [range] },
+)
+
+const { data: retention } = await useAsyncData<RetentionResponse | null>(
+	`project-retention-${slug.value}`,
+	() =>
+		project.value?.type === 'server'
+			? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
+			: Promise.resolve(null),
+)
+
+const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | null>(
+	`project-plugin-insights-${slug.value}`,
+	() =>
+		project.value && project.value.type !== 'server'
+			? $fetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
+			: Promise.resolve(null),
+)
+
 const seriesData = computed(() =>
 	(stats.value?.timeseries ?? []).map(p => ({
 		date: new Date(p.time),
@@ -154,36 +227,52 @@ const donutDash1 = computed(() => `${returningPct.value} ${100 - returningPct.va
 const donutDash2 = computed(() => `${newPct.value} ${100 - newPct.value}`)
 const donutOffset2 = computed(() => -(returningPct.value))
 
+const pluginVersionSegments = computed(() =>
+	(pluginInsights.value?.versions ?? []).slice(0, 3),
+)
+
 const cardStats = computed(() => {
 	if (!project.value) return []
 	const errs = stats.value?.summary.totalErrors ?? 0
 	const meta = stats.value?.metadata
 
 	if (project.value.type === 'server') {
+		const avgSession = sessionDuration.value?.avg_seconds
+			? formatDuration(sessionDuration.value.avg_seconds)
+			: '—'
+		const medianSession = sessionDuration.value?.median_seconds
+			? formatDuration(sessionDuration.value.median_seconds)
+			: '—'
+		const d7Pct = retention.value?.d7?.cohort ? `${retention.value.d7.pct}%` : '—'
+		const d1Pct = retention.value?.d1?.cohort ? `${retention.value.d1.pct}%` : '—'
+
 		return [
 			{
-				label: 'Peak online',
+				label: 'Players online',
 				value: peakOnline.value.toLocaleString(),
-				caption: `Highest concurrent players`,
-				hint: `Last ${range.value}`,
-				trend: peakOnline.value > 0 ? { direction: 'up' as const, value: 'live' } : undefined,
+				caption: `Peak today · ${peakOnline.value.toLocaleString()}`,
+				hint: `Concurrent · last ${range.value}`,
+				trend: peakOnline.value > 0 ? { direction: 'up' as const, value: '↗ live' } : undefined,
 			},
 			{
-				label: 'Avg TPS',
-				value: avgTps.value || '—',
-				caption: avgTps.value >= 19.5 ? 'Healthy' : avgTps.value > 0 ? 'Degraded' : 'No data',
-				hint: '20.0 is perfect',
-				trend: avgTps.value >= 19.5 ? { direction: 'up' as const, value: '+stable' } : undefined,
+				label: 'Avg session',
+				value: avgSession,
+				caption: `Median · ${medianSession}`,
+				hint: sessionDuration.value?.total_sessions
+					? `Last ${range.value} · ${sessionDuration.value.total_sessions.toLocaleString()} sessions`
+					: 'No session data',
 			},
 			{
-				label: 'Unique players (24h)',
-				value: totalPlayers.value.toLocaleString(),
-				caption: `${newPlayers.value} new players`,
-				hint: 'Distinct UUIDs',
-				trend: newPlayers.value > 0 ? { direction: 'up' as const, value: `+${newPlayers.value}` } : undefined,
+				label: 'Player retention',
+				value: d7Pct,
+				caption: 'D7 retention',
+				hint: `D1 · ${d1Pct}`,
+				trend: retention.value?.d7?.cohort && retention.value.d7.pct > 50
+					? { direction: 'up' as const, value: '+stable' }
+					: undefined,
 			},
 			{
-				label: 'Errors',
+				label: 'Errors (24h)',
 				value: errs.toLocaleString(),
 				caption: errs > 0 ? 'Needs attention' : 'No errors',
 				hint: meta?.lastSeenAt ? `Last heartbeat ${new Date(meta.lastSeenAt).toLocaleString()}` : 'Awaiting heartbeat',
@@ -192,25 +281,36 @@ const cardStats = computed(() => {
 		]
 	}
 
+	const pi = pluginInsights.value
 	return [
 		{
-			label: 'Errors',
+			label: 'Active servers',
+			value: (pi?.enabled_installs ?? 0).toLocaleString(),
+			caption: 'Reporting in last 24h',
+			hint: `Of ${(pi?.total_installs ?? 0).toLocaleString()} total installs`,
+			trend: pi?.enabled_installs ? { direction: 'up' as const, value: '↗' } : undefined,
+		},
+		{
+			label: 'Total installs',
+			value: (pi?.total_installs ?? 0).toLocaleString(),
+			caption: 'All server installations',
+			hint: 'Unique server deployments',
+		},
+		{
+			label: 'Adoption',
+			value: pi?.latest_version ? `${pi.latest_version_adoption}%` : '—',
+			caption: `Latest · ${pi?.latest_version ?? '—'}`,
+			hint: `On most recent version`,
+			trend: pi?.latest_version_adoption && pi.latest_version_adoption > 50
+				? { direction: 'up' as const, value: '+stable' }
+				: undefined,
+		},
+		{
+			label: 'Errors (24h)',
 			value: errs.toLocaleString(),
-			caption: errs > 0 ? 'Needs attention' : 'No errors reported',
-			hint: 'Total error groups',
+			caption: errs > 0 ? 'Needs attention' : 'No errors',
+			hint: 'Aggregated across all servers',
 			trend: errs > 0 ? { direction: 'down' as const, value: 'review' } : undefined,
-		},
-		{
-			label: 'Type',
-			value: project.value.type.charAt(0).toUpperCase() + project.value.type.slice(1),
-			caption: 'Pulsify project type',
-			hint: 'Classification of this project',
-		},
-		{
-			label: 'Last seen',
-			value: meta?.lastSeenAt ? new Date(meta.lastSeenAt).toLocaleDateString() : '—',
-			caption: meta?.software ?? '—',
-			hint: meta?.mcVersion ?? '',
 		},
 	]
 })
@@ -237,6 +337,13 @@ const metaSub = computed(() => {
 	const parts = [m.software, m.mcVersion].filter(Boolean)
 	return parts.join(' · ')
 })
+
+function formatDuration(seconds: number): string {
+	if (!seconds || seconds <= 0) return '—'
+	if (seconds < 60) return `${Math.round(seconds)}s`
+	if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`
+	return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+}
 </script>
 
 <template>
@@ -345,22 +452,136 @@ const metaSub = computed(() => {
 					<div class="legend-rows">
 						<div class="lr"><span class="sw brand" />Returning <span class="lv">{{ returningPlayers.toLocaleString() }}</span></div>
 						<div class="lr"><span class="sw brand2" />New <span class="lv">{{ newPlayers.toLocaleString() }}</span></div>
+						<template v-if="retention?.d1?.cohort || retention?.d7?.cohort">
+							<div class="lr ret-sep">D1 retention <span class="lv hi">{{ retention?.d1?.cohort ? retention.d1.pct + '%' : '—' }}</span></div>
+							<div class="lr">D7 retention <span class="lv hi">{{ retention?.d7?.cohort ? retention.d7.pct + '%' : '—' }}</span></div>
+						</template>
 					</div>
 				</div>
 				<div v-else class="donut-empty">No player data for this period</div>
 			</div>
 		</div>
 
-		<div v-else class="px-4 lg:px-6">
+		<div v-else class="px-4 lg:px-6 grid-2-row">
 			<ChartAreaInteractive
 				v-model:time-range="range"
-				title="Activity"
-				description="Events over time"
+				title="Servers using plugin"
+				description="Daily active server installs"
 				:data="seriesData"
 				:config="chartConfig"
 				:loading="pending"
 			/>
+
+			<div class="card donut-card">
+				<div class="card-hd">
+					<div>
+						<h3>Version distribution</h3>
+						<p>By active server · last 24h</p>
+					</div>
+				</div>
+				<div v-if="!pluginInsights?.versions?.length" class="donut-empty">No version data</div>
+				<div v-else class="donut-wrap">
+					<div class="donut-svg-wrap">
+						<svg viewBox="0 0 36 36" width="130" height="130">
+							<circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--bg-3)" stroke-width="3.5" />
+							<circle
+								cx="18" cy="18" r="15.915" fill="none"
+								stroke="var(--brand)" stroke-width="3.5"
+								:stroke-dasharray="`${pluginVersionSegments[0]?.pct ?? 0} ${100 - (pluginVersionSegments[0]?.pct ?? 0)}`"
+								stroke-dashoffset="25"
+								transform="rotate(-90 18 18)"
+							/>
+							<circle v-if="pluginVersionSegments[1]"
+								cx="18" cy="18" r="15.915" fill="none"
+								stroke="var(--brand-2)" stroke-width="3.5"
+								:stroke-dasharray="`${pluginVersionSegments[1].pct} ${100 - pluginVersionSegments[1].pct}`"
+								:stroke-dashoffset="`${-(pluginVersionSegments[0]?.pct ?? 0) + 25}`"
+								transform="rotate(-90 18 18)"
+							/>
+							<circle v-if="pluginVersionSegments[2]"
+								cx="18" cy="18" r="15.915" fill="none"
+								stroke="var(--warn)" stroke-width="3.5"
+								:stroke-dasharray="`${pluginVersionSegments[2].pct} ${100 - pluginVersionSegments[2].pct}`"
+								:stroke-dashoffset="`${-((pluginVersionSegments[0]?.pct ?? 0) + (pluginVersionSegments[1]?.pct ?? 0)) + 25}`"
+								transform="rotate(-90 18 18)"
+							/>
+						</svg>
+						<div class="donut-mid">
+							<div class="dv">{{ (pluginInsights?.enabled_installs ?? 0).toLocaleString() }}</div>
+							<div class="dl">servers</div>
+						</div>
+					</div>
+					<div class="legend-rows">
+						<div v-for="(seg, i) in pluginVersionSegments" :key="seg.version" class="lr">
+							<span class="sw" :class="['brand', 'brand2', 'warn-sw'][i]" />
+							{{ seg.version }}
+							<span v-if="i === 0 && pluginInsights?.latest_version === seg.version" class="tag-latest">latest</span>
+							<span class="lv">{{ seg.count.toLocaleString() }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
+
+		<!-- Server: client versions + geography + session length (grid-3) -->
+		<template v-if="project.type === 'server'">
+			<div class="px-4 lg:px-6 grid-3-col">
+				<div class="card">
+					<div class="card-hd">
+						<div>
+							<h3>Client versions</h3>
+							<p>By unique players · {{ clientVersions?.total ?? 0 }} sessions</p>
+						</div>
+					</div>
+					<div v-if="!(clientVersions?.versions?.length)" class="bar-empty">No data for this period</div>
+					<div v-else class="bar-list">
+						<div v-for="v in clientVersions.versions.slice(0, 6)" :key="v.version" class="bar-row">
+							<div class="bar-label">{{ v.version }}</div>
+							<div class="bar-track"><div class="bar-fill" :style="{ width: v.pct + '%' }" /></div>
+							<div class="bar-pct">{{ v.pct }}%</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card">
+					<div class="card-hd">
+						<div>
+							<h3>Geography</h3>
+							<p>By IP · approximate · {{ geography?.total ?? 0 }} players</p>
+						</div>
+					</div>
+					<div v-if="!(geography?.countries?.length)" class="bar-empty">No data for this period</div>
+					<div v-else class="bar-list">
+						<div v-for="c in geography.countries.slice(0, 6)" :key="c.code" class="bar-row">
+							<div class="bar-label geo-flag">{{ c.code }}</div>
+							<div class="bar-track"><div class="bar-fill bar-fill-2" :style="{ width: c.pct + '%' }" /></div>
+							<div class="bar-pct">{{ c.pct }}%</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card">
+					<div class="card-hd">
+						<div>
+							<h3>Session length</h3>
+							<p>Distribution · {{ sessionDuration?.total_sessions?.toLocaleString() ?? 0 }} sessions</p>
+						</div>
+					</div>
+					<div v-if="!sessionDuration?.total_sessions" class="bar-empty">No completed sessions</div>
+					<div v-else class="bar-list">
+						<div v-for="bucket in sessionDuration.distribution" :key="bucket.label" class="bar-row">
+							<div class="bar-label">{{ bucket.label }}</div>
+							<div class="bar-track"><div class="bar-fill bar-fill-3" :style="{ width: bucket.pct + '%' }" /></div>
+							<div class="bar-pct">{{ bucket.pct }}%</div>
+						</div>
+					</div>
+					<div v-if="sessionDuration?.total_sessions" class="session-footer">
+						<span>Avg <strong>{{ formatDuration(sessionDuration.avg_seconds) }}</strong></span>
+						<span>P50 <strong>{{ formatDuration(sessionDuration.median_seconds) }}</strong></span>
+					</div>
+				</div>
+			</div>
+		</template>
 
 		<!-- Issues -->
 		<div class="px-4 lg:px-6">
@@ -527,9 +748,11 @@ const metaSub = computed(() => {
 	border-radius: 3px;
 	flex-shrink: 0;
 }
-.sw.brand  { background: var(--brand); }
-.sw.brand2 { background: var(--brand-2); }
+.sw.brand   { background: var(--brand); }
+.sw.brand2  { background: var(--brand-2); }
+.sw.warn-sw { background: var(--warn); }
 .lv { margin-left: auto; font: 500 12px var(--font-mono); color: var(--dim); }
+.lv.hi { color: var(--fg-hi); }
 
 .donut-empty {
 	display: flex;
@@ -631,6 +854,81 @@ const metaSub = computed(() => {
 }
 .err-count .sub { display: block; font: 400 10.5px var(--font-mono); color: var(--mute); }
 .err-when { font: 400 11.5px var(--font-mono); color: var(--mute); text-align: right; }
+
+/* 2-col grid (equal columns) */
+.grid-2-col {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+	align-items: start;
+}
+@media (max-width: 760px) { .grid-2-col { grid-template-columns: 1fr; } }
+
+/* 3-col grid */
+.grid-3-col {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 14px;
+	align-items: start;
+}
+@media (max-width: 900px) { .grid-3-col { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .grid-3-col { grid-template-columns: 1fr; } }
+
+/* bar list */
+.bar-list { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 90px 1fr 46px; align-items: center; gap: 10px; }
+.bar-label {
+	font: 500 12px var(--font-mono);
+	color: var(--fg-hi);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.bar-track { height: 6px; border-radius: 3px; background: var(--bg-3); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; background: var(--brand); transition: width 0.3s; }
+.bar-fill-2 { background: var(--brand-2); }
+.bar-fill-3 { background: color-mix(in oklab, var(--brand) 70%, var(--brand-2)); }
+.bar-pct { font: 500 11.5px var(--font-mono); color: var(--dim); text-align: right; }
+.geo-flag { font: 600 11px var(--font-mono); letter-spacing: .04em; }
+
+.session-footer {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--line);
+	font: 500 12px var(--font-sans);
+	color: var(--dim);
+}
+.session-footer strong { color: var(--fg-hi); font-weight: 600; }
+
+.ret-sep {
+	margin-top: 8px;
+	padding-top: 10px;
+	border-top: 1px solid var(--line);
+	color: var(--dim);
+	font-weight: 400;
+}
+
+.tag-latest {
+	display: inline-block;
+	font: 600 9px var(--font-mono);
+	padding: 2px 5px;
+	border-radius: 4px;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	background: color-mix(in oklab, var(--brand-2) 20%, transparent);
+	color: var(--brand-2);
+	border: 1px solid color-mix(in oklab, var(--brand-2) 40%, transparent);
+	margin-left: 4px;
+}
+
+.bar-empty {
+	padding: 28px 0;
+	text-align: center;
+	font: 400 12.5px var(--font-sans);
+	color: var(--mute);
+}
 
 /* spacing helpers */
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
