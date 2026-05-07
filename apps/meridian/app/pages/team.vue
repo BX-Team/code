@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { Button } from '@bx-team/ui'
+import { Button } from '@bx-team/ui';
 
 interface TeamMember {
-  name: string
-  role: string
-  github?: string
+  name: string;
+  role: string;
+  github?: string;
 }
 
 interface TeamSection {
-  title: string
-  description: string
-  members: TeamMember[]
+  title: string;
+  description: string;
+  members: TeamMember[];
 }
 
 interface GithubContributor {
-  login: string
-  html_url: string
-  avatar_url: string
-  contributions: number
-  type: string
+  login: string;
+  html_url: string;
+  avatar_url: string;
+  contributions: number;
+  type: string;
 }
 
 const sections: TeamSection[] = [
@@ -39,9 +39,9 @@ const sections: TeamSection[] = [
       { name: 'p4ts4k', github: 'P4TS4KK', role: 'Task Manager' },
     ],
   },
-]
+];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'website']
+const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'website'];
 
 const { data: contributors } = await useAsyncData<GithubContributor[]>(
   'team:contributors',
@@ -53,29 +53,27 @@ const { data: contributors } = await useAsyncData<GithubContributor[]>(
             headers: { Accept: 'application/vnd.github.v3+json' },
           }).catch(() => [] as GithubContributor[]),
         ),
-      )
+      );
       const merged = results.flat().reduce(
         (acc, c) => {
-          if (c.type !== 'User') return acc
-          acc[c.login] = { ...c, contributions: (acc[c.login]?.contributions ?? 0) + c.contributions }
-          return acc
+          if (c.type !== 'User') return acc;
+          acc[c.login] = { ...c, contributions: (acc[c.login]?.contributions ?? 0) + c.contributions };
+          return acc;
         },
         {} as Record<string, GithubContributor>,
-      )
-      return Object.values(merged).sort(
-        (a, b) => b.contributions - a.contributions || a.login.localeCompare(b.login),
-      )
+      );
+      return Object.values(merged).sort((a, b) => b.contributions - a.contributions || a.login.localeCompare(b.login));
     } catch {
-      return []
+      return [];
     }
   },
   { default: () => [] as GithubContributor[] },
-)
+);
 
 useHead({
   title: 'Team',
   meta: [{ name: 'description', content: 'Meet the BX Team developers and contributors.' }],
-})
+});
 </script>
 
 <template>

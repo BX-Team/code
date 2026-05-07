@@ -1,60 +1,69 @@
 <script setup lang="ts">
-import { X } from '@lucide/vue'
+import { X } from '@lucide/vue';
 
-const open = useCreateProjectDialog()
+const open = useCreateProjectDialog();
 
-const name = ref('')
-const slug = ref('')
-const type = ref<'server' | 'plugin' | 'mod'>('server')
-const description = ref('')
-const submitting = ref(false)
-const error = ref('')
-const slugEdited = ref(false)
+const name = ref('');
+const slug = ref('');
+const type = ref<'server' | 'plugin' | 'mod'>('server');
+const description = ref('');
+const submitting = ref(false);
+const error = ref('');
+const slugEdited = ref(false);
 
 watch(name, val => {
-	if (!slugEdited.value) {
-		slug.value = val.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-	}
-})
+  if (!slugEdited.value) {
+    slug.value = val
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+  }
+});
 
 function onSlugInput() {
-	slugEdited.value = true
-	slug.value = slug.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+  slugEdited.value = true;
+  slug.value = slug.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
 }
 
 async function submit() {
-	if (!name.value.trim()) { error.value = 'Name is required'; return }
-	if (!slug.value.trim()) { error.value = 'Slug is required'; return }
-	submitting.value = true
-	error.value = ''
-	try {
-		await $fetch('/api/v3/projects', {
-			method: 'POST',
-			body: {
-				name: name.value.trim(),
-				slug: slug.value.trim(),
-				type: type.value,
-				description: description.value.trim() || undefined,
-			},
-		})
-		name.value = ''
-		slug.value = ''
-		slugEdited.value = false
-		type.value = 'server'
-		description.value = ''
-		open.value = false
-		refreshNuxtData('v3-projects')
-		refreshNuxtData('v3-overview')
-	} catch (e: any) {
-		error.value = e?.data?.message ?? 'Something went wrong'
-	} finally {
-		submitting.value = false
-	}
+  if (!name.value.trim()) {
+    error.value = 'Name is required';
+    return;
+  }
+  if (!slug.value.trim()) {
+    error.value = 'Slug is required';
+    return;
+  }
+  submitting.value = true;
+  error.value = '';
+  try {
+    await $fetch('/api/v3/projects', {
+      method: 'POST',
+      body: {
+        name: name.value.trim(),
+        slug: slug.value.trim(),
+        type: type.value,
+        description: description.value.trim() || undefined,
+      },
+    });
+    name.value = '';
+    slug.value = '';
+    slugEdited.value = false;
+    type.value = 'server';
+    description.value = '';
+    open.value = false;
+    refreshNuxtData('v3-projects');
+    refreshNuxtData('v3-overview');
+  } catch (e: any) {
+    error.value = e?.data?.message ?? 'Something went wrong';
+  } finally {
+    submitting.value = false;
+  }
 }
 
 function close() {
-	open.value = false
-	error.value = ''
+  open.value = false;
+  error.value = '';
 }
 </script>
 

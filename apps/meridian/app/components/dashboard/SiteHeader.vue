@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { PanelLeft, Plus } from '@lucide/vue'
-import { openCreateProjectDialog } from '@/composables/useCreateProject'
+import { PanelLeft, Plus } from '@lucide/vue';
+import { openCreateProjectDialog } from '@/composables/useCreateProject';
 
-defineProps<{ sidebarOpen: boolean }>()
-const emit = defineEmits<{ 'update:sidebarOpen': [boolean] }>()
+defineProps<{ sidebarOpen: boolean }>();
+const emit = defineEmits<{ 'update:sidebarOpen': [boolean] }>();
 
-const { data: projects } = useProjects()
+const { data: projects } = useProjects();
 
-const route = useRoute()
-const currentSlug = computed(() => route.params.slug as string | undefined)
+const route = useRoute();
+const currentSlug = computed(() => route.params.slug as string | undefined);
 const currentProject = computed(() =>
-	currentSlug.value ? (projects.value ?? []).find(p => p.slug === currentSlug.value) : null,
-)
+  currentSlug.value ? (projects.value ?? []).find(p => p.slug === currentSlug.value) : null,
+);
 </script>
 
 <template>

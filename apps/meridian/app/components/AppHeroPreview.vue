@@ -1,63 +1,64 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { Activity, Users, AlertCircle, Box, Database, Search, Zap } from '@lucide/vue'
+import { Activity, AlertCircle, Box, Database, Search, Users, Zap } from '@lucide/vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
-type Tab = 'docs' | 'dashboard' | 'errors'
+type Tab = 'docs' | 'dashboard' | 'errors';
 
-const TAB_ORDER: Tab[] = ['docs', 'dashboard', 'errors']
-const TAB_MS = 4500
+const TAB_ORDER: Tab[] = ['docs', 'dashboard', 'errors'];
+const TAB_MS = 4500;
 
-const activeTab = ref<Tab>('dashboard')
-const paused = ref(false)
+const activeTab = ref<Tab>('dashboard');
+const paused = ref(false);
 
-let timer: ReturnType<typeof setInterval>
+let timer: ReturnType<typeof setInterval>;
 
 function startTimer() {
-	clearInterval(timer)
-	timer = setInterval(() => {
-		if (!paused.value) {
-			const idx = TAB_ORDER.indexOf(activeTab.value)
-			activeTab.value = TAB_ORDER[(idx + 1) % TAB_ORDER.length]
-		}
-	}, TAB_MS)
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (!paused.value) {
+      const idx = TAB_ORDER.indexOf(activeTab.value);
+      activeTab.value = TAB_ORDER[(idx + 1) % TAB_ORDER.length];
+    }
+  }, TAB_MS);
 }
 
 function selectTab(id: Tab) {
-	activeTab.value = id
-	startTimer()
+  activeTab.value = id;
+  startTimer();
 }
 
-onMounted(startTimer)
-onUnmounted(() => clearInterval(timer))
+onMounted(startTimer);
+onUnmounted(() => clearInterval(timer));
 
 const tabs: { id: Tab; label: string }[] = [
-	{ id: 'docs',      label: 'Docs' },
-	{ id: 'dashboard', label: 'Dashboard' },
-	{ id: 'errors',    label: 'Errors' },
-]
+  { id: 'docs', label: 'Docs' },
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'errors', label: 'Errors' },
+];
 
-const docsSideActive = ref('installation')
-const dashSideActive = ref('creative-hub')
-const dashSegment = ref<'24h' | '7d' | '30d'>('24h')
+const docsSideActive = ref('installation');
+const dashSideActive = ref('creative-hub');
+const dashSegment = ref<'24h' | '7d' | '30d'>('24h');
 
 const previewUrls: Record<Tab, string> = {
-	docs:      'bxteam.org/docs/divinemc/getting-started/installation',
-	dashboard: 'bxteam.org/dashboard/creative-hub',
-	errors:    'bxteam.org/dashboard/creative-hub/errors',
-}
+  docs: 'bxteam.org/docs/divinemc/getting-started/installation',
+  dashboard: 'bxteam.org/dashboard/creative-hub',
+  errors: 'bxteam.org/dashboard/creative-hub/errors',
+};
 
 /* ── Chart ── */
-const chartData = [12, 18, 22, 19, 28, 35, 42, 48, 55, 60, 66, 70, 78, 85, 92, 98, 110, 124, 138, 142, 138, 130, 124, 118]
-const W = 600, H = 140, MAX = 150
+const chartData = [
+  12, 18, 22, 19, 28, 35, 42, 48, 55, 60, 66, 70, 78, 85, 92, 98, 110, 124, 138, 142, 138, 130, 124, 118,
+];
+const W = 600,
+  H = 140,
+  MAX = 150;
 
 const { chartLine, chartArea } = (() => {
-	const pts = chartData.map((p, i) => [
-		((i / (chartData.length - 1)) * W).toFixed(1),
-		(H - (p / MAX) * H).toFixed(1),
-	])
-	const line = pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')
-	return { chartLine: line, chartArea: `${line} L ${W} ${H} L 0 ${H} Z` }
-})()
+  const pts = chartData.map((p, i) => [((i / (chartData.length - 1)) * W).toFixed(1), (H - (p / MAX) * H).toFixed(1)]);
+  const line = pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ');
+  return { chartLine: line, chartArea: `${line} L ${W} ${H} L 0 ${H} Z` };
+})();
 </script>
 
 <template>

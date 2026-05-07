@@ -1,53 +1,53 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue'
-import type { Build, VersionWithBuilds } from '@/lib/atlas'
-import VersionSelector from './VersionSelector.vue'
-import AtlasBuildCard from './AtlasBuildCard.vue'
+import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue';
+import { ref, watch } from 'vue';
+import type { Build, VersionWithBuilds } from '@/lib/atlas';
+import AtlasBuildCard from './AtlasBuildCard.vue';
+import VersionSelector from './VersionSelector.vue';
 
 const props = defineProps<{
-	projectId: string
-	projectName: string
-	initialVersions: string[]
-	defaultVersion: string
-	versionsMetadata?: VersionWithBuilds[]
-	experimentalVersion?: string
-	initialBuilds?: Build[]
-}>()
+  projectId: string;
+  projectName: string;
+  initialVersions: string[];
+  defaultVersion: string;
+  versionsMetadata?: VersionWithBuilds[];
+  experimentalVersion?: string;
+  initialBuilds?: Build[];
+}>();
 
-const selectedVersion = ref(props.defaultVersion)
-const showExperimental = ref(false)
-const builds = ref<Build[]>(props.initialBuilds ?? [])
-const loading = ref(false)
-const error = ref<string | null>(null)
+const selectedVersion = ref(props.defaultVersion);
+const showExperimental = ref(false);
+const builds = ref<Build[]>(props.initialBuilds ?? []);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const stableVersions = props.experimentalVersion
-	? props.initialVersions.filter(v => v !== props.experimentalVersion)
-	: props.initialVersions
+  ? props.initialVersions.filter(v => v !== props.experimentalVersion)
+  : props.initialVersions;
 
 function getStatus(v: string) {
-	return props.versionsMetadata?.find(m => m.version.id === v)?.version.support.status
+  return props.versionsMetadata?.find(m => m.version.id === v)?.version.support.status;
 }
 
-watch(selectedVersion, async (v) => {
-	if (!v) return
-	loading.value = true
-	error.value = null
-	try {
-		const data = await $fetch<Build[]>(`/api/v2/projects/${props.projectId}/versions/${v}/builds`)
-		builds.value = data
-	} catch (e: any) {
-		error.value = e?.message ?? 'Failed to load builds'
-	} finally {
-		loading.value = false
-	}
-})
+watch(selectedVersion, async v => {
+  if (!v) return;
+  loading.value = true;
+  error.value = null;
+  try {
+    const data = await $fetch<Build[]>(`/api/v2/projects/${props.projectId}/versions/${v}/builds`);
+    builds.value = data;
+  } catch (e: any) {
+    error.value = e?.message ?? 'Failed to load builds';
+  } finally {
+    loading.value = false;
+  }
+});
 
 function onToggle(v: boolean) {
-	showExperimental.value = v
-	if (!v && selectedVersion.value === props.experimentalVersion) {
-		selectedVersion.value = props.defaultVersion
-	}
+  showExperimental.value = v;
+  if (!v && selectedVersion.value === props.experimentalVersion) {
+    selectedVersion.value = props.defaultVersion;
+  }
 }
 </script>
 

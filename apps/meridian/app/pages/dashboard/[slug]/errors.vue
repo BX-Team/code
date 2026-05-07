@@ -1,48 +1,51 @@
 <script setup lang="ts">
-import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
+import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
-useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' });
+useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' });
 
 interface ErrorRow {
-	id: string
-	plugin: string
-	message: string
-	stacktrace: string
-	level: string
-	count: number
-	firstSeenAt: string
-	lastSeenAt: string
+  id: string;
+  plugin: string;
+  message: string;
+  stacktrace: string;
+  level: string;
+  count: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
 }
-interface ErrorsResponse { errors: ErrorRow[]; total: number }
+interface ErrorsResponse {
+  errors: ErrorRow[];
+  total: number;
+}
 
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
+const route = useRoute();
+const slug = computed(() => route.params.slug as string);
 
-const { data: projects } = await useProjects()
-const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
+const { data: projects } = await useProjects();
+const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
 const { data, pending } = await useAsyncData<ErrorsResponse | null>(`project-errors-page-${slug.value}`, () =>
-	project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
-)
+  project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+);
 
 function levelClass(level: string) {
-	if (level === 'error' || level === 'fatal') return 'err'
-	if (level === 'warning' || level === 'warn') return 'warn'
-	return 'info'
+  if (level === 'error' || level === 'fatal') return 'err';
+  if (level === 'warning' || level === 'warn') return 'warn';
+  return 'info';
 }
 
 function relativeTime(iso: string) {
-	const diff = Date.now() - new Date(iso).getTime()
-	const m = Math.floor(diff / 60000)
-	if (m < 1) return 'just now'
-	if (m < 60) return `${m}m ago`
-	const h = Math.floor(m / 60)
-	if (h < 24) return `${h}h ago`
-	return `${Math.floor(h / 24)}d ago`
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
-const expanded = ref<string | null>(null)
+const expanded = ref<string | null>(null);
 </script>
 
 <template>

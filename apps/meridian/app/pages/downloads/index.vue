@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { Download, Clock, Package, GitCommit, ArrowRight } from '@lucide/vue'
-import { Button } from '@bx-team/ui'
-import type { ProjectGroup, ProjectsResponse, Build } from '@/lib/atlas'
-import { formatFileSize, getChannelColor } from '@/lib/atlas'
+import { Button } from '@bx-team/ui';
+import { ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
+import type { Build, ProjectGroup, ProjectsResponse } from '@/lib/atlas';
+import { formatFileSize, getChannelColor } from '@/lib/atlas';
 
 const { data: projects } = await useAsyncData<ProjectGroup[]>(
   'downloads:projects',
   async () => {
-    const { projects: list } = await $fetch<ProjectsResponse>('/api/v2/projects')
+    const { projects: list } = await $fetch<ProjectsResponse>('/api/v2/projects');
     return Promise.all(
-      list.map(async (pg) => {
-        if (!pg.project.latestVersion) return pg
+      list.map(async pg => {
+        if (!pg.project.latestVersion) return pg;
         const latestBuild = await $fetch<Build>(
           `/api/v2/projects/${pg.project.id}/versions/${pg.project.latestVersion}/builds/latest`,
-        ).catch(() => undefined)
-        return { ...pg, latestBuild }
+        ).catch(() => undefined);
+        return { ...pg, latestBuild };
       }),
-    )
+    );
   },
   { default: () => [] as ProjectGroup[] },
-)
+);
 
 useHead({
   title: 'Downloads',
   meta: [{ name: 'description', content: 'Download the latest builds of our Minecraft server software.' }],
-})
+});
 </script>
 
 <template>

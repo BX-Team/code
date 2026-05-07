@@ -1,34 +1,36 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { AlertTriangle, ChevronDown, FlaskConical, XCircle } from '@lucide/vue'
-import { onClickOutside } from '@vueuse/core'
-import { Button } from '@bx-team/ui'
-import type { VersionWithBuilds } from '@/lib/atlas'
+import { Button } from '@bx-team/ui';
+import { AlertTriangle, ChevronDown, FlaskConical, XCircle } from '@lucide/vue';
+import { onClickOutside } from '@vueuse/core';
+import { ref } from 'vue';
+import type { VersionWithBuilds } from '@/lib/atlas';
 
 const props = defineProps<{
-	versions: string[]
-	selectedVersion: string
-	versionsMetadata?: VersionWithBuilds[]
-	experimentalVersion?: string
-	showExperimental?: boolean
-}>()
+  versions: string[];
+  selectedVersion: string;
+  versionsMetadata?: VersionWithBuilds[];
+  experimentalVersion?: string;
+  showExperimental?: boolean;
+}>();
 
 const emit = defineEmits<{
-	'update:selectedVersion': [v: string]
-	'toggle-experimental': [v: boolean]
-}>()
+  'update:selectedVersion': [v: string];
+  'toggle-experimental': [v: boolean];
+}>();
 
-const open = ref(false)
-const dropdownRef = ref<HTMLElement>()
-onClickOutside(dropdownRef, () => { open.value = false })
+const open = ref(false);
+const dropdownRef = ref<HTMLElement>();
+onClickOutside(dropdownRef, () => {
+  open.value = false;
+});
 
 function statusOf(v: string) {
-	return props.versionsMetadata?.find(m => m.version.id === v)?.version.support.status
+  return props.versionsMetadata?.find(m => m.version.id === v)?.version.support.status;
 }
 
 function pick(v: string) {
-	emit('update:selectedVersion', v)
-	open.value = false
+  emit('update:selectedVersion', v);
+  open.value = false;
 }
 </script>
 

@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue'
-import { Button } from '@bx-team/ui'
-import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue'
-import type { Build, Project, VersionWithBuilds } from '@/lib/atlas'
-import { formatFileSize, getAllVersions } from '@/lib/atlas'
+import { Button } from '@bx-team/ui';
+import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
+import { useRoute } from 'vue-router';
+import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue';
+import type { Build, Project, VersionWithBuilds } from '@/lib/atlas';
+import { formatFileSize, getAllVersions } from '@/lib/atlas';
 
-const route = useRoute()
-const projectId = String(route.params.project)
+const route = useRoute();
+const projectId = String(route.params.project);
 
 const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const projectResp = await $fetch<{ project: Project; version_groups: Record<string, string[]> }>(
     `/api/v2/projects/${projectId}`,
-  ).catch(() => null)
+  ).catch(() => null);
 
   if (!projectResp?.project) {
-    throw createError({ statusCode: 404, statusMessage: 'Project not found', fatal: true })
+    throw createError({ statusCode: 404, statusMessage: 'Project not found', fatal: true });
   }
 
-  const { project, version_groups } = projectResp
+  const { project, version_groups } = projectResp;
 
   const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([
     $fetch<VersionWithBuilds[]>(`/api/v2/projects/${projectId}/versions`).catch(() => [] as VersionWithBuilds[]),
@@ -26,28 +26,30 @@ const { data } = await useAsyncData(`project:${projectId}`, async () => {
       ? $fetch<Build>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(() => null)
       : Promise.resolve(null),
     project.latestVersion
-      ? $fetch<Build[]>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds`).catch(() => [] as Build[])
+      ? $fetch<Build[]>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds`).catch(
+          () => [] as Build[],
+        )
       : Promise.resolve([] as Build[]),
-  ])
+  ]);
 
-  return { project, version_groups, versionsMetadata, latestBuild, initialBuilds }
-})
+  return { project, version_groups, versionsMetadata, latestBuild, initialBuilds };
+});
 
-if (!data.value) throw createError({ statusCode: 500, statusMessage: 'Failed to load project', fatal: true })
+if (!data.value) throw createError({ statusCode: 500, statusMessage: 'Failed to load project', fatal: true });
 
-const project = computed(() => data.value!.project)
-const latestBuild = computed(() => data.value!.latestBuild)
-const allVersions = computed(() => getAllVersions(data.value!.version_groups))
-const versionsMetadata = computed(() => data.value!.versionsMetadata)
-const initialBuilds = computed(() => data.value!.initialBuilds)
+const project = computed(() => data.value!.project);
+const latestBuild = computed(() => data.value!.latestBuild);
+const allVersions = computed(() => getAllVersions(data.value!.version_groups));
+const versionsMetadata = computed(() => data.value!.versionsMetadata);
+const initialBuilds = computed(() => data.value!.initialBuilds);
 
 useHead({
   title: computed(() => project.value.name),
   meta: [{ name: 'description', content: computed(() => `Download the latest ${project.value.name} builds.`) }],
-})
+});
 
-const githubUrl = computed(() => `https://github.com/BX-Team/${project.value.name}`)
-const docsUrl = computed(() => `/docs/${projectId}`)
+const githubUrl = computed(() => `https://github.com/BX-Team/${project.value.name}`);
+const docsUrl = computed(() => `/docs/${projectId}`);
 </script>
 
 <template>

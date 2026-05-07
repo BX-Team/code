@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 
 const props = defineProps<{
-	title?: string
-	n?: number
-}>()
+  title?: string;
+  n?: number;
+}>();
 
-const counter = inject<Ref<number> | null>('stepsCounter', null)
+const counter = inject<Ref<number> | null>('stepsCounter', null);
 
-const claimed = ref<number | null>(null)
+const claimed = ref<number | null>(null);
 if (counter) {
-	counter.value += 1
-	claimed.value = counter.value
+  counter.value += 1;
+  claimed.value = counter.value;
 }
 
-const num = computed(() => props.n ?? claimed.value ?? 1)
+const num = computed(() => props.n ?? claimed.value ?? 1);
 </script>
 
 <template>

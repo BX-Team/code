@@ -1,10 +1,10 @@
 <script setup lang="ts">
 defineProps<{
-	variant?: 'primary' | 'accent' | 'secondary' | 'ghost'
-	size?: 'sm' | 'md' | 'lg'
-	href?: string
-	disabled?: boolean
-}>()
+  variant?: 'primary' | 'accent' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  href?: string;
+  disabled?: boolean;
+}>();
 </script>
 
 <template>

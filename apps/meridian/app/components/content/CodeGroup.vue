@@ -1,37 +1,41 @@
 <script setup lang="ts">
-import { cloneVNode, defineComponent, type VNode } from 'vue'
+import { cloneVNode, defineComponent, type VNode } from 'vue';
 
 const ChildPanel = defineComponent({
-	props: { vnode: { type: Object, required: true } },
-	render() { return cloneVNode(this.vnode as VNode) },
-})
+  props: { vnode: { type: Object, required: true } },
+  render() {
+    return cloneVNode(this.vnode as VNode);
+  },
+});
 
-const slots = useSlots()
-const active = ref(0)
-const copied = ref(false)
-const bodyRef = ref<HTMLElement | null>(null)
-const panelRefs = ref<(HTMLElement | null)[]>([])
+const slots = useSlots();
+const active = ref(0);
+const copied = ref(false);
+const bodyRef = ref<HTMLElement | null>(null);
+const panelRefs = ref<(HTMLElement | null)[]>([]);
 
 const children = computed(() => {
-	const vnodes = slots.default?.() || []
-	return vnodes.filter(vn => vn && typeof vn.type !== 'symbol')
-})
+  const vnodes = slots.default?.() || [];
+  return vnodes.filter(vn => vn && typeof vn.type !== 'symbol');
+});
 
 const tabs = computed(() =>
-	children.value.map((vn, i) => ({
-		label: (vn.props?.filename as string) || `Tab ${i + 1}`,
-	}))
-)
+  children.value.map((vn, i) => ({
+    label: (vn.props?.filename as string) || `Tab ${i + 1}`,
+  })),
+);
 
 async function copy() {
-	const el = panelRefs.value[active.value]?.querySelector('.shiki, pre')
-	const text = el?.textContent || ''
-	if (!text) return
-	try {
-		await navigator.clipboard.writeText(text)
-		copied.value = true
-		setTimeout(() => (copied.value = false), 1400)
-	} catch { /* no-op */ }
+  const el = panelRefs.value[active.value]?.querySelector('.shiki, pre');
+  const text = el?.textContent || '';
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1400);
+  } catch {
+    /* no-op */
+  }
 }
 </script>
 

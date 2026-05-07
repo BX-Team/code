@@ -1,61 +1,76 @@
 <script setup lang="ts">
-import { BrandMark } from '@bx-team/ui'
-import { LayoutDashboard, TrendingUp, Search, Shield, Settings, HelpCircle, ChevronsUpDown, Plus, LogOut } from '@lucide/vue'
-import { openSearchDialog } from '@/composables/useSearchDialog'
-import { openCreateProjectDialog } from '@/composables/useCreateProject'
-import { authClient } from '@/lib/auth-client'
+import { BrandMark } from '@bx-team/ui';
+import {
+  ChevronsUpDown,
+  HelpCircle,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  Search,
+  Settings,
+  Shield,
+  TrendingUp,
+} from '@lucide/vue';
+import { openCreateProjectDialog } from '@/composables/useCreateProject';
+import { openSearchDialog } from '@/composables/useSearchDialog';
+import { authClient } from '@/lib/auth-client';
 
-defineProps<{ open: boolean }>()
+defineProps<{ open: boolean }>();
 
-const { data: projects } = useProjects()
-const { data: session } = useSession()
-const user = computed(() => session.value?.user)
+const { data: projects } = useProjects();
+const { data: session } = useSession();
+const user = computed(() => session.value?.user);
 
-const route = useRoute()
-const currentSlug = computed(() => route.params.slug as string | undefined)
+const route = useRoute();
+const currentSlug = computed(() => route.params.slug as string | undefined);
 
 const navItems = [
-	{ id: 'overview', label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-	{ id: 'analytics', label: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
-	{ id: 'search', label: 'Search', icon: Search, action: 'search' as const },
-	{ id: 'issues', label: 'Issues', href: '/dashboard/issues', icon: Shield },
-]
+  { id: 'overview', label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { id: 'analytics', label: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
+  { id: 'search', label: 'Search', icon: Search, action: 'search' as const },
+  { id: 'issues', label: 'Issues', href: '/dashboard/issues', icon: Shield },
+];
 
 function isActiveNav(item: { href?: string; action?: string }) {
-	if (!item.href) return false
-	if (item.href === '/dashboard') return route.path === '/dashboard'
-	return route.path.startsWith(item.href)
+  if (!item.href) return false;
+  if (item.href === '/dashboard') return route.path === '/dashboard';
+  return route.path.startsWith(item.href);
 }
 
 function handleNavItem(item: { href?: string; action?: string }) {
-	if (item.action === 'search') { openSearchDialog(); return }
-	if (item.href) navigateTo(item.href)
+  if (item.action === 'search') {
+    openSearchDialog();
+    return;
+  }
+  if (item.href) navigateTo(item.href);
 }
 
-const showUserMenu = ref(false)
+const showUserMenu = ref(false);
 
-function toggleUserMenu() { showUserMenu.value = !showUserMenu.value }
+function toggleUserMenu() {
+  showUserMenu.value = !showUserMenu.value;
+}
 
 async function logout() {
-	showUserMenu.value = false
-	await authClient.signOut()
-	await navigateTo('/login')
+  showUserMenu.value = false;
+  await authClient.signOut();
+  await navigateTo('/login');
 }
 
 function goSettings() {
-	showUserMenu.value = false
-	navigateTo('/dashboard/settings')
+  showUserMenu.value = false;
+  navigateTo('/dashboard/settings');
 }
 
 function onClickOutside(e: MouseEvent) {
-	const target = e.target as HTMLElement
-	if (showUserMenu.value && !target.closest('.user-area')) {
-		showUserMenu.value = false
-	}
+  const target = e.target as HTMLElement;
+  if (showUserMenu.value && !target.closest('.user-area')) {
+    showUserMenu.value = false;
+  }
 }
 
-onMounted(() => document.addEventListener('click', onClickOutside))
-onUnmounted(() => document.removeEventListener('click', onClickOutside))
+onMounted(() => document.addEventListener('click', onClickOutside));
+onUnmounted(() => document.removeEventListener('click', onClickOutside));
 </script>
 
 <template>

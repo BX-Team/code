@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Navbar, Footer } from '@bx-team/ui'
-import { DISCORD_URL } from '~/config/links'
+import { Footer, Navbar } from '@bx-team/ui';
+import { DISCORD_URL } from '~/config/links';
 </script>
 
 <template>

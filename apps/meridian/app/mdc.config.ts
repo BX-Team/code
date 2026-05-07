@@ -1,9 +1,7 @@
-import { transformerNotationWordHighlight } from '@shikijs/transformers'
+import { transformerNotationWordHighlight } from '@shikijs/transformers';
 
 export default {
-	shiki: {
-		transformers: [
-			transformerNotationWordHighlight(),
-		],
-	},
-}
+  shiki: {
+    transformers: [transformerNotationWordHighlight()],
+  },
+};

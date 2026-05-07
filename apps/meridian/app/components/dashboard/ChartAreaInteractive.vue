@@ -1,72 +1,80 @@
 <script setup lang="ts">
-import { VisXYContainer, VisArea, VisLine, VisAxis, VisCrosshair, VisTooltip } from '@unovis/vue'
-import { CurveType } from '@unovis/ts'
-import type { ChartConfig } from '@/components/ui/chart'
+import { CurveType } from '@unovis/ts';
+import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue';
+import type { ChartConfig } from '@/components/ui/chart';
 
 interface DataPoint {
-	date: Date
-	[key: string]: any
+  date: Date;
+  [key: string]: any;
 }
 
 const props = defineProps<{
-	data: DataPoint[]
-	config: ChartConfig
-	title: string
-	description?: string
-	loading?: boolean
-	timeRange?: '24h' | '7d' | '30d'
-}>()
+  data: DataPoint[];
+  config: ChartConfig;
+  title: string;
+  description?: string;
+  loading?: boolean;
+  timeRange?: '24h' | '7d' | '30d';
+}>();
 
-const emit = defineEmits<{ 'update:timeRange': [string] }>()
+const emit = defineEmits<{ 'update:timeRange': [string] }>();
 
 const ranges = [
-	{ label: '24h', value: '24h' },
-	{ label: '7d', value: '7d' },
-	{ label: '30d', value: '30d' },
-]
+  { label: '24h', value: '24h' },
+  { label: '7d', value: '7d' },
+  { label: '30d', value: '30d' },
+];
 
-const seriesKeys = computed(() => Object.keys(props.config))
+const seriesKeys = computed(() => Object.keys(props.config));
 
 function xAccessor(d: DataPoint) {
-	return d.date.getTime()
+  return d.date.getTime();
 }
 
 function yAccessorFor(key: string) {
-	return (d: DataPoint) => Number(d[key] ?? 0)
+  return (d: DataPoint) => Number(d[key] ?? 0);
 }
 
 const tickFormat = computed(() => {
-	const range = props.timeRange ?? '7d'
-	return (t: number) => {
-		const d = new Date(t)
-		if (range === '24h') {
-			return d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit', hour12: false })
-		}
-		return d.toLocaleDateString('en', { month: 'short', day: 'numeric' })
-	}
-})
+  const range = props.timeRange ?? '7d';
+  return (t: number) => {
+    const d = new Date(t);
+    if (range === '24h') {
+      return d.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+  };
+});
 
 const yTickFormat = (v: number) => {
-	if (v >= 1000) return `${(v / 1000).toFixed(1)}k`
-	return String(Math.round(v))
-}
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+  return String(Math.round(v));
+};
 
 const tooltipTemplate = (d: DataPoint) => {
-	const lines = seriesKeys.value.map(k => {
-		const cfg = props.config[k]
-		if (!cfg) return ''
-		return `<div style="display:flex;align-items:center;gap:8px;font:500 12px var(--font-sans)">
+  const lines = seriesKeys.value
+    .map(k => {
+      const cfg = props.config[k];
+      if (!cfg) return '';
+      return `<div style="display:flex;align-items:center;gap:8px;font:500 12px var(--font-sans)">
 			<span style="width:8px;height:8px;border-radius:2px;background:${cfg.color};flex-shrink:0"></span>
 			<span style="color:var(--dim)">${cfg.label}</span>
 			<span style="margin-left:auto;color:var(--fg-hi);font-family:var(--font-mono)">${Number(d[k] ?? 0).toLocaleString()}</span>
-		</div>`
-	}).join('')
-	const dateStr = d.date.toLocaleString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-	return `<div style="background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:160px">
+		</div>`;
+    })
+    .join('');
+  const dateStr = d.date.toLocaleString('en', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return `<div style="background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:160px">
 		<div style="font:500 11px var(--font-mono);color:var(--mute);margin-bottom:8px">${dateStr}</div>
 		${lines}
-	</div>`
-}
+	</div>`;
+};
 </script>
 
 <template>

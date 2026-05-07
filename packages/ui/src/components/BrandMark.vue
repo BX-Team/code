@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
+import { getCurrentInstance } from 'vue';
 
-const props = withDefaults(defineProps<{ size?: number }>(), { size: 22 })
+const props = withDefaults(defineProps<{ size?: number }>(), { size: 22 });
 
-const uid = getCurrentInstance()?.uid ?? 0
-const gradId = `bm-g-${uid}`
+const uid = getCurrentInstance()?.uid ?? 0;
+const gradId = `bm-g-${uid}`;
 </script>
 
 <template>

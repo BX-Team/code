@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { Navbar, Button } from '@bx-team/ui'
-import { Home, ArrowLeft, AlertCircle } from '@lucide/vue'
+import { Button, Navbar } from '@bx-team/ui';
+import { AlertCircle, ArrowLeft, Home } from '@lucide/vue';
 
 defineProps<{
-	error: { statusCode?: number; statusMessage?: string; message?: string }
-}>()
+  error: { statusCode?: number; statusMessage?: string; message?: string };
+}>();
 
-const handleError = () => clearError({ redirect: '/' })
+const handleError = () => clearError({ redirect: '/' });
 </script>
 
 <template>

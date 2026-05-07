@@ -150,11 +150,16 @@ export function formatDate(dateString: string): string {
 
 export function getChannelColor(channel: string): string {
   switch (channel?.toUpperCase()) {
-    case 'ALPHA': return 'channel-alpha';
-    case 'BETA': return 'channel-beta';
-    case 'STABLE': return 'channel-stable';
-    case 'EXPERIMENTAL': return 'channel-experimental';
-    default: return 'channel-default';
+    case 'ALPHA':
+      return 'channel-alpha';
+    case 'BETA':
+      return 'channel-beta';
+    case 'STABLE':
+      return 'channel-stable';
+    case 'EXPERIMENTAL':
+      return 'channel-experimental';
+    default:
+      return 'channel-default';
   }
 }
 

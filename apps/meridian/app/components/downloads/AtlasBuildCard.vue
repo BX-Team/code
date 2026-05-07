@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { Calendar, Download, ExternalLink, GitCommit, Package } from '@lucide/vue'
-import { Button } from '@bx-team/ui'
-import { type Build, formatDate, formatFileSize, getChannelColor } from '@/lib/atlas'
+import { Button } from '@bx-team/ui';
+import { Calendar, Download, ExternalLink, GitCommit, Package } from '@lucide/vue';
+import { type Build, formatDate, formatFileSize, getChannelColor } from '@/lib/atlas';
 
 const props = defineProps<{
-	build: Build
-	projectName: string
-	version: string
-}>()
+  build: Build;
+  projectName: string;
+  version: string;
+}>();
 
 function dl() {
-	window.open(props.build.downloads.application.url, '_blank')
+  window.open(props.build.downloads.application.url, '_blank');
 }
 </script>
 

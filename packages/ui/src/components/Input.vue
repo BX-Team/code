@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const model = defineModel<string>()
+const model = defineModel<string>();
 
 defineProps<{
-	label?: string
-	placeholder?: string
-	type?: string
-}>()
+  label?: string;
+  placeholder?: string;
+  type?: string;
+}>();
 </script>
 
 <template>

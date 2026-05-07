@@ -1,36 +1,34 @@
 <script setup lang="ts">
-import { X, Search, LayoutDashboard } from '@lucide/vue'
+import { LayoutDashboard, Search, X } from '@lucide/vue';
 
-const open = useSearchDialogOpen()
-const query = ref('')
+const open = useSearchDialogOpen();
+const query = ref('');
 
-const { data: projects } = useProjects()
+const { data: projects } = useProjects();
 
 const filtered = computed(() => {
-	const q = query.value.toLowerCase().trim()
-	if (!q) return projects.value ?? []
-	return (projects.value ?? []).filter(p =>
-		p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
-	)
-})
+  const q = query.value.toLowerCase().trim();
+  if (!q) return projects.value ?? [];
+  return (projects.value ?? []).filter(p => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q));
+});
 
 function select(slug: string) {
-	open.value = false
-	query.value = ''
-	navigateTo(`/dashboard/${slug}`)
+  open.value = false;
+  query.value = '';
+  navigateTo(`/dashboard/${slug}`);
 }
 
 function close() {
-	open.value = false
-	query.value = ''
+  open.value = false;
+  query.value = '';
 }
 
 function onKeydown(e: KeyboardEvent) {
-	if (e.key === 'Escape' && open.value) close()
+  if (e.key === 'Escape' && open.value) close();
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>

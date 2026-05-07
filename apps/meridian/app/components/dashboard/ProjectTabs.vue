@@ -1,26 +1,26 @@
 <script setup lang="ts">
 const props = defineProps<{
-	slug: string
-	projectType: 'server' | 'plugin' | 'mod'
-}>()
+  slug: string;
+  projectType: 'server' | 'plugin' | 'mod';
+}>();
 
-const route = useRoute()
+const route = useRoute();
 
 const tabs = computed(() => {
-	const base = [
-		{ label: 'Overview', href: `/dashboard/${props.slug}` },
-		{ label: 'Errors', href: `/dashboard/${props.slug}/errors` },
-		{ label: 'Settings', href: `/dashboard/${props.slug}/settings` },
-	]
-	if (props.projectType === 'server') {
-		base.splice(1, 0, { label: 'Players', href: `/dashboard/${props.slug}/players` })
-	}
-	return base
-})
+  const base = [
+    { label: 'Overview', href: `/dashboard/${props.slug}` },
+    { label: 'Errors', href: `/dashboard/${props.slug}/errors` },
+    { label: 'Settings', href: `/dashboard/${props.slug}/settings` },
+  ];
+  if (props.projectType === 'server') {
+    base.splice(1, 0, { label: 'Players', href: `/dashboard/${props.slug}/players` });
+  }
+  return base;
+});
 
 function isActive(href: string) {
-	if (href === `/dashboard/${props.slug}`) return route.path === href
-	return route.path === href
+  if (href === `/dashboard/${props.slug}`) return route.path === href;
+  return route.path === href;
 }
 </script>
 

@@ -1,56 +1,52 @@
 <script setup lang="ts">
-import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
-import SectionCards from '@/components/dashboard/SectionCards.vue'
+import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import SectionCards from '@/components/dashboard/SectionCards.vue';
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
-useHead({ title: 'Players', titleTemplate: '%s | Pulsify' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' });
+useHead({ title: 'Players', titleTemplate: '%s | Pulsify' });
 
 interface PlayerSession {
-	player_uuid: string
-	joined_at: string
-	client_version: string
-	country_code: string
+  player_uuid: string;
+  joined_at: string;
+  client_version: string;
+  country_code: string;
 }
 interface PlayersResponse {
-	sessions: PlayerSession[]
-	summary: { uniquePlayers: number; newPlayers: number }
+  sessions: PlayerSession[];
+  summary: { uniquePlayers: number; newPlayers: number };
 }
 
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
+const route = useRoute();
+const slug = computed(() => route.params.slug as string);
 
-const { data: projects } = await useProjects()
-const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
+const { data: projects } = await useProjects();
+const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-const { data, pending } = await useAsyncData<PlayersResponse | null>(
-	`project-players-page-${slug.value}`,
-	() =>
-		project.value
-			? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
-			: Promise.resolve(null),
-)
+const { data, pending } = await useAsyncData<PlayersResponse | null>(`project-players-page-${slug.value}`, () =>
+  project.value ? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`) : Promise.resolve(null),
+);
 
 const stats = computed(() => [
-	{
-		label: 'Unique players (24h)',
-		value: (data.value?.summary.uniquePlayers ?? 0).toLocaleString(),
-		hint: 'Distinct UUIDs joined in the last 24 hours',
-	},
-	{
-		label: 'New players (24h)',
-		value: (data.value?.summary.newPlayers ?? 0).toLocaleString(),
-		hint: 'Never seen on this server before',
-	},
-])
+  {
+    label: 'Unique players (24h)',
+    value: (data.value?.summary.uniquePlayers ?? 0).toLocaleString(),
+    hint: 'Distinct UUIDs joined in the last 24 hours',
+  },
+  {
+    label: 'New players (24h)',
+    value: (data.value?.summary.newPlayers ?? 0).toLocaleString(),
+    hint: 'Never seen on this server before',
+  },
+]);
 
 function relativeTime(iso: string) {
-	const diff = Date.now() - new Date(iso).getTime()
-	const m = Math.floor(diff / 60000)
-	if (m < 1) return 'just now'
-	if (m < 60) return `${m}m ago`
-	const h = Math.floor(m / 60)
-	if (h < 24) return `${h}h ago`
-	return `${Math.floor(h / 24)}d ago`
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 </script>
 

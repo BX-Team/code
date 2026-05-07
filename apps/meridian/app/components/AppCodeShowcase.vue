@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { Check } from '@lucide/vue'
+import { Check } from '@lucide/vue';
 
 const features = [
-	'Async flush — never touches the tick loop',
-	'Exponential backoff on 5xx',
-	'Configurable flush interval',
-]
+  'Async flush — never touches the tick loop',
+  'Exponential backoff on 5xx',
+  'Configurable flush interval',
+];
 
-const copied = ref(false)
+const copied = ref(false);
 
 function copy() {
-	navigator.clipboard.writeText(code)
-	copied.value = true
-	setTimeout(() => { copied.value = false }, 1800)
+  navigator.clipboard.writeText(code);
+  copied.value = true;
+  setTimeout(() => {
+    copied.value = false;
+  }, 1800);
 }
 
 const code = `// Initialize the Pulsify SDK in onEnable()
@@ -24,7 +26,7 @@ StatClient client = StatClient.builder()
 // Heartbeats are pushed automatically.
 // Custom metrics are explicit:
 client.metric("queue.depth", queue.size());
-client.error("plugin.load", exception);`
+client.error("plugin.load", exception);`;
 </script>
 
 <template>

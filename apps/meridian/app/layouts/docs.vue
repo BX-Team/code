@@ -1,278 +1,348 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { BrandMark } from '@bx-team/ui'
-import { DISCORD_URL, docsEditUrl, docsIssueUrl } from '~/config/links'
+import { BrandMark } from '@bx-team/ui';
 import {
-	FileText, Cuboid, DollarSign, Atom, Globe, ChevronDown, X, Menu,
-	Search, Pencil, AlertCircle, MessageCircle,
-	Blocks, CalendarClock, Clipboard, Computer, Database, Download,
-	Files, FolderDot, GitBranch, GitPullRequest, Hammer, Keyboard,
-	MessageCircleQuestion, MonitorCog, Package, Presentation, Repeat,
-	Replace, Shield, SquareCode, SquareTerminal, Table, Wrench,
-} from '@lucide/vue'
-import githubSvgRaw from '~/assets/external/github.svg?raw'
-import discordSvgRaw from '~/assets/external/discord.svg?raw'
+  AlertCircle,
+  Atom,
+  Blocks,
+  CalendarClock,
+  ChevronDown,
+  Clipboard,
+  Computer,
+  Cuboid,
+  Database,
+  DollarSign,
+  Download,
+  Files,
+  FileText,
+  FolderDot,
+  GitBranch,
+  GitPullRequest,
+  Globe,
+  Hammer,
+  Keyboard,
+  Menu,
+  MessageCircle,
+  MessageCircleQuestion,
+  MonitorCog,
+  Package,
+  Pencil,
+  Presentation,
+  Repeat,
+  Replace,
+  Search,
+  Shield,
+  SquareCode,
+  SquareTerminal,
+  Table,
+  Wrench,
+  X,
+} from '@lucide/vue';
+import type { Component } from 'vue';
+import discordSvgRaw from '~/assets/external/discord.svg?raw';
+import githubSvgRaw from '~/assets/external/github.svg?raw';
+import { DISCORD_URL, docsEditUrl, docsIssueUrl } from '~/config/links';
 
 interface TocLink {
-	id: string
-	text: string
-	depth: number
-	children?: TocLink[]
+  id: string;
+  text: string;
+  depth: number;
+  children?: TocLink[];
 }
 
 interface Project {
-	id: string
-	title: string
-	description: string
-	icon: Component
+  id: string;
+  title: string;
+  description: string;
+  icon: Component;
 }
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 const iconMap: Record<string, Component> = {
-	Blocks, CalendarClock, Clipboard, Computer, Cuboid, Database, DollarSign,
-	Download, Files, FileText, FolderDot, Globe, GitBranch, GitPullRequest,
-	Hammer, Keyboard, MessageCircle, MessageCircleQuestion, MonitorCog,
-	Package, Presentation, Repeat, Replace, Shield, SquareCode,
-	SquareTerminal, Table, Wrench, Atom,
-}
+  Blocks,
+  CalendarClock,
+  Clipboard,
+  Computer,
+  Cuboid,
+  Database,
+  DollarSign,
+  Download,
+  Files,
+  FileText,
+  FolderDot,
+  Globe,
+  GitBranch,
+  GitPullRequest,
+  Hammer,
+  Keyboard,
+  MessageCircle,
+  MessageCircleQuestion,
+  MonitorCog,
+  Package,
+  Presentation,
+  Repeat,
+  Replace,
+  Shield,
+  SquareCode,
+  SquareTerminal,
+  Table,
+  Wrench,
+  Atom,
+};
 
 const projects: Project[] = [
-	{ id: 'divinemc', title: 'DivineMC', description: 'Multi-functional fork of Purpur, focused on flexibility and optimization.', icon: Cuboid },
-	{ id: 'ndailyrewards', title: 'NDailyRewards', description: 'Lightweight plugin to reward players for playing on your server every day.', icon: DollarSign },
-	{ id: 'quark', title: 'Quark', description: 'Runtime dependency management for plugins on Minecraft server platforms.', icon: Atom },
-]
+  {
+    id: 'divinemc',
+    title: 'DivineMC',
+    description: 'Multi-functional fork of Purpur, focused on flexibility and optimization.',
+    icon: Cuboid,
+  },
+  {
+    id: 'ndailyrewards',
+    title: 'NDailyRewards',
+    description: 'Lightweight plugin to reward players for playing on your server every day.',
+    icon: DollarSign,
+  },
+  {
+    id: 'quark',
+    title: 'Quark',
+    description: 'Runtime dependency management for plugins on Minecraft server platforms.',
+    icon: Atom,
+  },
+];
 
 function getIcon(name?: string): Component {
-	if (!name) return FileText
-	return iconMap[name] ?? FileText
+  if (!name) return FileText;
+  return iconMap[name] ?? FileText;
 }
 
-const { data: navigation } = await useAsyncData('docs-nav', () =>
-	queryCollectionNavigation('docs', ['icon', 'badge']),
-	{ default: () => [] },
-)
+const { data: navigation } = await useAsyncData(
+  'docs-nav',
+  () => queryCollectionNavigation('docs', ['icon', 'badge']),
+  { default: () => [] },
+);
 
-const toc = useState<TocLink[]>('docs:toc', () => [])
-const hideSidebar = computed(() => route.path === '/docs' || route.path === '/docs/')
-const docStem = useState<string>('docs:stem', () => '')
-const docTitle = useState<string>('docs:title', () => '')
+const toc = useState<TocLink[]>('docs:toc', () => []);
+const hideSidebar = computed(() => route.path === '/docs' || route.path === '/docs/');
+const docStem = useState<string>('docs:stem', () => '');
+const docTitle = useState<string>('docs:title', () => '');
 
-const editUrl = computed(() => docStem.value ? docsEditUrl(docStem.value) : '#')
-const issueUrl = computed(() => docsIssueUrl(docTitle.value || undefined))
+const editUrl = computed(() => (docStem.value ? docsEditUrl(docStem.value) : '#'));
+const issueUrl = computed(() => docsIssueUrl(docTitle.value || undefined));
 
 function findNavNode(nodes: any[], targetPath: string): any {
-	for (const node of nodes) {
-		if (node.path === targetPath) return node
-		if (node.children) {
-			const found = findNavNode(node.children, targetPath)
-			if (found) return found
-		}
-	}
-	return null
+  for (const node of nodes) {
+    if (node.path === targetPath) return node;
+    if (node.children) {
+      const found = findNavNode(node.children, targetPath);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
-const switcherOpen = ref(false)
-const mobileSidebarOpen = ref(false)
-const searchOpen = ref(false)
-const searchQuery = ref('')
-const searchResults = ref<any[]>([])
-const searchLoading = ref(false)
-const selectedResultIndex = ref(-1)
-const searchInputRef = ref<HTMLInputElement | null>(null)
-const contentRef = ref<HTMLElement | null>(null)
-const tocRef = ref<HTMLElement | null>(null)
-const activeTocId = ref('')
+const switcherOpen = ref(false);
+const mobileSidebarOpen = ref(false);
+const searchOpen = ref(false);
+const searchQuery = ref('');
+const searchResults = ref<any[]>([]);
+const searchLoading = ref(false);
+const selectedResultIndex = ref(-1);
+const searchInputRef = ref<HTMLInputElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
+const tocRef = ref<HTMLElement | null>(null);
+const activeTocId = ref('');
 
 const currentProjectId = computed(() => {
-	const seg = route.path.split('/')[2]
-	return projects.find(p => p.id === seg) ? seg : null
-})
-const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) || projects[0])
+  const seg = route.path.split('/')[2];
+  return projects.find(p => p.id === seg) ? seg : null;
+});
+const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) || projects[0]);
 
 const projectEntry = computed(() => {
-	if (!navigation.value || !currentProjectId.value) return null
-	return findNavNode(navigation.value, `/docs/${currentProjectId.value}`)
-})
+  if (!navigation.value || !currentProjectId.value) return null;
+  return findNavNode(navigation.value, `/docs/${currentProjectId.value}`);
+});
 
 const flatToc = computed(() => {
-	const result: TocLink[] = []
-	function flatten(links: TocLink[]) {
-		for (const link of links) {
-			result.push(link)
-			if (link.children) flatten(link.children)
-		}
-	}
-	flatten(toc.value)
-	return result
-})
+  const result: TocLink[] = [];
+  function flatten(links: TocLink[]) {
+    for (const link of links) {
+      result.push(link);
+      if (link.children) flatten(link.children);
+    }
+  }
+  flatten(toc.value);
+  return result;
+});
 
 const navBlocks = computed(() => {
-	const children = ((projectEntry.value as any)?.children || [])
-		.filter((s: any) => s.path !== (projectEntry.value as any)?.path)
+  const children = ((projectEntry.value as any)?.children || []).filter(
+    (s: any) => s.path !== (projectEntry.value as any)?.path,
+  );
 
-	const result: any[] = []
-	let leafBuf: any[] = []
+  const result: any[] = [];
+  let leafBuf: any[] = [];
 
-	for (const s of children) {
-		if (s.children?.length) {
-			if (leafBuf.length) {
-				result.push({ type: 'leaves', items: leafBuf })
-				leafBuf = []
-			}
-			result.push({ type: 'group', ...s })
-		} else {
-			leafBuf.push(s)
-		}
-	}
-	if (leafBuf.length) result.push({ type: 'leaves', items: leafBuf })
-	return result
-})
+  for (const s of children) {
+    if (s.children?.length) {
+      if (leafBuf.length) {
+        result.push({ type: 'leaves', items: leafBuf });
+        leafBuf = [];
+      }
+      result.push({ type: 'group', ...s });
+    } else {
+      leafBuf.push(s);
+    }
+  }
+  if (leafBuf.length) result.push({ type: 'leaves', items: leafBuf });
+  return result;
+});
 
 function isExactActive(path: string) {
-	return route.path === path
+  return route.path === path;
 }
 
 function closeSwitcher(e: Event) {
-	if (!(e.target as Element)?.closest?.('.proj-switcher')) {
-		switcherOpen.value = false
-	}
+  if (!(e.target as Element)?.closest?.('.proj-switcher')) {
+    switcherOpen.value = false;
+  }
 }
 
 function handleKeydown(e: KeyboardEvent) {
-	if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
-		e.preventDefault()
-		searchOpen.value = true
-	}
-	if (e.key === 'Escape') {
-		searchOpen.value = false
-		mobileSidebarOpen.value = false
-	}
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
+    e.preventDefault();
+    searchOpen.value = true;
+  }
+  if (e.key === 'Escape') {
+    searchOpen.value = false;
+    mobileSidebarOpen.value = false;
+  }
 }
 
 function scrollToSection(id: string) {
-	const target = document.getElementById(id)
-	if (!target) return
-	if (contentRef.value) {
-		contentRef.value.scrollTo({ top: target.offsetTop - 40, behavior: 'smooth' })
-	} else {
-		target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-	}
-	history.replaceState(null, '', `#${id}`)
+  const target = document.getElementById(id);
+  if (!target) return;
+  if (contentRef.value) {
+    contentRef.value.scrollTo({ top: target.offsetTop - 40, behavior: 'smooth' });
+  } else {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  history.replaceState(null, '', `#${id}`);
 }
 
 function handleContentClick(e: MouseEvent) {
-	const a = (e.target as Element).closest('a')
-	if (!a) return
-	const href = a.getAttribute('href')
-	if (!href?.startsWith('#')) return
-	e.preventDefault()
-	scrollToSection(href.slice(1))
+  const a = (e.target as Element).closest('a');
+  if (!a) return;
+  const href = a.getAttribute('href');
+  if (!href?.startsWith('#')) return;
+  e.preventDefault();
+  scrollToSection(href.slice(1));
 }
 
 function handleSearchKeydown(e: KeyboardEvent) {
-	if (e.key === 'ArrowDown') {
-		e.preventDefault()
-		selectedResultIndex.value = Math.min(selectedResultIndex.value + 1, searchResults.value.length - 1)
-		scrollSelectedIntoView()
-	} else if (e.key === 'ArrowUp') {
-		e.preventDefault()
-		selectedResultIndex.value = Math.max(selectedResultIndex.value - 1, -1)
-		scrollSelectedIntoView()
-	} else if (e.key === 'Enter' && selectedResultIndex.value >= 0) {
-		const result = searchResults.value[selectedResultIndex.value]
-		if (result) {
-			router.push(result.id)
-			searchOpen.value = false
-		}
-	}
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedResultIndex.value = Math.min(selectedResultIndex.value + 1, searchResults.value.length - 1);
+    scrollSelectedIntoView();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedResultIndex.value = Math.max(selectedResultIndex.value - 1, -1);
+    scrollSelectedIntoView();
+  } else if (e.key === 'Enter' && selectedResultIndex.value >= 0) {
+    const result = searchResults.value[selectedResultIndex.value];
+    if (result) {
+      router.push(result.id);
+      searchOpen.value = false;
+    }
+  }
 }
 
 function scrollSelectedIntoView() {
-	nextTick(() => {
-		const el = document.querySelector('.sr-item.selected') as HTMLElement | null
-		el?.scrollIntoView({ block: 'nearest' })
-	})
+  nextTick(() => {
+    const el = document.querySelector('.sr-item.selected') as HTMLElement | null;
+    el?.scrollIntoView({ block: 'nearest' });
+  });
 }
 
 function handleContentScroll() {
-	const el = contentRef.value
-	if (!el || !flatToc.value.length) return
-	const y = el.scrollTop + 120
-	let active = flatToc.value[0]?.id || ''
-	for (const link of flatToc.value) {
-		const section = document.getElementById(link.id)
-		if (section && section.offsetTop <= y) active = link.id
-	}
-	activeTocId.value = active
+  const el = contentRef.value;
+  if (!el || !flatToc.value.length) return;
+  const y = el.scrollTop + 120;
+  let active = flatToc.value[0]?.id || '';
+  for (const link of flatToc.value) {
+    const section = document.getElementById(link.id);
+    if (section && section.offsetTop <= y) active = link.id;
+  }
+  activeTocId.value = active;
 }
 
-watch(activeTocId, (id) => {
-	if (!tocRef.value || !id) return
-	const activeEl = tocRef.value.querySelector(`a[href="#${id}"]`) as HTMLElement | null
-	activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-})
+watch(activeTocId, id => {
+  if (!tocRef.value || !id) return;
+  const activeEl = tocRef.value.querySelector(`a[href="#${id}"]`) as HTMLElement | null;
+  activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+});
 
-let searchDebounce: ReturnType<typeof setTimeout>
-watch(searchQuery, (q) => {
-	clearTimeout(searchDebounce)
-	selectedResultIndex.value = -1
-	if (!q.trim()) {
-		searchResults.value = []
-		searchLoading.value = false
-		return
-	}
-	searchLoading.value = true
-	searchDebounce = setTimeout(async () => {
-		try {
-			searchResults.value = await $fetch('/api/docs/search', { query: { q } })
-		} catch {
-			searchResults.value = []
-		} finally {
-			searchLoading.value = false
-		}
-	}, 200)
-})
+let searchDebounce: ReturnType<typeof setTimeout>;
+watch(searchQuery, q => {
+  clearTimeout(searchDebounce);
+  selectedResultIndex.value = -1;
+  if (!q.trim()) {
+    searchResults.value = [];
+    searchLoading.value = false;
+    return;
+  }
+  searchLoading.value = true;
+  searchDebounce = setTimeout(async () => {
+    try {
+      searchResults.value = await $fetch('/api/docs/search', { query: { q } });
+    } catch {
+      searchResults.value = [];
+    } finally {
+      searchLoading.value = false;
+    }
+  }, 200);
+});
 
-watch(searchOpen, (open) => {
-	if (open) {
-		nextTick(() => searchInputRef.value?.focus())
-	} else {
-		searchQuery.value = ''
-		searchResults.value = []
-		searchLoading.value = false
-		selectedResultIndex.value = -1
-	}
-})
+watch(searchOpen, open => {
+  if (open) {
+    nextTick(() => searchInputRef.value?.focus());
+  } else {
+    searchQuery.value = '';
+    searchResults.value = [];
+    searchLoading.value = false;
+    selectedResultIndex.value = -1;
+  }
+});
 
-router.afterEach((to) => {
-	mobileSidebarOpen.value = false
-	if (to.hash) {
-		nextTick(() => {
-			const id = to.hash.slice(1)
-			if (!scrollToSection(id)) {
-				setTimeout(() => scrollToSection(id), 250)
-			}
-		})
-	} else if (contentRef.value) {
-		contentRef.value.scrollTop = 0
-	} else {
-		window.scrollTo(0, 0)
-	}
-})
+router.afterEach(to => {
+  mobileSidebarOpen.value = false;
+  if (to.hash) {
+    nextTick(() => {
+      const id = to.hash.slice(1);
+      if (!scrollToSection(id)) {
+        setTimeout(() => scrollToSection(id), 250);
+      }
+    });
+  } else if (contentRef.value) {
+    contentRef.value.scrollTop = 0;
+  } else {
+    window.scrollTo(0, 0);
+  }
+});
 
 onMounted(() => {
-	document.addEventListener('click', closeSwitcher)
-	document.addEventListener('keydown', handleKeydown)
-	contentRef.value?.addEventListener('scroll', handleContentScroll, { passive: true })
-})
+  document.addEventListener('click', closeSwitcher);
+  document.addEventListener('keydown', handleKeydown);
+  contentRef.value?.addEventListener('scroll', handleContentScroll, { passive: true });
+});
 
 onUnmounted(() => {
-	document.removeEventListener('click', closeSwitcher)
-	document.removeEventListener('keydown', handleKeydown)
-	contentRef.value?.removeEventListener('scroll', handleContentScroll)
-})
+  document.removeEventListener('click', closeSwitcher);
+  document.removeEventListener('keydown', handleKeydown);
+  contentRef.value?.removeEventListener('scroll', handleContentScroll);
+});
 </script>
 
 <template>

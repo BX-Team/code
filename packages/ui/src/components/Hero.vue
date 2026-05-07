@@ -1,10 +1,10 @@
 <script setup lang="ts">
 defineProps<{
-	kicker?: string
-	kickerBadge?: string
-	lede?: string
-	noAtmosphere?: boolean
-}>()
+  kicker?: string;
+  kickerBadge?: string;
+  lede?: string;
+  noAtmosphere?: boolean;
+}>();
 </script>
 
 <template>

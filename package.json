@@ -1,27 +1,27 @@
 {
-	"name": "@bx-team/monorepo",
-	"private": true,
-	"scripts": {
-		"dev": "turbo run dev",
-		"dev:meridian": "turbo run dev --filter=@bx-team/meridian",
-		"dev:influx": "turbo run dev --filter=@bx-team/influx",
-		"dev:cinder": "turbo run dev --filter=@bx-team/cinder",
-		"build": "turbo run build",
-		"build:meridian": "turbo run build --filter=@bx-team/meridian",
-		"build:influx": "turbo run build --filter=@bx-team/influx",
-		"build:cinder": "turbo run build --filter=@bx-team/cinder",
-		"lint": "turbo run lint",
-		"typecheck": "turbo run typecheck"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.4.13",
-		"@shikijs/transformers": "^4.0.2",
-		"meridian": "^1.0.1",
-		"turbo": "^2.9.7"
-	},
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
-	"packageManager": "bun@1.3.13"
+  "name": "@bx-team/monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:meridian": "turbo run dev --filter=@bx-team/meridian",
+    "dev:influx": "turbo run dev --filter=@bx-team/influx",
+    "dev:cinder": "turbo run dev --filter=@bx-team/cinder",
+    "build": "turbo run build",
+    "build:meridian": "turbo run build --filter=@bx-team/meridian",
+    "build:influx": "turbo run build --filter=@bx-team/influx",
+    "build:cinder": "turbo run build --filter=@bx-team/cinder",
+    "lint": "biome check .",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "@shikijs/transformers": "^4.0.2",
+    "meridian": "^1.0.1",
+    "turbo": "^2.9.7"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "bun@1.3.13"
 }

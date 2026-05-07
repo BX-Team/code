@@ -1,78 +1,105 @@
 <script setup lang="ts">
-import {
-	Navbar,
-	Hero,
-	Button,
-	Footer,
-	FeatureCard,
-	FeatureGrid,
-	ProjectCard,
-	ProjectsGrid,
-} from '@bx-team/ui'
-import { Activity, Users, AlertCircle, Box, Database, Zap } from '@lucide/vue'
-import { DISCORD_URL } from '~/config/links'
+import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, ProjectsGrid } from '@bx-team/ui';
+import { Activity, AlertCircle, Box, Database, Users, Zap } from '@lucide/vue';
+import { DISCORD_URL } from '~/config/links';
 
-const { data: session } = await useSession()
-const loggedIn = computed(() => !!session.value?.user)
+const { data: session } = await useSession();
+const loggedIn = computed(() => !!session.value?.user);
 
 useHead({
-	title: 'BX Team',
-	titleTemplate: null,
-})
+  title: 'BX Team',
+  titleTemplate: null,
+});
 
-const heroWords = ['Observability', 'Performance', 'Server plugins', 'Runtime deps']
-const heroWordIdx = ref(0)
-const heroWord = computed(() => heroWords[heroWordIdx.value])
+const heroWords = ['Observability', 'Performance', 'Server plugins', 'Runtime deps'];
+const heroWordIdx = ref(0);
+const heroWord = computed(() => heroWords[heroWordIdx.value]);
 
-let wordTimer: ReturnType<typeof setInterval>
+let wordTimer: ReturnType<typeof setInterval>;
 onMounted(() => {
-	wordTimer = setInterval(() => {
-		heroWordIdx.value = (heroWordIdx.value + 1) % heroWords.length
-	}, 4500)
-})
-onUnmounted(() => clearInterval(wordTimer))
+  wordTimer = setInterval(() => {
+    heroWordIdx.value = (heroWordIdx.value + 1) % heroWords.length;
+  }, 4500);
+});
+onUnmounted(() => clearInterval(wordTimer));
 
 const features = [
-	{
-		icon: Activity,
-		title: 'Heartbeats',
-		body: 'TPS, MSPT, memory, version, software — pushed every five minutes from the SDK.',
-	},
-	{
-		icon: Users,
-		title: 'Player events',
-		body: 'Joins, quits, sessions, geography. IPs hash on the SDK side and never leave the server.',
-	},
-	{
-		icon: AlertCircle,
-		title: 'Error tracker',
-		body: 'Stacktraces grouped by hash. First / last seen, count, level — a Sentry-shaped view for plugins.',
-	},
-	{
-		icon: Database,
-		title: 'Custom metrics',
-		body: 'Numeric values with labels, written straight into ClickHouse. Chart anything you can name.',
-	},
-	{
-		icon: Box,
-		title: 'Multi-token DSN',
-		body: 'Issue, label, and revoke ingest tokens per environment. No shared API keys.',
-	},
-	{
-		icon: Zap,
-		title: '202 Accepted, always',
-		body: 'Ingest is fire-and-forget. The gateway validates auth, drops the batch onto the queue, returns immediately.',
-	},
-]
+  {
+    icon: Activity,
+    title: 'Heartbeats',
+    body: 'TPS, MSPT, memory, version, software — pushed every five minutes from the SDK.',
+  },
+  {
+    icon: Users,
+    title: 'Player events',
+    body: 'Joins, quits, sessions, geography. IPs hash on the SDK side and never leave the server.',
+  },
+  {
+    icon: AlertCircle,
+    title: 'Error tracker',
+    body: 'Stacktraces grouped by hash. First / last seen, count, level — a Sentry-shaped view for plugins.',
+  },
+  {
+    icon: Database,
+    title: 'Custom metrics',
+    body: 'Numeric values with labels, written straight into ClickHouse. Chart anything you can name.',
+  },
+  {
+    icon: Box,
+    title: 'Multi-token DSN',
+    body: 'Issue, label, and revoke ingest tokens per environment. No shared API keys.',
+  },
+  {
+    icon: Zap,
+    title: '202 Accepted, always',
+    body: 'Ingest is fire-and-forget. The gateway validates auth, drops the batch onto the queue, returns immediately.',
+  },
+];
 
 const projects = [
-	{ name: 'DivineMC',       description: 'Multi-functional Purpur fork',         tag: 'Server',   version: 'v1.21.1', href: 'https://github.com/BX-Team/DivineMC' },
-	{ name: 'Pulsify',        description: 'Observability for Minecraft',           tag: 'Platform', version: 'v0.1.0',  href: 'https://github.com/BX-Team/Pulsify' },
-	{ name: 'Quark',          description: 'Runtime dependency manager',            tag: 'Library',  version: 'v0.3.0',  href: 'https://github.com/BX-Team/Quark' },
-	{ name: 'NDailyRewards',  description: 'Daily reward plugin',                   tag: 'Plugin',   version: 'v1.4.0',  href: 'https://github.com/BX-Team/NDailyRewards' },
-	{ name: 'Helix',          description: 'BX Team plugin library',                tag: 'Library',  version: 'v0.2.0',  href: 'https://github.com/BX-Team/Helix' },
-	{ name: 'RealWorldSync',  description: 'Real-world time + weather sync',        tag: 'Plugin',   version: 'v1.0.0',  href: 'https://github.com/BX-Team/RealWorldSync' },
-]
+  {
+    name: 'DivineMC',
+    description: 'Multi-functional Purpur fork',
+    tag: 'Server',
+    version: 'v1.21.1',
+    href: 'https://github.com/BX-Team/DivineMC',
+  },
+  {
+    name: 'Pulsify',
+    description: 'Observability for Minecraft',
+    tag: 'Platform',
+    version: 'v0.1.0',
+    href: 'https://github.com/BX-Team/Pulsify',
+  },
+  {
+    name: 'Quark',
+    description: 'Runtime dependency manager',
+    tag: 'Library',
+    version: 'v0.3.0',
+    href: 'https://github.com/BX-Team/Quark',
+  },
+  {
+    name: 'NDailyRewards',
+    description: 'Daily reward plugin',
+    tag: 'Plugin',
+    version: 'v1.4.0',
+    href: 'https://github.com/BX-Team/NDailyRewards',
+  },
+  {
+    name: 'Helix',
+    description: 'BX Team plugin library',
+    tag: 'Library',
+    version: 'v0.2.0',
+    href: 'https://github.com/BX-Team/Helix',
+  },
+  {
+    name: 'RealWorldSync',
+    description: 'Real-world time + weather sync',
+    tag: 'Plugin',
+    version: 'v1.0.0',
+    href: 'https://github.com/BX-Team/RealWorldSync',
+  },
+];
 </script>
 
 <template>

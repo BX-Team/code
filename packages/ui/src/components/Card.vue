@@ -1,8 +1,8 @@
 <script setup lang="ts">
 defineProps<{
-	featured?: boolean
-	padding?: 'sm' | 'md' | 'lg'
-}>()
+  featured?: boolean;
+  padding?: 'sm' | 'md' | 'lg';
+}>();
 </script>
 
 <template>

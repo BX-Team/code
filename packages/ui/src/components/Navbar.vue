@@ -1,38 +1,41 @@
 <script setup lang="ts">
-import BrandMark from './BrandMark.vue'
+import BrandMark from './BrandMark.vue';
 
 export interface NavLink {
-	id: string
-	label: string
-	href?: string
+  id: string;
+  label: string;
+  href?: string;
 }
 
-const props = withDefaults(defineProps<{
-	active?: string
-	links?: NavLink[]
-	brandHref?: string
-	loginHref?: string
-	dashboardHref?: string
-	discordHref?: string
-	loggedIn?: boolean
-}>(), {
-	active: '',
-	links: () => [
-		{ id: 'downloads',     label: 'Downloads',      href: '/downloads' },
-		{ id: 'documentation', label: 'Documentation',  href: '/docs' },
-		{ id: 'team',          label: 'Team',           href: '/team' },
-		{ id: 'status',        label: 'Status',         href: '/status' },
-	],
-	brandHref: '/',
-	loginHref: '/login',
-	dashboardHref: '/dashboard',
-	discordHref: 'https://discord.gg/qNyybSSPm5',
-	loggedIn: false,
-})
+const props = withDefaults(
+  defineProps<{
+    active?: string;
+    links?: NavLink[];
+    brandHref?: string;
+    loginHref?: string;
+    dashboardHref?: string;
+    discordHref?: string;
+    loggedIn?: boolean;
+  }>(),
+  {
+    active: '',
+    links: () => [
+      { id: 'downloads', label: 'Downloads', href: '/downloads' },
+      { id: 'documentation', label: 'Documentation', href: '/docs' },
+      { id: 'team', label: 'Team', href: '/team' },
+      { id: 'status', label: 'Status', href: '/status' },
+    ],
+    brandHref: '/',
+    loginHref: '/login',
+    dashboardHref: '/dashboard',
+    discordHref: 'https://discord.gg/qNyybSSPm5',
+    loggedIn: false,
+  },
+);
 
 const emit = defineEmits<{
-	navigate: [id: string]
-}>()
+  navigate: [id: string];
+}>();
 </script>
 
 <template>

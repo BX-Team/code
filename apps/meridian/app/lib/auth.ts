@@ -1,14 +1,14 @@
-import { account, db, session, user, verification } from "@bx-team/stratus";
-import { betterAuth } from "better-auth";
-import { magicLink } from "better-auth/plugins";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { Resend } from "resend";
+import { account, db, session, user, verification } from '@bx-team/stratus';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { magicLink } from 'better-auth/plugins';
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "pg",
+    provider: 'pg',
     schema: {
       user: user,
       session: session,
@@ -23,7 +23,7 @@ export const auth = betterAuth({
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         await resend.emails.send({
-          from: "BX Team <account@bxteam.org>",
+          from: 'BX Team <account@bxteam.org>',
           to: email,
           template: {
             id: process.env.RESEND_MAGIC_LINK_TEMPLATE_ID as string,

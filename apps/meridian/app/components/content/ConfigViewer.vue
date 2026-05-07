@@ -1,103 +1,107 @@
 <script setup lang="ts">
 interface Props {
-	config: Record<string, any>
-	comments?: Record<string, string>
-	title?: string
+  config: Record<string, any>;
+  comments?: Record<string, string>;
+  title?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
-	comments: () => ({}),
-	title: 'Configuration',
-})
+  comments: () => ({}),
+  title: 'Configuration',
+});
 
-type ItemType = 'section' | 'leaf' | 'array'
+type ItemType = 'section' | 'leaf' | 'array';
 
 interface FlatItem {
-	type: ItemType
-	key: string
-	path: string
-	depth: number
-	value: any
+  type: ItemType;
+  key: string;
+  path: string;
+  depth: number;
+  value: any;
 }
 
-const visibleComments = ref<Set<string>>(new Set())
-const searchQuery = ref('')
+const visibleComments = ref<Set<string>>(new Set());
+const searchQuery = ref('');
 
 function toggleComment(path: string) {
-	const next = new Set(visibleComments.value)
-	if (next.has(path)) next.delete(path)
-	else next.add(path)
-	visibleComments.value = next
+  const next = new Set(visibleComments.value);
+  if (next.has(path)) next.delete(path);
+  else next.add(path);
+  visibleComments.value = next;
 }
-function showAll() { visibleComments.value = new Set(Object.keys(props.comments)) }
-function hideAll() { visibleComments.value = new Set() }
+function showAll() {
+  visibleComments.value = new Set(Object.keys(props.comments));
+}
+function hideAll() {
+  visibleComments.value = new Set();
+}
 
 const filteredConfig = computed(() => {
-	const q = searchQuery.value.trim().toLowerCase()
-	if (!q) return props.config
-	function walk(obj: any, path = ''): any {
-		const out: any = {}
-		for (const [key, value] of Object.entries(obj)) {
-			const cur = path ? `${path}.${key}` : key
-			const matches = key.toLowerCase().includes(q)
-				|| (typeof value === 'string' && value.toLowerCase().includes(q))
-				|| cur.toLowerCase().includes(q)
-			if (value && typeof value === 'object' && !Array.isArray(value)) {
-				const nested = walk(value, cur)
-				if (Object.keys(nested).length > 0 || matches) out[key] = matches ? value : nested
-			} else if (matches) {
-				out[key] = value
-			}
-		}
-		return out
-	}
-	return walk(props.config)
-})
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return props.config;
+  function walk(obj: any, path = ''): any {
+    const out: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const cur = path ? `${path}.${key}` : key;
+      const matches =
+        key.toLowerCase().includes(q) ||
+        (typeof value === 'string' && value.toLowerCase().includes(q)) ||
+        cur.toLowerCase().includes(q);
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const nested = walk(value, cur);
+        if (Object.keys(nested).length > 0 || matches) out[key] = matches ? value : nested;
+      } else if (matches) {
+        out[key] = value;
+      }
+    }
+    return out;
+  }
+  return walk(props.config);
+});
 
-const isEmpty = computed(() => Object.keys(filteredConfig.value).length === 0)
+const isEmpty = computed(() => Object.keys(filteredConfig.value).length === 0);
 
 const flatItems = computed<FlatItem[]>(() => {
-	const items: FlatItem[] = []
-	function flatten(obj: any, depth: number, parentPath: string) {
-		for (const [key, value] of Object.entries(obj)) {
-			const path = parentPath ? `${parentPath}.${key}` : key
-			if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-				items.push({ type: 'section', key, path, depth, value: null })
-				flatten(value, depth + 1, path)
-			} else if (Array.isArray(value)) {
-				items.push({ type: 'array', key, path, depth, value })
-			} else {
-				items.push({ type: 'leaf', key, path, depth, value })
-			}
-		}
-	}
-	flatten(filteredConfig.value, 0, '')
-	return items
-})
+  const items: FlatItem[] = [];
+  function flatten(obj: any, depth: number, parentPath: string) {
+    for (const [key, value] of Object.entries(obj)) {
+      const path = parentPath ? `${parentPath}.${key}` : key;
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        items.push({ type: 'section', key, path, depth, value: null });
+        flatten(value, depth + 1, path);
+      } else if (Array.isArray(value)) {
+        items.push({ type: 'array', key, path, depth, value });
+      } else {
+        items.push({ type: 'leaf', key, path, depth, value });
+      }
+    }
+  }
+  flatten(filteredConfig.value, 0, '');
+  return items;
+});
 
 function escapeHtml(t: string) {
-	return String(t)
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-function escapeRe(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+function escapeRe(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 function highlight(raw: unknown): string {
-	const safe = escapeHtml(String(raw))
-	const q = searchQuery.value.trim()
-	if (!q) return safe
-	return safe.replace(new RegExp(`(${escapeRe(escapeHtml(q))})`, 'gi'), '<mark class="cv-mark">$1</mark>')
+  const safe = escapeHtml(String(raw));
+  const q = searchQuery.value.trim();
+  if (!q) return safe;
+  return safe.replace(new RegExp(`(${escapeRe(escapeHtml(q))})`, 'gi'), '<mark class="cv-mark">$1</mark>');
 }
 
 function valueClass(v: unknown) {
-	if (v === true) return 'tk-true'
-	if (v === false) return 'tk-false'
-	if (typeof v === 'number') return 'tk-num'
-	if (typeof v === 'string') return 'tk-str'
-	return 'tk-default'
+  if (v === true) return 'tk-true';
+  if (v === false) return 'tk-false';
+  if (typeof v === 'number') return 'tk-num';
+  if (typeof v === 'string') return 'tk-str';
+  return 'tk-default';
 }
 function fmtVal(v: unknown): string {
-	if (typeof v === 'string') return v === '' ? '""' : `"${v}"`
-	return String(v)
+  if (typeof v === 'string') return v === '' ? '""' : `"${v}"`;
+  return String(v);
 }
 </script>
 

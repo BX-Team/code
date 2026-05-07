@@ -1,8 +1,8 @@
 <script setup lang="ts">
 defineProps<{
-	variant?: 'brand' | 'soft' | 'green' | 'warn' | 'err' | 'mono'
-	dot?: 'ok' | 'warn' | 'err' | 'info'
-}>()
+  variant?: 'brand' | 'soft' | 'green' | 'warn' | 'err' | 'mono';
+  dot?: 'ok' | 'warn' | 'err' | 'info';
+}>();
 </script>
 
 <template>

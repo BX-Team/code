@@ -1,76 +1,86 @@
 <script setup lang="ts">
 interface Tab {
-	label: string
-	lang?: string
-	code?: string
-	html?: string
-	filename?: string
+  label: string;
+  lang?: string;
+  code?: string;
+  html?: string;
+  filename?: string;
 }
 
-const props = withDefaults(defineProps<{
-	tabs: Tab[]
-	defaultTab?: number
-	highlight?: boolean
-	theme?: string
-}>(), {
-	defaultTab: 0,
-	highlight: true,
-	theme: 'bx-team-dark',
-})
+const props = withDefaults(
+  defineProps<{
+    tabs: Tab[];
+    defaultTab?: number;
+    highlight?: boolean;
+    theme?: string;
+  }>(),
+  {
+    defaultTab: 0,
+    highlight: true,
+    theme: 'bx-team-dark',
+  },
+);
 
-const active = ref(props.defaultTab)
-const copied = ref(false)
-const highlighted = shallowRef<Record<number, string>>({})
+const active = ref(props.defaultTab);
+const copied = ref(false);
+const highlighted = shallowRef<Record<number, string>>({});
 
-const current = computed(() => props.tabs[active.value])
+const current = computed(() => props.tabs[active.value]);
 
-let alive = true
-onBeforeUnmount(() => { alive = false })
+let alive = true;
+onBeforeUnmount(() => {
+  alive = false;
+});
 
 async function doHighlight(idx: number) {
-	const t = props.tabs[idx]
-	if (!t || highlighted.value[idx] || !props.highlight) return
-	if (t.html) {
-		highlighted.value = { ...highlighted.value, [idx]: t.html }
-		return
-	}
-	if (!t.code) return
-	try {
-		const { codeToHtml } = await import('shiki')
-		const html = await codeToHtml(t.code, { lang: t.lang || 'text', theme: props.theme })
-		if (!alive) return
-		highlighted.value = { ...highlighted.value, [idx]: html }
-	} catch {
-		if (!alive) return
-		highlighted.value = {
-			...highlighted.value,
-			[idx]: `<pre><code>${escapeHtml(t.code)}</code></pre>`,
-		}
-	}
+  const t = props.tabs[idx];
+  if (!t || highlighted.value[idx] || !props.highlight) return;
+  if (t.html) {
+    highlighted.value = { ...highlighted.value, [idx]: t.html };
+    return;
+  }
+  if (!t.code) return;
+  try {
+    const { codeToHtml } = await import('shiki');
+    const html = await codeToHtml(t.code, { lang: t.lang || 'text', theme: props.theme });
+    if (!alive) return;
+    highlighted.value = { ...highlighted.value, [idx]: html };
+  } catch {
+    if (!alive) return;
+    highlighted.value = {
+      ...highlighted.value,
+      [idx]: `<pre><code>${escapeHtml(t.code)}</code></pre>`,
+    };
+  }
 }
 
 function escapeHtml(s: string) {
-	return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-watch(() => active.value, (i) => doHighlight(i), { immediate: true })
+watch(
+  () => active.value,
+  i => doHighlight(i),
+  { immediate: true },
+);
 
 async function copy() {
-	const raw = current.value?.code
-		?? stripTags(highlighted.value[active.value] || current.value?.html || '')
-	if (!raw) return
-	try {
-		await navigator.clipboard.writeText(raw)
-		copied.value = true
-		setTimeout(() => (copied.value = false), 1400)
-	} catch { /* no-op */ }
+  const raw = current.value?.code ?? stripTags(highlighted.value[active.value] || current.value?.html || '');
+  if (!raw) return;
+  try {
+    await navigator.clipboard.writeText(raw);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1400);
+  } catch {
+    /* no-op */
+  }
 }
 
 function stripTags(html: string) {
-	if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, '')
-	const el = document.createElement('div')
-	el.innerHTML = html
-	return el.textContent || ''
+  if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, '');
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  return el.textContent || '';
 }
 </script>
 

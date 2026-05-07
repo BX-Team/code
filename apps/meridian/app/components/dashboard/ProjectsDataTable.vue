@@ -1,38 +1,38 @@
 <script setup lang="ts">
 export interface ProjectRow {
-	id: string
-	name: string
-	slug: string
-	type: 'server' | 'plugin' | 'mod'
-	lastSeenAt: string | null
-	software: string | null
-	mcVersion: string | null
-	errors: number
+  id: string;
+  name: string;
+  slug: string;
+  type: 'server' | 'plugin' | 'mod';
+  lastSeenAt: string | null;
+  software: string | null;
+  mcVersion: string | null;
+  errors: number;
 }
 
 defineProps<{
-	data: ProjectRow[]
-	loading?: boolean
-}>()
+  data: ProjectRow[];
+  loading?: boolean;
+}>();
 
 function relativeTime(iso: string | null) {
-	if (!iso) return '—'
-	const d = new Date(iso)
-	const diff = Date.now() - d.getTime()
-	const m = Math.floor(diff / 60000)
-	if (m < 1) return 'just now'
-	if (m < 60) return `${m}m ago`
-	const h = Math.floor(m / 60)
-	if (h < 24) return `${h}h ago`
-	return `${Math.floor(h / 24)}d ago`
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 function statusLabel(row: ProjectRow): { label: string; cls: string } {
-	if (row.errors > 0) return { label: 'Issues', cls: 'warn' }
-	if (!row.lastSeenAt) return { label: 'Pending', cls: 'muted' }
-	const age = Date.now() - new Date(row.lastSeenAt).getTime()
-	if (age > 1000 * 60 * 60 * 2) return { label: 'Offline', cls: 'muted' }
-	return { label: 'Healthy', cls: 'ok' }
+  if (row.errors > 0) return { label: 'Issues', cls: 'warn' };
+  if (!row.lastSeenAt) return { label: 'Pending', cls: 'muted' };
+  const age = Date.now() - new Date(row.lastSeenAt).getTime();
+  if (age > 1000 * 60 * 60 * 2) return { label: 'Offline', cls: 'muted' };
+  return { label: 'Healthy', cls: 'ok' };
 }
 </script>
 

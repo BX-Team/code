@@ -1,6 +1,6 @@
 export interface ChartConfig {
-	[key: string]: {
-		label: string
-		color: string
-	}
+  [key: string]: {
+    label: string;
+    color: string;
+  };
 }

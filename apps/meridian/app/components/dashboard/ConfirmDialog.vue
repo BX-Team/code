@@ -1,14 +1,14 @@
 <script setup lang="ts">
-const { state, answer } = useConfirmDialog()
+const { state, answer } = useConfirmDialog();
 
 function onKeydown(e: KeyboardEvent) {
-	if (!state.open) return
-	if (e.key === 'Escape') answer(false)
-	if (e.key === 'Enter') answer(true)
+  if (!state.open) return;
+  if (e.key === 'Escape') answer(false);
+  if (e.key === 'Enter') answer(true);
 }
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+onMounted(() => document.addEventListener('keydown', onKeydown));
+onUnmounted(() => document.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>

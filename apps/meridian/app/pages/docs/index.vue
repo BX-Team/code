@@ -1,35 +1,38 @@
 <script setup lang="ts">
-import { Cuboid, DollarSign, Atom, Globe, ArrowRight } from '@lucide/vue'
+import { ArrowRight, Atom, Cuboid, DollarSign, Globe } from '@lucide/vue';
 
-definePageMeta({ layout: 'docs' })
+definePageMeta({ layout: 'docs' });
 
-useState('docs:toc', () => [])
+useState('docs:toc', () => []);
 
-useHead({ title: 'Documentation' })
+useHead({ title: 'Documentation' });
 
 const projects = [
-	{
-		id: 'divinemc',
-		title: 'DivineMC',
-		description: 'Multi-functional fork of Purpur focused on flexibility and optimization. Features parallel world ticking, async operations, and secure seed.',
-		icon: Cuboid,
-		tag: 'Server Software',
-	},
-	{
-		id: 'ndailyrewards',
-		title: 'NDailyRewards',
-		description: 'Lightweight plugin to reward players for playing on your server every day. Fully configurable rewards, PlaceholderAPI support.',
-		icon: DollarSign,
-		tag: 'Plugin',
-	},
-	{
-		id: 'quark',
-		title: 'Quark',
-		description: 'Runtime dependency management for plugins on Minecraft server platforms. Works with Bukkit, Paper, and Velocity.',
-		icon: Atom,
-		tag: 'Library',
-	},
-]
+  {
+    id: 'divinemc',
+    title: 'DivineMC',
+    description:
+      'Multi-functional fork of Purpur focused on flexibility and optimization. Features parallel world ticking, async operations, and secure seed.',
+    icon: Cuboid,
+    tag: 'Server Software',
+  },
+  {
+    id: 'ndailyrewards',
+    title: 'NDailyRewards',
+    description:
+      'Lightweight plugin to reward players for playing on your server every day. Fully configurable rewards, PlaceholderAPI support.',
+    icon: DollarSign,
+    tag: 'Plugin',
+  },
+  {
+    id: 'quark',
+    title: 'Quark',
+    description:
+      'Runtime dependency management for plugins on Minecraft server platforms. Works with Bukkit, Paper, and Velocity.',
+    icon: Atom,
+    tag: 'Library',
+  },
+];
 </script>
 
 <template>

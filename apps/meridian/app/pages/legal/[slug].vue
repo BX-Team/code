@@ -1,33 +1,32 @@
 <script setup lang="ts">
-import { Navbar, Footer } from '@bx-team/ui'
-import { Scale } from '@lucide/vue'
-import { DISCORD_URL } from '~/config/links'
+import { Footer, Navbar } from '@bx-team/ui';
+import { Scale } from '@lucide/vue';
+import { DISCORD_URL } from '~/config/links';
 
-const route = useRoute()
+const route = useRoute();
 
-const { data: session } = await useSession()
-const loggedIn = computed(() => !!session.value?.user)
+const { data: session } = await useSession();
+const loggedIn = computed(() => !!session.value?.user);
 
-const { data: page } = await useAsyncData(
-	`legal:${route.params.slug}`,
-	() => queryCollection('legal').path(route.path).first(),
-)
+const { data: page } = await useAsyncData(`legal:${route.params.slug}`, () =>
+  queryCollection('legal').path(route.path).first(),
+);
 
 if (!page.value) {
-	throw createError({ statusCode: 404, statusMessage: 'Page not found' })
+  throw createError({ statusCode: 404, statusMessage: 'Page not found' });
 }
 
 useHead({
-	title: computed(() => page.value?.title ?? 'Legal'),
-})
+  title: computed(() => page.value?.title ?? 'Legal'),
+});
 
 const related = computed(() => {
-	const all = [
-		{ title: 'Privacy Policy', path: '/legal/privacy-policy' },
-		{ title: 'Terms of Use', path: '/legal/terms-of-use' },
-	]
-	return all.filter(d => d.path !== route.path)
-})
+  const all = [
+    { title: 'Privacy Policy', path: '/legal/privacy-policy' },
+    { title: 'Terms of Use', path: '/legal/terms-of-use' },
+  ];
+  return all.filter(d => d.path !== route.path);
+});
 </script>
 
 <template>

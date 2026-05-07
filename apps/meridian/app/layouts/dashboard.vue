@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AppSidebar from '@/components/dashboard/AppSidebar.vue'
-import SiteHeader from '@/components/dashboard/SiteHeader.vue'
-import CreateProjectDialog from '@/components/dashboard/CreateProjectDialog.vue'
-import SearchDialog from '@/components/dashboard/SearchDialog.vue'
-import ConfirmDialog from '@/components/dashboard/ConfirmDialog.vue'
-import { Toaster } from 'vue-sonner'
+import { Toaster } from 'vue-sonner';
+import AppSidebar from '@/components/dashboard/AppSidebar.vue';
+import ConfirmDialog from '@/components/dashboard/ConfirmDialog.vue';
+import CreateProjectDialog from '@/components/dashboard/CreateProjectDialog.vue';
+import SearchDialog from '@/components/dashboard/SearchDialog.vue';
+import SiteHeader from '@/components/dashboard/SiteHeader.vue';
 
-const sidebarOpen = ref(true)
+const sidebarOpen = ref(true);
 </script>
 
 <template>

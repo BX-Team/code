@@ -1,40 +1,40 @@
 <script setup lang="ts">
-import { BrandMark, Button } from '@bx-team/ui'
-import { authClient } from '@/lib/auth-client'
+import { BrandMark, Button } from '@bx-team/ui';
+import { authClient } from '@/lib/auth-client';
 
-definePageMeta({ layout: false })
+definePageMeta({ layout: false });
 
-useHead({ title: 'Sign In' })
+useHead({ title: 'Sign In' });
 
-const headers = useRequestHeaders(['cookie'])
-const { data: existingSession } = await authClient.getSession({ fetchOptions: { headers } })
+const headers = useRequestHeaders(['cookie']);
+const { data: existingSession } = await authClient.getSession({ fetchOptions: { headers } });
 if (existingSession) {
-	await navigateTo('/dashboard')
+  await navigateTo('/dashboard');
 }
 
-const email = ref('')
-const error = ref('')
-const loading = ref(false)
-const sent = ref(false)
+const email = ref('');
+const error = ref('');
+const loading = ref(false);
+const sent = ref(false);
 
 async function sendMagicLink() {
-	if (loading.value) return
-	loading.value = true
-	error.value = ''
-	const { error: err } = await authClient.signIn.magicLink({
-		email: email.value,
-		callbackURL: '/dashboard',
-	})
-	loading.value = false
-	if (err) {
-		error.value = err.message ?? 'Failed to send magic link'
-		return
-	}
-	sent.value = true
+  if (loading.value) return;
+  loading.value = true;
+  error.value = '';
+  const { error: err } = await authClient.signIn.magicLink({
+    email: email.value,
+    callbackURL: '/dashboard',
+  });
+  loading.value = false;
+  if (err) {
+    error.value = err.message ?? 'Failed to send magic link';
+    return;
+  }
+  sent.value = true;
 }
 
 async function oauthLogin(provider: 'github' | 'discord') {
-	await authClient.signIn.social({ provider, callbackURL: '/dashboard' })
+  await authClient.signIn.social({ provider, callbackURL: '/dashboard' });
 }
 </script>
 

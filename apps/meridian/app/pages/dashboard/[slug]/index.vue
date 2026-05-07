@@ -1,350 +1,352 @@
 <script setup lang="ts">
-import ChartAreaInteractive from '@/components/dashboard/ChartAreaInteractive.vue'
-import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
-import SectionCards from '@/components/dashboard/SectionCards.vue'
-import type { ChartConfig } from '@/components/ui/chart'
+import ChartAreaInteractive from '@/components/dashboard/ChartAreaInteractive.vue';
+import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import SectionCards from '@/components/dashboard/SectionCards.vue';
+import type { ChartConfig } from '@/components/ui/chart';
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
+const route = useRoute();
+const slug = computed(() => route.params.slug as string);
 
-const { data: projects } = await useProjects()
-const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
+const { data: projects } = await useProjects();
+const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' })
+useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' });
 
-const range = ref<'24h' | '7d' | '30d'>('24h')
+const range = ref<'24h' | '7d' | '30d'>('24h');
 
 interface TimePoint {
-	time: string
-	online?: number
-	tps?: number
-	mspt?: number
-	memory_used?: number
+  time: string;
+  online?: number;
+  tps?: number;
+  mspt?: number;
+  memory_used?: number;
 }
 
 interface StatsResponse {
-	project: { id: string; name: string; slug: string; type: 'server' | 'plugin' | 'mod' }
-	metadata: { lastSeenAt: string; software: string | null; mcVersion: string | null; countryCode: string | null } | null
-	timeseries: TimePoint[]
-	summary: { totalErrors: number }
-	range: '24h' | '7d' | '30d'
+  project: { id: string; name: string; slug: string; type: 'server' | 'plugin' | 'mod' };
+  metadata: {
+    lastSeenAt: string;
+    software: string | null;
+    mcVersion: string | null;
+    countryCode: string | null;
+  } | null;
+  timeseries: TimePoint[];
+  summary: { totalErrors: number };
+  range: '24h' | '7d' | '30d';
 }
 
 interface PlayersResponse {
-	sessions: Array<{ player_uuid: string; joined_at: string; client_version: string; country_code: string }>
-	summary: { uniquePlayers: number; newPlayers: number }
+  sessions: Array<{ player_uuid: string; joined_at: string; client_version: string; country_code: string }>;
+  summary: { uniquePlayers: number; newPlayers: number };
 }
 
 const { data: stats, pending } = await useAsyncData<StatsResponse | null>(
-	`project-stats-${slug.value}`,
-	() =>
-		project.value
-			? $fetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
-			: Promise.resolve(null),
-	{ watch: [range] },
-)
+  `project-stats-${slug.value}`,
+  () =>
+    project.value
+      ? $fetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
+      : Promise.resolve(null),
+  { watch: [range] },
+);
 
-const { data: players } = await useAsyncData<PlayersResponse | null>(
-	`project-players-${slug.value}`,
-	() =>
-		project.value?.type === 'server'
-			? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
-			: Promise.resolve(null),
-)
+const { data: players } = await useAsyncData<PlayersResponse | null>(`project-players-${slug.value}`, () =>
+  project.value?.type === 'server'
+    ? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
+    : Promise.resolve(null),
+);
 
 interface ErrorRow {
-	id: string
-	plugin: string
-	message: string
-	level: string
-	count: number
-	lastSeenAt: string
+  id: string;
+  plugin: string;
+  message: string;
+  level: string;
+  count: number;
+  lastSeenAt: string;
 }
-interface ErrorsResponse { errors: ErrorRow[]; total: number }
+interface ErrorsResponse {
+  errors: ErrorRow[];
+  total: number;
+}
 
-const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
-	`project-errors-${slug.value}`,
-	() =>
-		project.value
-			? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`)
-			: Promise.resolve(null),
-)
+const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(`project-errors-${slug.value}`, () =>
+  project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+);
 
 interface ClientVersionsResponse {
-	versions: Array<{ version: string; count: number; pct: number }>
-	total: number
+  versions: Array<{ version: string; count: number; pct: number }>;
+  total: number;
 }
 
 interface GeographyResponse {
-	countries: Array<{ code: string; count: number; pct: number }>
-	total: number
+  countries: Array<{ code: string; count: number; pct: number }>;
+  total: number;
 }
 
 interface SessionDurationResponse {
-	avg_seconds: number
-	median_seconds: number
-	total_sessions: number
-	distribution: Array<{ label: string; count: number; pct: number }>
+  avg_seconds: number;
+  median_seconds: number;
+  total_sessions: number;
+  distribution: Array<{ label: string; count: number; pct: number }>;
 }
 
 interface RetentionResponse {
-	d1: { cohort: number; retained: number; pct: number }
-	d7: { cohort: number; retained: number; pct: number }
+  d1: { cohort: number; retained: number; pct: number };
+  d7: { cohort: number; retained: number; pct: number };
 }
 
 interface PluginInsightsResponse {
-	total_installs: number
-	enabled_installs: number
-	latest_version: string | null
-	latest_version_adoption: number
-	versions: Array<{ version: string; count: number; pct: number }>
+  total_installs: number;
+  enabled_installs: number;
+  latest_version: string | null;
+  latest_version_adoption: number;
+  versions: Array<{ version: string; count: number; pct: number }>;
 }
 
 const { data: clientVersions } = await useAsyncData<ClientVersionsResponse | null>(
-	`project-client-versions-${slug.value}`,
-	() =>
-		project.value?.type === 'server'
-			? $fetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, { query: { range: range.value } })
-			: Promise.resolve(null),
-	{ watch: [range] },
-)
+  `project-client-versions-${slug.value}`,
+  () =>
+    project.value?.type === 'server'
+      ? $fetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, {
+          query: { range: range.value },
+        })
+      : Promise.resolve(null),
+  { watch: [range] },
+);
 
 const { data: geography } = await useAsyncData<GeographyResponse | null>(
-	`project-geography-${slug.value}`,
-	() =>
-		project.value?.type === 'server'
-			? $fetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
-			: Promise.resolve(null),
-	{ watch: [range] },
-)
+  `project-geography-${slug.value}`,
+  () =>
+    project.value?.type === 'server'
+      ? $fetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
+      : Promise.resolve(null),
+  { watch: [range] },
+);
 
 const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | null>(
-	`project-session-duration-${slug.value}`,
-	() =>
-		project.value?.type === 'server'
-			? $fetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, { query: { range: range.value } })
-			: Promise.resolve(null),
-	{ watch: [range] },
-)
+  `project-session-duration-${slug.value}`,
+  () =>
+    project.value?.type === 'server'
+      ? $fetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, {
+          query: { range: range.value },
+        })
+      : Promise.resolve(null),
+  { watch: [range] },
+);
 
-const { data: retention } = await useAsyncData<RetentionResponse | null>(
-	`project-retention-${slug.value}`,
-	() =>
-		project.value?.type === 'server'
-			? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
-			: Promise.resolve(null),
-)
+const { data: retention } = await useAsyncData<RetentionResponse | null>(`project-retention-${slug.value}`, () =>
+  project.value?.type === 'server'
+    ? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
+    : Promise.resolve(null),
+);
 
 const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | null>(
-	`project-plugin-insights-${slug.value}`,
-	() =>
-		project.value && project.value.type !== 'server'
-			? $fetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
-			: Promise.resolve(null),
-)
+  `project-plugin-insights-${slug.value}`,
+  () =>
+    project.value && project.value.type !== 'server'
+      ? $fetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
+      : Promise.resolve(null),
+);
 
 const seriesData = computed(() =>
-	(stats.value?.timeseries ?? []).map(p => ({
-		date: new Date(p.time),
-		online: Number(p.online ?? 0),
-		tps: Number(p.tps ?? 0),
-	})),
-)
+  (stats.value?.timeseries ?? []).map(p => ({
+    date: new Date(p.time),
+    online: Number(p.online ?? 0),
+    tps: Number(p.tps ?? 0),
+  })),
+);
 
 const chartConfig = computed((): ChartConfig => {
-	if (project.value?.type === 'server') {
-		return {
-			online: { label: 'Players online', color: 'var(--brand)' },
-			tps: { label: 'TPS', color: 'var(--brand-2)' },
-		}
-	}
-	return { online: { label: 'Events', color: 'var(--brand)' } }
-})
+  if (project.value?.type === 'server') {
+    return {
+      online: { label: 'Players online', color: 'var(--brand)' },
+      tps: { label: 'TPS', color: 'var(--brand-2)' },
+    };
+  }
+  return { online: { label: 'Events', color: 'var(--brand)' } };
+});
 
 const latestPoint = computed(() => {
-	const ts = stats.value?.timeseries ?? []
-	return ts[ts.length - 1] ?? null
-})
+  const ts = stats.value?.timeseries ?? [];
+  return ts[ts.length - 1] ?? null;
+});
 
 const peakOnline = computed(() => {
-	const ts = stats.value?.timeseries ?? []
-	return ts.length ? Math.max(...ts.map(p => Number(p.online ?? 0))) : 0
-})
+  const ts = stats.value?.timeseries ?? [];
+  return ts.length ? Math.max(...ts.map(p => Number(p.online ?? 0))) : 0;
+});
 
 const avgTps = computed(() => {
-	const ts = stats.value?.timeseries ?? []
-	if (!ts.length) return 0
-	const sum = ts.reduce((a, p) => a + Number(p.tps ?? 0), 0)
-	return Math.round((sum / ts.length) * 10) / 10
-})
+  const ts = stats.value?.timeseries ?? [];
+  if (!ts.length) return 0;
+  const sum = ts.reduce((a, p) => a + Number(p.tps ?? 0), 0);
+  return Math.round((sum / ts.length) * 10) / 10;
+});
 
 const heapUsed = computed(() => {
-	const v = Number(latestPoint.value?.memory_used ?? 0)
-	return v > 0 ? `${(v / 1024 / 1024 / 1024).toFixed(1)} GB` : '—'
-})
+  const v = Number(latestPoint.value?.memory_used ?? 0);
+  return v > 0 ? `${(v / 1024 / 1024 / 1024).toFixed(1)} GB` : '—';
+});
 
 const tpsNow = computed(() => {
-	const v = Number(latestPoint.value?.tps ?? 0)
-	return v > 0 ? v.toFixed(2) : '—'
-})
+  const v = Number(latestPoint.value?.tps ?? 0);
+  return v > 0 ? v.toFixed(2) : '—';
+});
 
 const msptNow = computed(() => {
-	const v = Number(latestPoint.value?.mspt ?? 0)
-	return v > 0 ? `${v.toFixed(1)} ms` : '—'
-})
+  const v = Number(latestPoint.value?.mspt ?? 0);
+  return v > 0 ? `${v.toFixed(1)} ms` : '—';
+});
 
 const tpsPercent = computed(() => {
-	const v = Number(latestPoint.value?.tps ?? 0)
-	return Math.min(100, (v / 20) * 100)
-})
+  const v = Number(latestPoint.value?.tps ?? 0);
+  return Math.min(100, (v / 20) * 100);
+});
 
 const msptPercent = computed(() => {
-	const v = Number(latestPoint.value?.mspt ?? 0)
-	return Math.min(100, (v / 50) * 100)
-})
+  const v = Number(latestPoint.value?.mspt ?? 0);
+  return Math.min(100, (v / 50) * 100);
+});
 
 const memPercent = computed(() => {
-	const v = Number(latestPoint.value?.memory_used ?? 0)
-	const gb = v / 1024 / 1024 / 1024
-	return Math.min(100, (gb / 24) * 100)
-})
+  const v = Number(latestPoint.value?.memory_used ?? 0);
+  const gb = v / 1024 / 1024 / 1024;
+  return Math.min(100, (gb / 24) * 100);
+});
 
 const returningPlayers = computed(() => {
-	const s = players.value?.summary
-	if (!s) return 0
-	return s.uniquePlayers - s.newPlayers
-})
+  const s = players.value?.summary;
+  if (!s) return 0;
+  return s.uniquePlayers - s.newPlayers;
+});
 
-const newPlayers = computed(() => players.value?.summary.newPlayers ?? 0)
-const totalPlayers = computed(() => players.value?.summary.uniquePlayers ?? 0)
+const newPlayers = computed(() => players.value?.summary.newPlayers ?? 0);
+const totalPlayers = computed(() => players.value?.summary.uniquePlayers ?? 0);
 
 const returningPct = computed(() =>
-	totalPlayers.value > 0 ? Math.round((returningPlayers.value / totalPlayers.value) * 100) : 0,
-)
-const newPct = computed(() => totalPlayers.value > 0 ? 100 - returningPct.value : 0)
+  totalPlayers.value > 0 ? Math.round((returningPlayers.value / totalPlayers.value) * 100) : 0,
+);
+const newPct = computed(() => (totalPlayers.value > 0 ? 100 - returningPct.value : 0));
 
-const donutDash1 = computed(() => `${returningPct.value} ${100 - returningPct.value}`)
-const donutDash2 = computed(() => `${newPct.value} ${100 - newPct.value}`)
-const donutOffset2 = computed(() => -(returningPct.value))
+const donutDash1 = computed(() => `${returningPct.value} ${100 - returningPct.value}`);
+const donutDash2 = computed(() => `${newPct.value} ${100 - newPct.value}`);
+const donutOffset2 = computed(() => -returningPct.value);
 
-const pluginVersionSegments = computed(() =>
-	(pluginInsights.value?.versions ?? []).slice(0, 3),
-)
+const pluginVersionSegments = computed(() => (pluginInsights.value?.versions ?? []).slice(0, 3));
 
 const cardStats = computed(() => {
-	if (!project.value) return []
-	const errs = stats.value?.summary.totalErrors ?? 0
-	const meta = stats.value?.metadata
+  if (!project.value) return [];
+  const errs = stats.value?.summary.totalErrors ?? 0;
+  const meta = stats.value?.metadata;
 
-	if (project.value.type === 'server') {
-		const avgSession = sessionDuration.value?.avg_seconds
-			? formatDuration(sessionDuration.value.avg_seconds)
-			: '—'
-		const medianSession = sessionDuration.value?.median_seconds
-			? formatDuration(sessionDuration.value.median_seconds)
-			: '—'
-		const d7Pct = retention.value?.d7?.cohort ? `${retention.value.d7.pct}%` : '—'
-		const d1Pct = retention.value?.d1?.cohort ? `${retention.value.d1.pct}%` : '—'
+  if (project.value.type === 'server') {
+    const avgSession = sessionDuration.value?.avg_seconds ? formatDuration(sessionDuration.value.avg_seconds) : '—';
+    const medianSession = sessionDuration.value?.median_seconds
+      ? formatDuration(sessionDuration.value.median_seconds)
+      : '—';
+    const d7Pct = retention.value?.d7?.cohort ? `${retention.value.d7.pct}%` : '—';
+    const d1Pct = retention.value?.d1?.cohort ? `${retention.value.d1.pct}%` : '—';
 
-		return [
-			{
-				label: 'Players online',
-				value: peakOnline.value.toLocaleString(),
-				caption: `Peak today · ${peakOnline.value.toLocaleString()}`,
-				hint: `Concurrent · last ${range.value}`,
-				trend: peakOnline.value > 0 ? { direction: 'up' as const, value: '↗ live' } : undefined,
-			},
-			{
-				label: 'Avg session',
-				value: avgSession,
-				caption: `Median · ${medianSession}`,
-				hint: sessionDuration.value?.total_sessions
-					? `Last ${range.value} · ${sessionDuration.value.total_sessions.toLocaleString()} sessions`
-					: 'No session data',
-			},
-			{
-				label: 'Player retention',
-				value: d7Pct,
-				caption: 'D7 retention',
-				hint: `D1 · ${d1Pct}`,
-				trend: retention.value?.d7?.cohort && retention.value.d7.pct > 50
-					? { direction: 'up' as const, value: '+stable' }
-					: undefined,
-			},
-			{
-				label: 'Errors (24h)',
-				value: errs.toLocaleString(),
-				caption: errs > 0 ? 'Needs attention' : 'No errors',
-				hint: meta?.lastSeenAt ? `Last heartbeat ${new Date(meta.lastSeenAt).toLocaleString()}` : 'Awaiting heartbeat',
-				trend: errs > 0 ? { direction: 'down' as const, value: 'review' } : undefined,
-			},
-		]
-	}
+    return [
+      {
+        label: 'Players online',
+        value: peakOnline.value.toLocaleString(),
+        caption: `Peak today · ${peakOnline.value.toLocaleString()}`,
+        hint: `Concurrent · last ${range.value}`,
+        trend: peakOnline.value > 0 ? { direction: 'up' as const, value: '↗ live' } : undefined,
+      },
+      {
+        label: 'Avg session',
+        value: avgSession,
+        caption: `Median · ${medianSession}`,
+        hint: sessionDuration.value?.total_sessions
+          ? `Last ${range.value} · ${sessionDuration.value.total_sessions.toLocaleString()} sessions`
+          : 'No session data',
+      },
+      {
+        label: 'Player retention',
+        value: d7Pct,
+        caption: 'D7 retention',
+        hint: `D1 · ${d1Pct}`,
+        trend:
+          retention.value?.d7?.cohort && retention.value.d7.pct > 50
+            ? { direction: 'up' as const, value: '+stable' }
+            : undefined,
+      },
+      {
+        label: 'Errors (24h)',
+        value: errs.toLocaleString(),
+        caption: errs > 0 ? 'Needs attention' : 'No errors',
+        hint: meta?.lastSeenAt ? `Last heartbeat ${new Date(meta.lastSeenAt).toLocaleString()}` : 'Awaiting heartbeat',
+        trend: errs > 0 ? { direction: 'down' as const, value: 'review' } : undefined,
+      },
+    ];
+  }
 
-	const pi = pluginInsights.value
-	return [
-		{
-			label: 'Active servers',
-			value: (pi?.enabled_installs ?? 0).toLocaleString(),
-			caption: 'Reporting in last 24h',
-			hint: `Of ${(pi?.total_installs ?? 0).toLocaleString()} total installs`,
-			trend: pi?.enabled_installs ? { direction: 'up' as const, value: '↗' } : undefined,
-		},
-		{
-			label: 'Total installs',
-			value: (pi?.total_installs ?? 0).toLocaleString(),
-			caption: 'All server installations',
-			hint: 'Unique server deployments',
-		},
-		{
-			label: 'Adoption',
-			value: pi?.latest_version ? `${pi.latest_version_adoption}%` : '—',
-			caption: `Latest · ${pi?.latest_version ?? '—'}`,
-			hint: `On most recent version`,
-			trend: pi?.latest_version_adoption && pi.latest_version_adoption > 50
-				? { direction: 'up' as const, value: '+stable' }
-				: undefined,
-		},
-		{
-			label: 'Errors (24h)',
-			value: errs.toLocaleString(),
-			caption: errs > 0 ? 'Needs attention' : 'No errors',
-			hint: 'Aggregated across all servers',
-			trend: errs > 0 ? { direction: 'down' as const, value: 'review' } : undefined,
-		},
-	]
-})
+  const pi = pluginInsights.value;
+  return [
+    {
+      label: 'Active servers',
+      value: (pi?.enabled_installs ?? 0).toLocaleString(),
+      caption: 'Reporting in last 24h',
+      hint: `Of ${(pi?.total_installs ?? 0).toLocaleString()} total installs`,
+      trend: pi?.enabled_installs ? { direction: 'up' as const, value: '↗' } : undefined,
+    },
+    {
+      label: 'Total installs',
+      value: (pi?.total_installs ?? 0).toLocaleString(),
+      caption: 'All server installations',
+      hint: 'Unique server deployments',
+    },
+    {
+      label: 'Adoption',
+      value: pi?.latest_version ? `${pi.latest_version_adoption}%` : '—',
+      caption: `Latest · ${pi?.latest_version ?? '—'}`,
+      hint: `On most recent version`,
+      trend:
+        pi?.latest_version_adoption && pi.latest_version_adoption > 50
+          ? { direction: 'up' as const, value: '+stable' }
+          : undefined,
+    },
+    {
+      label: 'Errors (24h)',
+      value: errs.toLocaleString(),
+      caption: errs > 0 ? 'Needs attention' : 'No errors',
+      hint: 'Aggregated across all servers',
+      trend: errs > 0 ? { direction: 'down' as const, value: 'review' } : undefined,
+    },
+  ];
+});
 
 function levelClass(level: string) {
-	if (level === 'error' || level === 'fatal') return 'err'
-	if (level === 'warning' || level === 'warn') return 'warn'
-	return 'info'
+  if (level === 'error' || level === 'fatal') return 'err';
+  if (level === 'warning' || level === 'warn') return 'warn';
+  return 'info';
 }
 
 function relativeTime(iso: string) {
-	const diff = Date.now() - new Date(iso).getTime()
-	const m = Math.floor(diff / 60000)
-	if (m < 1) return 'just now'
-	if (m < 60) return `${m}m ago`
-	const h = Math.floor(m / 60)
-	if (h < 24) return `${h}h ago`
-	return `${Math.floor(h / 24)}d ago`
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 const metaSub = computed(() => {
-	if (!project.value || !stats.value?.metadata) return ''
-	const m = stats.value.metadata
-	const parts = [m.software, m.mcVersion].filter(Boolean)
-	return parts.join(' · ')
-})
+  if (!project.value || !stats.value?.metadata) return '';
+  const m = stats.value.metadata;
+  const parts = [m.software, m.mcVersion].filter(Boolean);
+  return parts.join(' · ');
+});
 
 function formatDuration(seconds: number): string {
-	if (!seconds || seconds <= 0) return '—'
-	if (seconds < 60) return `${Math.round(seconds)}s`
-	if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`
-	return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+  if (!seconds || seconds <= 0) return '—';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 </script>
 

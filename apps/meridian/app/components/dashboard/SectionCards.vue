@@ -1,21 +1,21 @@
 <script setup lang="ts">
 interface Trend {
-	direction: 'up' | 'down'
-	value: string
+  direction: 'up' | 'down';
+  value: string;
 }
 
 interface Stat {
-	label: string
-	value: string | number
-	caption?: string
-	hint?: string
-	trend?: Trend
+  label: string;
+  value: string | number;
+  caption?: string;
+  hint?: string;
+  trend?: Trend;
 }
 
 defineProps<{
-	stats: Stat[]
-	loading?: boolean
-}>()
+  stats: Stat[];
+  loading?: boolean;
+}>();
 </script>
 
 <template>

@@ -1,62 +1,73 @@
 <script setup lang="ts">
-import { LogOut, Save, Trash2 } from '@lucide/vue'
-import { toast } from 'vue-sonner'
-import { authClient } from '@/lib/auth-client'
+import { LogOut, Save, Trash2 } from '@lucide/vue';
+import { toast } from 'vue-sonner';
+import { authClient } from '@/lib/auth-client';
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
-useHead({ title: 'Settings', titleTemplate: '%s | Pulsify' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' });
+useHead({ title: 'Settings', titleTemplate: '%s | Pulsify' });
 
-const { data: session, refresh } = await useSession()
-const user = computed(() => session.value?.user ?? null)
-const { openConfirm } = useConfirmDialog()
+const { data: session, refresh } = await useSession();
+const user = computed(() => session.value?.user ?? null);
+const { openConfirm } = useConfirmDialog();
 
 const initials = computed(() => {
-	const name = user.value?.name ?? user.value?.email ?? '?'
-	return name.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
-})
+  const name = user.value?.name ?? user.value?.email ?? '?';
+  return name
+    .split(' ')
+    .map((p: string) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+});
 
-const displayName = ref('')
-watch(user, val => { displayName.value = val?.name ?? '' }, { immediate: true })
+const displayName = ref('');
+watch(
+  user,
+  val => {
+    displayName.value = val?.name ?? '';
+  },
+  { immediate: true },
+);
 
-const saving = ref(false)
+const saving = ref(false);
 
 async function saveName() {
-	if (saving.value) return
-	saving.value = true
-	try {
-		await authClient.updateUser({ name: displayName.value })
-		await refresh()
-		toast.success('Profile saved')
-	} catch (err: any) {
-		toast.error(err?.message ?? 'Failed to save')
-	} finally {
-		saving.value = false
-	}
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    await authClient.updateUser({ name: displayName.value });
+    await refresh();
+    toast.success('Profile saved');
+  } catch (err: any) {
+    toast.error(err?.message ?? 'Failed to save');
+  } finally {
+    saving.value = false;
+  }
 }
 
 async function logout() {
-	await authClient.signOut()
-	await navigateTo('/login')
+  await authClient.signOut();
+  await navigateTo('/login');
 }
 
-const deletingAccount = ref(false)
+const deletingAccount = ref(false);
 
 async function deleteAccount() {
-	const confirmed = await openConfirm({
-		title: 'Delete account?',
-		message: 'This will permanently remove all your projects, tokens, and data. This cannot be undone.',
-		danger: true,
-		confirmText: 'Delete account',
-	})
-	if (!confirmed) return
-	deletingAccount.value = true
-	try {
-		await authClient.deleteUser()
-		await navigateTo('/')
-	} catch (err: any) {
-		toast.error(err?.message ?? 'Failed to delete account')
-		deletingAccount.value = false
-	}
+  const confirmed = await openConfirm({
+    title: 'Delete account?',
+    message: 'This will permanently remove all your projects, tokens, and data. This cannot be undone.',
+    danger: true,
+    confirmText: 'Delete account',
+  });
+  if (!confirmed) return;
+  deletingAccount.value = true;
+  try {
+    await authClient.deleteUser();
+    await navigateTo('/');
+  } catch (err: any) {
+    toast.error(err?.message ?? 'Failed to delete account');
+    deletingAccount.value = false;
+  }
 }
 </script>
 

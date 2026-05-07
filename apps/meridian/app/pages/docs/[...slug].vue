@@ -1,65 +1,65 @@
 <script setup lang="ts">
 interface TocLink {
-	id: string
-	text: string
-	depth: number
-	children?: TocLink[]
+  id: string;
+  text: string;
+  depth: number;
+  children?: TocLink[];
 }
 
-definePageMeta({ layout: 'docs' })
+definePageMeta({ layout: 'docs' });
 
-const route = useRoute()
-const toc = useState<TocLink[]>('docs:toc', () => [])
+const route = useRoute();
+const toc = useState<TocLink[]>('docs:toc', () => []);
 
 const { data: page } = await useAsyncData(
-	`docs-page:${route.path}`,
-	() => queryCollection('docs').path(route.path).first(),
-	{ watch: [() => route.path] },
-)
+  `docs-page:${route.path}`,
+  () => queryCollection('docs').path(route.path).first(),
+  { watch: [() => route.path] },
+);
 
-const docStem = useState<string>('docs:stem', () => '')
-const docTitle = useState<string>('docs:title', () => '')
+const docStem = useState<string>('docs:stem', () => '');
+const docTitle = useState<string>('docs:title', () => '');
 watch(
-	page,
-	(p) => {
-		docStem.value = (p as any)?.stem ?? ''
-		docTitle.value = p?.title ?? ''
-	},
-	{ immediate: true },
-)
+  page,
+  p => {
+    docStem.value = (p as any)?.stem ?? '';
+    docTitle.value = p?.title ?? '';
+  },
+  { immediate: true },
+);
 
 const { data: surr } = await useAsyncData(
-	`docs-surr:${route.path}`,
-	() => queryCollectionItemSurroundings('docs', route.path, { fields: ['title', 'path'] }),
-	{ watch: [() => route.path] },
-)
+  `docs-surr:${route.path}`,
+  () => queryCollectionItemSurroundings('docs', route.path, { fields: ['title', 'path'] }),
+  { watch: [() => route.path] },
+);
 
 watch(
-	page,
-	(p) => {
-		toc.value = (p?.body as any)?.toc?.links || []
-	},
-	{ immediate: true },
-)
+  page,
+  p => {
+    toc.value = (p?.body as any)?.toc?.links || [];
+  },
+  { immediate: true },
+);
 
 useHead({
-	title: computed(() => page.value?.title || 'Documentation'),
-})
+  title: computed(() => page.value?.title || 'Documentation'),
+});
 
 if (!page.value) {
-	throw createError({ statusCode: 404, statusMessage: 'Page not found' })
+  throw createError({ statusCode: 404, statusMessage: 'Page not found' });
 }
 
-const prev = computed(() => surr.value?.[0] ?? null)
-const next = computed(() => surr.value?.[1] ?? null)
+const prev = computed(() => surr.value?.[0] ?? null);
+const next = computed(() => surr.value?.[1] ?? null);
 
 const breadcrumbs = computed(() => {
-	const parts = route.path.replace('/docs/', '').split('/')
-	return parts.map((part, i) => ({
-		label: part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-		path: '/docs/' + parts.slice(0, i + 1).join('/'),
-	}))
-})
+  const parts = route.path.replace('/docs/', '').split('/');
+  return parts.map((part, i) => ({
+    label: part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+    path: '/docs/' + parts.slice(0, i + 1).join('/'),
+  }));
+});
 </script>
 
 <template>

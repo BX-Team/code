@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const counter = ref(0)
-provide('stepsCounter', counter)
+const counter = ref(0);
+provide('stepsCounter', counter);
 </script>
 
 <template>

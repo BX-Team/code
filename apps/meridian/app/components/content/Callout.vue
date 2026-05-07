@@ -1,21 +1,24 @@
 <script setup lang="ts">
-type CalloutKind = 'info' | 'warn' | 'ok' | 'error'
+type CalloutKind = 'info' | 'warn' | 'ok' | 'error';
 
-const props = withDefaults(defineProps<{
-	type?: string
-	title?: string
-}>(), {
-	type: 'info',
-	title: '',
-})
+const props = withDefaults(
+  defineProps<{
+    type?: string;
+    title?: string;
+  }>(),
+  {
+    type: 'info',
+    title: '',
+  },
+);
 
 const kind = computed<CalloutKind>(() => {
-	const t = (props.type || '').toLowerCase()
-	if (['warn', 'warning', 'caution'].includes(t)) return 'warn'
-	if (['ok', 'success', 'tip', 'check', 'idea'].includes(t)) return 'ok'
-	if (['error', 'danger', 'destructive'].includes(t)) return 'error'
-	return 'info'
-})
+  const t = (props.type || '').toLowerCase();
+  if (['warn', 'warning', 'caution'].includes(t)) return 'warn';
+  if (['ok', 'success', 'tip', 'check', 'idea'].includes(t)) return 'ok';
+  if (['error', 'danger', 'destructive'].includes(t)) return 'error';
+  return 'info';
+});
 </script>
 
 <template>

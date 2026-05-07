@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { useVueTable, getCoreRowModel, FlexRender } from '@tanstack/vue-table'
-import type { ColumnDef } from '@tanstack/vue-table'
+import type { ColumnDef } from '@tanstack/vue-table';
+import { FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table';
 
 const props = defineProps<{
-	data: Record<string, any>[]
-	columns: ColumnDef<any, any>[]
-	loading?: boolean
-	emptyMessage?: string
-}>()
+  data: Record<string, any>[];
+  columns: ColumnDef<any, any>[];
+  loading?: boolean;
+  emptyMessage?: string;
+}>();
 
 const table = useVueTable({
-	get data() { return props.data },
-	get columns() { return props.columns },
-	getCoreRowModel: getCoreRowModel(),
-})
+  get data() {
+    return props.data;
+  },
+  get columns() {
+    return props.columns;
+  },
+  getCoreRowModel: getCoreRowModel(),
+});
 </script>
 
 <template>

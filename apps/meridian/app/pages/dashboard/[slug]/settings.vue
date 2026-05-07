@@ -1,110 +1,116 @@
 <script setup lang="ts">
-import { Copy, Plus, Trash2 } from '@lucide/vue'
-import { toast } from 'vue-sonner'
-import ProjectTabs from '@/components/dashboard/ProjectTabs.vue'
+import { Copy, Plus, Trash2 } from '@lucide/vue';
+import { toast } from 'vue-sonner';
+import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 
 interface DsnToken {
-	id: string
-	label: string | null
-	revoked: boolean
-	lastUsedAt: string | null
-	createdAt: string
+  id: string;
+  label: string | null;
+  revoked: boolean;
+  lastUsedAt: string | null;
+  createdAt: string;
 }
 
-const route = useRoute()
-const slug = computed(() => route.params.slug as string)
+const route = useRoute();
+const slug = computed(() => route.params.slug as string);
 
-const { data: projects } = await useProjects()
-const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null)
+const { data: projects } = await useProjects();
+const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-useHead({ title: computed(() => project.value?.name ? `${project.value.name} Settings` : 'Settings'), titleTemplate: '%s | Pulsify' })
+useHead({
+  title: computed(() => (project.value?.name ? `${project.value.name} Settings` : 'Settings')),
+  titleTemplate: '%s | Pulsify',
+});
 
-const { data: tokens, refresh: refreshTokens, pending } = await useAsyncData<DsnToken[]>(
-	`project-tokens-${slug.value}`,
-	() => project.value ? $fetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),
-)
+const {
+  data: tokens,
+  refresh: refreshTokens,
+  pending,
+} = await useAsyncData<DsnToken[]>(`project-tokens-${slug.value}`, () =>
+  project.value ? $fetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),
+);
 
-const { openConfirm } = useConfirmDialog()
+const { openConfirm } = useConfirmDialog();
 
-const newLabel = ref('')
-const justCreated = ref<{ key: string; label: string | null } | null>(null)
-const creating = ref(false)
+const newLabel = ref('');
+const justCreated = ref<{ key: string; label: string | null } | null>(null);
+const creating = ref(false);
 
 const ingestHost = computed(() => {
-	if (typeof window === 'undefined') return 'ingest.bxteam.org'
-	return `ingest.${window.location.hostname.replace(/^www\./, '')}`
-})
+  if (typeof window === 'undefined') return 'ingest.bxteam.org';
+  return `ingest.${window.location.hostname.replace(/^www\./, '')}`;
+});
 
 const dsnPreview = computed(() => {
-	if (!justCreated.value || !project.value) return ''
-	return `https://${justCreated.value.key}@${ingestHost.value}/api/v1/${project.value.id}`
-})
+  if (!justCreated.value || !project.value) return '';
+  return `https://${justCreated.value.key}@${ingestHost.value}/api/v1/${project.value.id}`;
+});
 
 async function createToken() {
-	if (creating.value || !project.value) return
-	creating.value = true
-	try {
-		const result = await $fetch<{ id: string; key: string; label: string | null; createdAt: string }>(
-			`/api/v3/projects/${project.value.id}/tokens`,
-			{ method: 'POST', body: { label: newLabel.value || undefined } },
-		)
-		justCreated.value = { key: result.key, label: result.label }
-		newLabel.value = ''
-		await refreshTokens()
-		toast.success('Token created')
-	} catch (err: any) {
-		toast.error(err?.data?.message ?? err?.message ?? 'Failed to create token')
-	} finally {
-		creating.value = false
-	}
+  if (creating.value || !project.value) return;
+  creating.value = true;
+  try {
+    const result = await $fetch<{ id: string; key: string; label: string | null; createdAt: string }>(
+      `/api/v3/projects/${project.value.id}/tokens`,
+      { method: 'POST', body: { label: newLabel.value || undefined } },
+    );
+    justCreated.value = { key: result.key, label: result.label };
+    newLabel.value = '';
+    await refreshTokens();
+    toast.success('Token created');
+  } catch (err: any) {
+    toast.error(err?.data?.message ?? err?.message ?? 'Failed to create token');
+  } finally {
+    creating.value = false;
+  }
 }
 
 async function revokeToken(tokenId: string) {
-	if (!project.value) return
-	const confirmed = await openConfirm({
-		title: 'Revoke token?',
-		message: 'Servers using this token will stop being able to send events.',
-		danger: true,
-		confirmText: 'Revoke',
-	})
-	if (!confirmed) return
-	try {
-		await $fetch(`/api/v3/projects/${project.value.id}/tokens/${tokenId}`, { method: 'DELETE' })
-		await refreshTokens()
-		toast.success('Token revoked')
-	} catch (err: any) {
-		toast.error(err?.data?.message ?? err?.message ?? 'Failed to revoke token')
-	}
+  if (!project.value) return;
+  const confirmed = await openConfirm({
+    title: 'Revoke token?',
+    message: 'Servers using this token will stop being able to send events.',
+    danger: true,
+    confirmText: 'Revoke',
+  });
+  if (!confirmed) return;
+  try {
+    await $fetch(`/api/v3/projects/${project.value.id}/tokens/${tokenId}`, { method: 'DELETE' });
+    await refreshTokens();
+    toast.success('Token revoked');
+  } catch (err: any) {
+    toast.error(err?.data?.message ?? err?.message ?? 'Failed to revoke token');
+  }
 }
 
 function copy(text: string) {
-	navigator.clipboard?.writeText(text)
-	toast.success('Copied to clipboard')
+  navigator.clipboard?.writeText(text);
+  toast.success('Copied to clipboard');
 }
 
-const deleting = ref(false)
+const deleting = ref(false);
 
 async function deleteProject() {
-	if (!project.value) return
-	const confirmed = await openConfirm({
-		title: `Delete "${project.value.name}"?`,
-		message: 'All associated data, tokens, and events will be permanently removed.',
-		danger: true,
-		confirmText: 'Delete project',
-	})
-	if (!confirmed) return
-	deleting.value = true
-	try {
-		await $fetch(`/api/v3/projects/${project.value.id}`, { method: 'DELETE' })
-		await refreshNuxtData('v3-projects')
-		await refreshNuxtData('v3-overview')
-		await navigateTo('/dashboard')
-	} catch (err: any) {
-		toast.error(err?.data?.message ?? err?.message ?? 'Failed to delete project')
-		deleting.value = false
-	}
+  if (!project.value) return;
+  const confirmed = await openConfirm({
+    title: `Delete "${project.value.name}"?`,
+    message: 'All associated data, tokens, and events will be permanently removed.',
+    danger: true,
+    confirmText: 'Delete project',
+  });
+  if (!confirmed) return;
+  deleting.value = true;
+  try {
+    await $fetch(`/api/v3/projects/${project.value.id}`, { method: 'DELETE' });
+    await refreshNuxtData('v3-projects');
+    await refreshNuxtData('v3-overview');
+    await navigateTo('/dashboard');
+  } catch (err: any) {
+    toast.error(err?.data?.message ?? err?.message ?? 'Failed to delete project');
+    deleting.value = false;
+  }
 }
 </script>
 
