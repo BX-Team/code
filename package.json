@@ -15,8 +15,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
-    "@shikijs/transformers": "^4.0.2",
-    "meridian": "^1.0.1",
     "turbo": "^2.9.7"
   },
   "workspaces": [
