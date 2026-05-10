@@ -46,7 +46,7 @@ const mobileOpen = ref(false);
 	<div class="bx-navwrap">
 		<nav class="bx-bar">
 			<a :href="brandHref" class="bx-bar__brand">
-				<BrandMark :size="20" />
+				<BrandMark :size="22" />
 				<span>BX Team</span>
 			</a>
 
