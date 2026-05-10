@@ -461,10 +461,10 @@ const { chartLine, chartArea } = (() => {
 }
 @keyframes tab-prog { to { width: 100%; } }
 
-.tab-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
-.tab-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
-.tab-enter-from   { opacity: 0; transform: translateY(6px); }
-.tab-leave-to     { opacity: 0; transform: translateY(-4px); }
+.tab-enter-active { transition: opacity 0.18s ease; }
+.tab-leave-active { transition: opacity 0.14s ease; }
+.tab-enter-from   { opacity: 0; }
+.tab-leave-to     { opacity: 0; }
 
 /* ── Window chrome ── */
 .pv-window {
@@ -1062,6 +1062,8 @@ li.active .ic { color: var(--brand); }
 	font: 500 10.5px var(--font-mono);
 	background: var(--bg-3);
 	color: var(--fg-hi);
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .stat-trend.up   { color: var(--brand-2); border-color: color-mix(in oklab, var(--brand-2) 40%, var(--line)); }
@@ -1071,5 +1073,33 @@ li.active .ic { color: var(--brand); }
 	margin-top: 6px;
 	font: 500 11px var(--font-sans);
 	color: var(--fg-hi);
+}
+
+@media (max-width: 768px) {
+	.pv-wrap {
+		padding: 8px 16px 60px;
+	}
+
+	.pv-body {
+		grid-template-columns: 1fr;
+		height: auto;
+		min-height: 400px;
+	}
+
+	.pv-side,
+	.pv-side-r {
+		display: none;
+	}
+
+	.dash-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.pv-hd__url span:not(.pv-esc) {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		max-width: 160px;
+	}
 }
 </style>

@@ -198,6 +198,12 @@ const projects = [
 	position: relative;
 }
 
+@media (max-width: 640px) {
+	.hero-word-wrap {
+		display: block;
+	}
+}
+
 .word-enter-active,
 .word-leave-active {
 	transition: opacity 0.35s ease, transform 0.35s ease;

@@ -350,7 +350,7 @@ onUnmounted(() => {
 		<div class="ambient" aria-hidden="true" />
 
 		<header class="topbar">
-			<button class="mobile-menu-btn" :aria-label="mobileSidebarOpen ? 'Close menu' : 'Open menu'" @click.stop="mobileSidebarOpen = !mobileSidebarOpen">
+			<button v-if="!hideSidebar" class="mobile-menu-btn" :aria-label="mobileSidebarOpen ? 'Close menu' : 'Open menu'" @click.stop="mobileSidebarOpen = !mobileSidebarOpen">
 				<component :is="mobileSidebarOpen ? X : Menu" :size="18" :stroke-width="1.8" />
 			</button>
 
@@ -385,11 +385,10 @@ onUnmounted(() => {
 			</div>
 		</header>
 
-		<Transition name="overlay">
-			<div v-if="mobileSidebarOpen" class="mobile-overlay" @click="mobileSidebarOpen = false" />
-		</Transition>
-
 		<div class="shell" :class="{ 'no-sidebar': hideSidebar }">
+			<Transition name="overlay">
+				<div v-if="mobileSidebarOpen" class="mobile-overlay" @click="mobileSidebarOpen = false" />
+			</Transition>
 			<aside v-if="!hideSidebar" class="side" :class="{ 'mobile-open': mobileSidebarOpen }">
 				<div class="proj-switcher">
 					<button class="proj-trigger" :aria-expanded="switcherOpen" @click.stop="switcherOpen = !switcherOpen">

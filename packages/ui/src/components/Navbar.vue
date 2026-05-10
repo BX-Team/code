@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import BrandMark from './BrandMark.vue';
 
 export interface NavLink {
@@ -37,6 +38,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   navigate: [id: string];
 }>();
+
+const mobileOpen = ref(false);
 </script>
 
 <template>
@@ -60,17 +63,73 @@ const emit = defineEmits<{
 				</a>
 			</div>
 
-			<slot name="right">
-				<div class="bx-bar__right">
-					<a :href="discordHref" class="bx-bar__ghost" target="_blank" rel="noopener">
-						Discord
-					</a>
-					<a v-if="loggedIn" :href="dashboardHref" class="bx-bar__login">Dashboard</a>
-					<a v-else :href="loginHref" class="bx-bar__login">Login</a>
-				</div>
-			</slot>
+			<div class="bx-bar__right-wrap">
+				<slot name="right">
+					<div class="bx-bar__right">
+						<a :href="discordHref" class="bx-bar__ghost" target="_blank" rel="noopener">
+							Discord
+						</a>
+						<a v-if="loggedIn" :href="dashboardHref" class="bx-bar__login">Dashboard</a>
+						<a v-else :href="loginHref" class="bx-bar__login">Login</a>
+					</div>
+				</slot>
+			</div>
+
+			<button
+				class="bx-bar__ham"
+				:class="{ 'bx-bar__ham--open': mobileOpen }"
+				:aria-label="mobileOpen ? 'Close menu' : 'Open menu'"
+				:aria-expanded="mobileOpen"
+				@click="mobileOpen = !mobileOpen"
+			>
+				<span />
+				<span />
+				<span />
+			</button>
 		</nav>
 	</div>
+
+	<Transition name="bx-bd">
+		<div v-if="mobileOpen" class="bx-drawer-backdrop" @click="mobileOpen = false" />
+	</Transition>
+
+	<Transition name="bx-drawer">
+		<div v-if="mobileOpen" class="bx-drawer">
+			<div class="bx-drawer__hd">
+				<a :href="brandHref" class="bx-drawer__brand" @click="mobileOpen = false">
+					<BrandMark :size="18" />
+					<span>BX Team</span>
+				</a>
+				<button class="bx-drawer__close" aria-label="Close menu" @click="mobileOpen = false">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+						<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+					</svg>
+				</button>
+			</div>
+
+			<nav class="bx-drawer__nav">
+				<a
+					v-for="link in links"
+					:key="link.id"
+					:href="link.href"
+					class="bx-drawer__link"
+					:class="{ 'bx-drawer__link--active': active === link.id }"
+					@click="mobileOpen = false; emit('navigate', link.id)"
+				>
+					{{ link.label }}
+				</a>
+			</nav>
+
+			<div class="bx-drawer__footer">
+				<a :href="discordHref" class="bx-drawer__footer-ghost" target="_blank" rel="noopener" @click="mobileOpen = false">
+					Discord
+				</a>
+				<a v-if="loggedIn" :href="dashboardHref" class="bx-drawer__footer-login" @click="mobileOpen = false">Dashboard</a>
+				<a v-else :href="loginHref" class="bx-drawer__footer-login" @click="mobileOpen = false">Login</a>
+			</div>
+		</div>
+	</Transition>
+
 	<div class="bx-navwrap-spacer" aria-hidden="true" />
 </template>
 
@@ -143,6 +202,11 @@ const emit = defineEmits<{
 	display: flex;
 	align-items: center;
 	gap: 4px;
+}
+
+.bx-bar__right-wrap {
+	display: flex;
+	align-items: center;
 	margin-left: 12px;
 	padding-left: 14px;
 	border-left: 1px solid var(--line);
@@ -173,5 +237,207 @@ const emit = defineEmits<{
 
 .bx-bar__login:hover {
 	box-shadow: var(--shadow-glow);
+}
+
+/* Hamburger – hidden on desktop */
+.bx-bar__ham {
+	display: none;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 5px;
+	width: 36px;
+	height: 36px;
+	background: transparent;
+	border: none;
+	padding: 6px;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.bx-bar__ham span {
+	display: block;
+	width: 18px;
+	height: 1.5px;
+	background: var(--dim);
+	border-radius: 1px;
+	transition: transform 0.2s ease, opacity 0.2s ease;
+	transform-origin: center;
+}
+
+.bx-bar__ham--open span:nth-child(1) {
+	transform: translateY(6.5px) rotate(45deg);
+}
+.bx-bar__ham--open span:nth-child(2) {
+	opacity: 0;
+	transform: scaleX(0);
+}
+.bx-bar__ham--open span:nth-child(3) {
+	transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* Backdrop */
+.bx-drawer-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 150;
+	background: rgba(0, 0, 0, 0.5);
+	-webkit-backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px);
+}
+
+/* Side drawer */
+.bx-drawer {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 200;
+	width: 280px;
+	background: var(--bg-1);
+	border-left: 1px solid var(--line);
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.bx-drawer__hd {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px 20px;
+	border-bottom: 1px solid var(--line);
+}
+
+.bx-drawer__brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font: 700 14px var(--font-sans);
+	color: var(--fg-hi);
+	text-decoration: none;
+	letter-spacing: -0.01em;
+}
+
+.bx-drawer__close {
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: var(--r-md);
+	color: var(--dim);
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s;
+}
+.bx-drawer__close:hover {
+	color: var(--fg-hi);
+	border-color: var(--line-2);
+}
+
+.bx-drawer__nav {
+	display: flex;
+	flex-direction: column;
+	padding: 12px;
+	flex: 1;
+	gap: 2px;
+}
+
+.bx-drawer__link {
+	padding: 12px 14px;
+	color: var(--dim);
+	font: 500 14.5px var(--font-sans);
+	border-radius: var(--r-md);
+	text-decoration: none;
+	transition: color 0.15s, background 0.15s;
+}
+
+.bx-drawer__link:hover,
+.bx-drawer__link--active {
+	color: var(--fg-hi);
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.bx-drawer__footer {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 16px;
+	border-top: 1px solid var(--line);
+}
+
+.bx-drawer__footer-ghost {
+	padding: 12px 14px;
+	color: var(--dim);
+	font: 500 14px var(--font-sans);
+	border: 1px solid var(--line);
+	border-radius: var(--r-md);
+	text-decoration: none;
+	text-align: center;
+	transition: color 0.15s, border-color 0.15s;
+}
+.bx-drawer__footer-ghost:hover {
+	color: var(--fg-hi);
+	border-color: var(--line-2);
+}
+
+.bx-drawer__footer-login {
+	padding: 12px 14px;
+	font: 500 14px var(--font-sans);
+	color: var(--bg-0);
+	background: var(--fg-hi);
+	border-radius: var(--r-md);
+	text-decoration: none;
+	text-align: center;
+	transition: box-shadow 0.15s;
+}
+.bx-drawer__footer-login:hover {
+	box-shadow: var(--shadow-glow);
+}
+
+/* Drawer transitions */
+.bx-bd-enter-active,
+.bx-bd-leave-active {
+	transition: opacity 0.2s ease;
+}
+.bx-bd-enter-from,
+.bx-bd-leave-to {
+	opacity: 0;
+}
+
+.bx-drawer-enter-active,
+.bx-drawer-leave-active {
+	transition: transform 0.25s ease;
+}
+.bx-drawer-enter-from,
+.bx-drawer-leave-to {
+	transform: translateX(100%);
+}
+
+@media (max-width: 768px) {
+	.bx-bar {
+		width: calc(100% - 32px);
+		max-width: calc(100% - 32px);
+	}
+
+	.bx-bar__brand {
+		border-right: none;
+		padding-right: 0;
+		margin-right: 0;
+	}
+
+	.bx-bar__links {
+		display: none;
+	}
+
+	.bx-bar__right-wrap {
+		display: none;
+	}
+
+	.bx-bar__ham {
+		display: flex;
+		margin-left: auto;
+	}
 }
 </style>

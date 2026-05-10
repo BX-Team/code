@@ -6,12 +6,29 @@ import CreateProjectDialog from '@/components/dashboard/CreateProjectDialog.vue'
 import SearchDialog from '@/components/dashboard/SearchDialog.vue';
 import SiteHeader from '@/components/dashboard/SiteHeader.vue';
 
+const MOBILE_BP = 820;
+
 const sidebarOpen = ref(true);
+
+onMounted(() => {
+  if (window.innerWidth < MOBILE_BP) sidebarOpen.value = false;
+});
+
+const route = useRoute();
+watch(
+  () => route.path,
+  () => {
+    if (window.innerWidth < MOBILE_BP) sidebarOpen.value = false;
+  },
+);
 </script>
 
 <template>
 	<div class="app-shell">
 		<AppSidebar :open="sidebarOpen" />
+		<Transition name="bd">
+			<div v-if="sidebarOpen" class="mob-backdrop" @click="sidebarOpen = false" />
+		</Transition>
 		<div class="app-main">
 			<SiteHeader v-model:sidebar-open="sidebarOpen" />
 			<div class="app-scroll">
@@ -37,6 +54,31 @@ const sidebarOpen = ref(true);
 	font-size: 14px;
 	color: var(--fg);
 	-webkit-font-smoothing: antialiased;
+}
+
+.mob-backdrop {
+	display: none;
+}
+
+.bd-enter-active,
+.bd-leave-active {
+	transition: opacity 0.2s ease;
+}
+.bd-enter-from,
+.bd-leave-to {
+	opacity: 0;
+}
+
+@media (max-width: 820px) {
+	.mob-backdrop {
+		display: block;
+		position: fixed;
+		inset: 0;
+		z-index: 55;
+		background: rgba(0, 0, 0, 0.5);
+		-webkit-backdrop-filter: blur(2px);
+		backdrop-filter: blur(2px);
+	}
 }
 .app-main {
 	display: flex;

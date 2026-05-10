@@ -130,5 +130,25 @@ defineProps<{
 	display: flex;
 	gap: 12px;
 	justify-content: center;
+	flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+	.bx-hero {
+		padding: 72px 20px 40px;
+	}
+
+	.bx-hero__h {
+		font-size: 42px;
+	}
+
+	.bx-hero__lede {
+		font-size: 16px;
+	}
+
+	.bx-hero__cta {
+		flex-direction: column;
+		align-items: center;
+	}
 }
 </style>

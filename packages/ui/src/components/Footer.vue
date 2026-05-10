@@ -266,4 +266,39 @@ const props = withDefaults(
 	color: var(--mute);
 	font-size: 12px;
 }
+
+@media (max-width: 768px) {
+	.bx-footer {
+		padding: 48px 0 24px;
+	}
+
+	.bx-footer__inner {
+		padding: 0 20px;
+	}
+
+	.bx-footer__top {
+		grid-template-columns: 1fr;
+		gap: 36px;
+	}
+
+	.bx-footer__blurb {
+		max-width: 100%;
+	}
+
+	.bx-footer__cols {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.bx-footer__bottom {
+		flex-direction: column;
+		gap: 10px;
+		align-items: flex-start;
+	}
+}
+
+@media (max-width: 400px) {
+	.bx-footer__cols {
+		grid-template-columns: 1fr;
+	}
+}
 </style>

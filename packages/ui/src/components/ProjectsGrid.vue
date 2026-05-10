@@ -56,4 +56,28 @@ defineProps<{
 	grid-template-columns: repeat(3, 1fr);
 	gap: 14px;
 }
+
+@media (max-width: 900px) {
+	.bx-projects-grid__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 560px) {
+	.bx-projects-grid {
+		padding: 56px 0;
+	}
+
+	.bx-projects-grid__container {
+		padding: 0 16px;
+	}
+
+	.bx-projects-grid__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bx-projects-grid__head {
+		margin-bottom: 28px;
+	}
+}
 </style>

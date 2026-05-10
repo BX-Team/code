@@ -198,4 +198,20 @@ client.error(<span class="ck-s">"plugin.load"</span>, exception);</pre>
 .ck-k { color: var(--brand); }
 .ck-s { color: var(--brand-2); }
 .ck-n { color: oklch(0.78 0.13 320); }
+
+@media (max-width: 768px) {
+	.cs {
+		padding: 56px 0;
+	}
+
+	.cs__inner {
+		grid-template-columns: 1fr;
+		gap: 32px;
+		padding: 0 20px;
+	}
+
+	.cs__lede {
+		max-width: 100%;
+	}
+}
 </style>

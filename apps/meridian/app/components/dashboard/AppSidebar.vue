@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BrandMark } from '@bx-team/ui';
 import {
+  ArrowLeft,
   ChevronsUpDown,
   HelpCircle,
   LayoutDashboard,
@@ -14,6 +15,7 @@ import {
 import { openCreateProjectDialog } from '@/composables/useCreateProject';
 import { openSearchDialog } from '@/composables/useSearchDialog';
 import { authClient } from '@/lib/auth-client';
+import { DISCORD_URL } from '~/config/links';
 
 defineProps<{ open: boolean }>();
 
@@ -120,10 +122,15 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 					<Settings class="ic" :size="15" :stroke-width="1.6" />
 					Settings
 				</button>
-				<button class="nav-item">
+				<a class="nav-item" :href="DISCORD_URL" target="_blank" rel="noopener">
 					<HelpCircle class="ic" :size="15" :stroke-width="1.6" />
 					Get help
-				</button>
+				</a>
+
+				<a class="back-link" href="/">
+					<ArrowLeft :size="13" :stroke-width="2" />
+					Back to bxteam.org
+				</a>
 
 				<div class="user-area">
 					<div class="user-row" @click="toggleUserMenu">
@@ -271,6 +278,25 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 	border-top: 1px solid var(--line);
 }
 
+.back-link {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 7px 10px;
+	margin-top: 6px;
+	border: 1px solid var(--line);
+	border-radius: 7px;
+	color: var(--mute);
+	font: 500 12px var(--font-sans);
+	text-decoration: none;
+	transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.back-link:hover {
+	color: var(--fg-hi);
+	border-color: var(--line-2);
+	background: rgba(255, 255, 255, 0.03);
+}
+
 .user-area { position: relative; margin-top: 4px; }
 
 .user-row {
@@ -339,4 +365,27 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 .menu-leave-active { transition: opacity .1s ease, transform .1s ease; }
 .menu-enter-from  { opacity: 0; transform: translateY(4px); }
 .menu-leave-to    { opacity: 0; transform: translateY(4px); }
+
+@media (max-width: 820px) {
+	.side {
+		position: fixed;
+		top: 0;
+		left: 0;
+		height: 100dvh;
+		z-index: 60;
+		width: 240px;
+		transform: translateX(0);
+		transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.side.collapsed {
+		width: 240px;
+		transform: translateX(-100%);
+	}
+
+	.side.collapsed .side-inner {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
 </style>
