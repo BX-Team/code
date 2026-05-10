@@ -16,6 +16,8 @@ const props = withDefaults(
     columns?: FooterColumn[];
     blurb?: string;
     status?: string;
+    statusHref?: string;
+    statusLevel?: 'ok' | 'warn' | 'err';
     githubHref?: string;
     discordHref?: string;
   }>(),
@@ -49,6 +51,7 @@ const props = withDefaults(
     blurb:
       'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players.',
     status: 'All systems normal',
+    statusLevel: 'ok',
     githubHref: 'https://github.com/BX-Team',
     discordHref: 'https://discord.gg/qNyybSSPm5',
   },
@@ -106,10 +109,16 @@ const props = withDefaults(
 			</div>
 
 			<div class="bx-footer__bottom">
-				<span class="bx-footer__status">
-					<span class="bx-footer__status-dot" />
+				<component
+					:is="statusHref ? 'a' : 'span'"
+					:href="statusHref"
+					:target="statusHref ? '_blank' : undefined"
+					:rel="statusHref ? 'noopener noreferrer' : undefined"
+					class="bx-footer__status"
+				>
+					<span class="bx-footer__status-dot" :class="statusLevel" />
 					{{ status }}
-				</span>
+				</component>
 				<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
 			</div>
 		</div>
@@ -231,6 +240,25 @@ const props = withDefaults(
 	border-radius: 50%;
 	background: var(--ok);
 	box-shadow: 0 0 8px var(--ok);
+}
+
+.bx-footer__status-dot.warn {
+	background: var(--warn);
+	box-shadow: 0 0 8px var(--warn);
+}
+
+.bx-footer__status-dot.err {
+	background: var(--err);
+	box-shadow: 0 0 8px var(--err);
+}
+
+.bx-footer__status[href] {
+	text-decoration: none;
+	transition: color 0.15s;
+}
+
+.bx-footer__status[href]:hover {
+	color: var(--fg-hi);
 }
 
 .bx-footer__copy {
