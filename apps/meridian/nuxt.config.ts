@@ -1,6 +1,23 @@
+import { spawnSync } from 'node:child_process';
 import tailwindcss from '@tailwindcss/vite';
 
+function getGitCommit(): { hash: string; message: string } {
+  const run = (args: string[]) =>
+    spawnSync('git', args, { encoding: 'utf-8' }).stdout?.trim() ?? '';
+  try {
+    const hash = run(['log', '-1', '--format=%h']);
+    const message = run(['log', '-1', '--format=%s']);
+    if (!hash) return { hash: 'unknown', message: '' };
+    return { hash, message };
+  } catch {
+    return { hash: 'unknown', message: '' };
+  }
+}
+
 export default defineNuxtConfig({
+  appConfig: {
+    commit: getGitCommit(),
+  },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {

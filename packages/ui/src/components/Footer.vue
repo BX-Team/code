@@ -20,6 +20,7 @@ const props = withDefaults(
     statusLevel?: 'ok' | 'warn' | 'err';
     githubHref?: string;
     discordHref?: string;
+    commit?: { hash: string; message: string };
   }>(),
   {
     columns: () => [
@@ -119,7 +120,13 @@ const props = withDefaults(
 					<span class="bx-footer__status-dot" :class="statusLevel" />
 					{{ status }}
 				</component>
-				<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
+				<div class="bx-footer__bottom-right">
+					<span v-if="commit" class="bx-footer__commit">
+						<code>{{ commit.hash }}</code>
+						{{ commit.message }}
+					</span>
+					<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
+				</div>
 			</div>
 		</div>
 	</footer>
@@ -261,6 +268,34 @@ const props = withDefaults(
 	color: var(--fg-hi);
 }
 
+.bx-footer__bottom-right {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+
+.bx-footer__commit {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font: 400 12px var(--font-mono);
+	color: var(--mute);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 320px;
+}
+
+.bx-footer__commit code {
+	font: 600 12px var(--font-mono);
+	color: var(--brand);
+	background: color-mix(in oklab, var(--brand) 10%, transparent);
+	border: 1px solid color-mix(in oklab, var(--brand) 25%, transparent);
+	padding: 1px 6px;
+	border-radius: 4px;
+	flex-shrink: 0;
+}
+
 .bx-footer__copy {
 	margin: 0;
 	color: var(--mute);
@@ -293,6 +328,16 @@ const props = withDefaults(
 		flex-direction: column;
 		gap: 10px;
 		align-items: flex-start;
+	}
+
+	.bx-footer__bottom-right {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
+	}
+
+	.bx-footer__commit {
+		max-width: 100%;
 	}
 }
 

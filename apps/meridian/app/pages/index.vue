@@ -3,6 +3,7 @@ import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, Pr
 import { Activity, AlertCircle, Box, Database, Users, Zap } from '@lucide/vue';
 import { DISCORD_URL } from '~/config/links';
 
+const appConfig = useAppConfig();
 const bxStatus = useStatusSummary();
 const footerStatusLevel = computed((): 'ok' | 'warn' | 'err' => {
   if (bxStatus.value === 'degraded') return 'err';
@@ -188,6 +189,7 @@ const projects = [
 			:status="footerStatusText"
 			:status-level="footerStatusLevel"
 			status-href="https://status.bxteam.org"
+			:commit="appConfig.commit"
 		/>
 	</div>
 </template>
