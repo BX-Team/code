@@ -14,6 +14,7 @@ This is the BX Team monorepo — it contains all BX Team projects, both frontend
 | `cinder`          | BullMQ worker for ingest API       |
 | `influx`          | Ingest API written in Hono         |              
 | `meridian`        | Main BX Team frontend app (Nuxt 4) |
+| `zenith`          | Status monitor (like Better Uptime)|
 
 ### Packages (`packages/`)
 | Package           | Description                           |
