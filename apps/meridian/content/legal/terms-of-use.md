@@ -1,7 +1,7 @@
 ---
 title: Terms of Use
 description: The terms governing your use of BX Team's website, BX ID authentication system, and Pulsify observability platform.
-lastUpdated: May 3, 2026
+lastUpdated: May 12, 2026
 ---
 
 ## 1. Agreement
