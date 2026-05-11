@@ -3,7 +3,7 @@ import type { Incident, IncidentType, Service, ServiceStatus, ServiceWithStatus,
 export async function loadServicesWithStatus(db: D1Database): Promise<ServiceWithStatus[]> {
   const result = await db
     .prepare(
-      `SELECT s.*, ss.is_up, ss.last_check_at, ss.last_response_ms, ss.last_heartbeat_at, ss.consecutive_failures
+      `SELECT s.*, ss.is_up, ss.last_check_at, ss.consecutive_failures
        FROM services s
        LEFT JOIN service_status ss ON s.id = ss.service_id
        WHERE s.enabled = 1
@@ -12,15 +12,13 @@ export async function loadServicesWithStatus(db: D1Database): Promise<ServiceWit
     .all<Service & Partial<ServiceStatus>>();
 
   return (result.results ?? []).map(row => {
-    const { is_up, last_check_at, last_response_ms, last_heartbeat_at, consecutive_failures, ...service } = row;
+    const { is_up, last_check_at, consecutive_failures, ...service } = row;
     const status: ServiceStatus | null =
       is_up !== undefined
         ? {
             service_id: service.id,
             is_up: is_up!,
             last_check_at: last_check_at ?? null,
-            last_response_ms: last_response_ms ?? null,
-            last_heartbeat_at: last_heartbeat_at ?? null,
             consecutive_failures: consecutive_failures ?? 0,
           }
         : null;
@@ -33,16 +31,14 @@ export async function upsertServiceStatuses(db: D1Database, statuses: ServiceSta
   const stmts = statuses.map(s =>
     db
       .prepare(
-        `INSERT INTO service_status (service_id, is_up, last_check_at, last_response_ms, last_heartbeat_at, consecutive_failures)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+        `INSERT INTO service_status (service_id, is_up, last_check_at, consecutive_failures)
+       VALUES (?1, ?2, ?3, ?4)
        ON CONFLICT(service_id) DO UPDATE SET
          is_up = excluded.is_up,
-         last_check_at = excluded.last_check_at,
-         last_response_ms = COALESCE(excluded.last_response_ms, last_response_ms),
-         last_heartbeat_at = COALESCE(excluded.last_heartbeat_at, last_heartbeat_at),
+         last_check_at = COALESCE(excluded.last_check_at, last_check_at),
          consecutive_failures = excluded.consecutive_failures`,
       )
-      .bind(s.service_id, s.is_up, s.last_check_at, s.last_response_ms, s.last_heartbeat_at, s.consecutive_failures),
+      .bind(s.service_id, s.is_up, s.last_check_at, s.consecutive_failures),
   );
   await db.batch(stmts);
 }
@@ -150,9 +146,9 @@ export async function setGroupOrder(db: D1Database, order: string[]): Promise<vo
 export async function updateHeartbeat(db: D1Database, serviceId: string): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO service_status (service_id, is_up, consecutive_failures, last_heartbeat_at)
+      `INSERT INTO service_status (service_id, is_up, consecutive_failures, last_check_at)
        VALUES (?1, 1, 0, ?2)
-       ON CONFLICT(service_id) DO UPDATE SET last_heartbeat_at = excluded.last_heartbeat_at, is_up = 1, consecutive_failures = 0`,
+       ON CONFLICT(service_id) DO UPDATE SET last_check_at = excluded.last_check_at, is_up = 1, consecutive_failures = 0`,
     )
     .bind(serviceId, Date.now())
     .run();

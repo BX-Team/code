@@ -70,7 +70,7 @@ function label(seg: Segment): string {
 .uptime {
 	display: flex;
 	align-items: stretch;
-	gap: 2px;
+	gap: 1px;
 	width: 360px;
 }
 

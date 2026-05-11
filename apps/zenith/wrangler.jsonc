@@ -11,9 +11,6 @@
   "triggers": {
     "crons": ["* * * * *"]
   },
-  "placement": {
-    "region": "gcp:europe-west4"
-  },
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"

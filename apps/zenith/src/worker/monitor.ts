@@ -9,7 +9,6 @@ import {
 import type { CheckResult, Env, Incident, Service, ServiceStatus, ServiceWithStatus } from './types';
 
 async function checkHttp(service: Service): Promise<CheckResult> {
-  const start = Date.now();
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), service.timeout_ms);
@@ -19,26 +18,22 @@ async function checkHttp(service: Service): Promise<CheckResult> {
       redirect: 'follow',
     });
     clearTimeout(timer);
-    const responseMs = Date.now() - start;
     const isUp = resp.status === service.expected_status;
-    return { service, previousStatus: null, isUp, responseMs, error: isUp ? undefined : `HTTP ${resp.status}` };
+    return { service, previousStatus: null, isUp, error: isUp ? undefined : `HTTP ${resp.status}` };
   } catch (err) {
-    return { service, previousStatus: null, isUp: false, responseMs: null, error: String(err) };
+    return { service, previousStatus: null, isUp: false, error: String(err) };
   }
 }
 
 function checkPush(service: Service, status: ServiceStatus | null): CheckResult {
-  if (!status?.last_heartbeat_at) {
-    const createdRecently = Date.now() - (status?.last_check_at ?? Date.now()) < service.push_interval_ms * 2;
-    return { service, previousStatus: status, isUp: createdRecently, responseMs: null };
-  }
-  const age = Date.now() - status.last_heartbeat_at;
+  const lastSeen = status?.last_check_at;
+  if (!lastSeen) return { service, previousStatus: status, isUp: true };
+  const age = Date.now() - lastSeen;
   const isUp = age < service.push_interval_ms * 2;
   return {
     service,
     previousStatus: status,
     isUp,
-    responseMs: null,
     error: isUp ? undefined : `No heartbeat for ${Math.round(age / 1000)}s`,
   };
 }
@@ -64,15 +59,13 @@ export async function runChecks(env: Env, db: D1Database): Promise<void> {
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
 
-  const updatedStatuses: ServiceStatus[] = results.map(r => {
+  const updatedStatuses = results.map(r => {
     const prev = r.previousStatus;
     const consec = r.isUp ? 0 : (prev?.consecutive_failures ?? 0) + 1;
     return {
       service_id: r.service.id,
       is_up: r.isUp || consec < r.service.fail_threshold ? (r.isUp ? 1 : (prev?.is_up ?? 1)) : 0,
-      last_check_at: r.service.type === 'http' ? now : (prev?.last_check_at ?? null),
-      last_response_ms: r.responseMs,
-      last_heartbeat_at: prev?.last_heartbeat_at ?? null,
+      last_check_at: r.service.type === 'http' ? now : null,
       consecutive_failures: consec,
     };
   });

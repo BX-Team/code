@@ -6,11 +6,12 @@ import IncidentBanner from '../components/IncidentBanner.vue';
 import IncidentTimeline from '../components/IncidentTimeline.vue';
 import ServiceGroup from '../components/ServiceGroup.vue';
 import StatusHero from '../components/StatusHero.vue';
-import type { HistoryResponse, IncidentsResponse, StatusResponse } from '../types';
+import type { HistoryResponse, IncidentsResponse, LocationResponse, StatusResponse } from '../types';
 
 const status = ref<StatusResponse | null>(null);
 const history = ref<HistoryResponse['history']>({});
 const incidents = ref<IncidentsResponse['incidents']>([]);
+const location = ref<LocationResponse | null>(null);
 const loading = ref(true);
 const activeFilter = ref('');
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -29,6 +30,7 @@ async function fetchAll() {
 
 onMounted(() => {
   fetchAll();
+  fetch('/api/location').then(r => r.json() as Promise<LocationResponse>).then(l => { location.value = l; });
   refreshTimer = setInterval(fetchAll, 30_000);
 });
 
@@ -85,6 +87,10 @@ function servicesInGroup(group: string) {
 				<footer class="foot">
 					<div class="legal">
 						<span>© {{ new Date().getFullYear() }} BX Team</span>
+					</div>
+					<div v-if="location?.colo" class="edge-loc">
+						<span v-if="location.city && location.country">{{ location.city }}, {{ location.country }}</span>
+						<span class="colo">{{ location.colo }}</span>
 					</div>
 				</footer>
 			</template>
@@ -182,6 +188,21 @@ function servicesInGroup(group: string) {
 	display: inline-flex;
 	align-items: center;
 	gap: 16px;
+}
+
+.edge-loc {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.edge-loc .colo {
+	font: 500 11px var(--font-mono);
+	letter-spacing: 0.04em;
+	padding: 2px 6px;
+	background: var(--bg-1);
+	border: 1px solid var(--line);
+	border-radius: var(--r-sm);
 }
 
 .dotsep {

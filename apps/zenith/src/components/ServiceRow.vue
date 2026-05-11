@@ -33,28 +33,6 @@ const uptime = computed(() => {
   return ((ok / total) * 100).toFixed(3) + '%';
 });
 
-const latency = computed(() => {
-  const ms = props.service.status?.last_response_ms;
-  if (ms == null) {
-    if (props.service.type === 'push' || props.service.type === 'db') {
-      const hb = props.service.status?.last_heartbeat_at;
-      if (!hb) return '—';
-      const ago = Math.round((Date.now() - hb) / 1000);
-      return ago < 60 ? `${ago}s ago` : `${Math.round(ago / 60)}m ago`;
-    }
-    return '—';
-  }
-  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(2)} s`;
-});
-
-const latencyClass = computed(() => {
-  const st = props.service.status;
-  if (!st) return '';
-  if (st.is_up === 0) return 'err';
-  if (st.consecutive_failures > 0) return 'warn';
-  return 'ok';
-});
-
 const badge = computed(() => {
   if (props.service.type === 'db') {
     const dt = props.service.db_type?.toLowerCase() ?? '';
@@ -90,7 +68,6 @@ const metaText = computed(() => {
 		</div>
 		<div class="svc-stats">
 			<div class="pct">{{ uptime }}</div>
-			<div class="lat" :class="latencyClass">{{ latency }}</div>
 		</div>
 	</div>
 </template>
@@ -193,22 +170,6 @@ const metaText = computed(() => {
 	letter-spacing: -0.01em;
 }
 
-.lat {
-	font: 400 11.5px var(--font-mono);
-	color: var(--mute);
-}
-
-.lat.ok {
-	color: var(--brand-2);
-}
-
-.lat.warn {
-	color: var(--warn);
-}
-
-.lat.err {
-	color: var(--err);
-}
 
 @media (max-width: 760px) {
 	.svc {

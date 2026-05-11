@@ -46,6 +46,11 @@ async function requireAdmin(c: any, next: any) {
 
 // ── Public API ──
 
+app.get('/api/location', c => {
+  const cf = (c.req.raw as Request & { cf?: { colo?: string; city?: string; country?: string } }).cf;
+  return c.json({ colo: cf?.colo ?? null, city: cf?.city ?? null, country: cf?.country ?? null });
+});
+
 app.get('/api/status', async c => {
   const [services, incidents, savedOrder] = await Promise.all([
     loadServicesWithStatus(c.env.DB),

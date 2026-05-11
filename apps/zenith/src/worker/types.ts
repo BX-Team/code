@@ -31,8 +31,6 @@ export interface ServiceStatus {
   service_id: string;
   is_up: number;
   last_check_at: number | null;
-  last_response_ms: number | null;
-  last_heartbeat_at: number | null;
   consecutive_failures: number;
 }
 
@@ -53,7 +51,6 @@ export interface CheckResult {
   service: Service;
   previousStatus: ServiceStatus | null;
   isUp: boolean;
-  responseMs: number | null;
   error?: string;
 }
 
