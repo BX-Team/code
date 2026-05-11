@@ -27,6 +27,7 @@ This is the BX Team monorepo — it contains all BX Team projects, both frontend
 Each project may have its own `CLAUDE.md` with detailed instructions:
 
 - [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
+- [`apps/zenith/CLAUDE.md`](apps/zenith/CLAUDE.md) - Status Monitor
 - [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
 
 ## Code Guidelines

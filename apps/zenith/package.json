@@ -5,8 +5,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "bun run build && vite preview",
-    "deploy": "bun run build && wrangler deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "deploy": "bun run build && wrangler deploy"
   },
   "dependencies": {
     "@bx-team/ui": "workspace:*",
