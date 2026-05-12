@@ -1,19 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: pulsify
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d pulsify"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -29,6 +14,8 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:24-alpine
     restart: unless-stopped
+    ports:
+      - "${CLICKHOUSE_PORT:-8123}:8123"
     environment:
       CLICKHOUSE_DB: pulsify
       CLICKHOUSE_USER: ${CLICKHOUSE_USER}
@@ -37,7 +24,11 @@ services:
       - clickhouse_data:/var/lib/clickhouse
       - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "clickhouse-client --user=${CLICKHOUSE_USER} --password=${CLICKHOUSE_PASSWORD} --query='SELECT 1'"]
+      test:
+        [
+          "CMD-SHELL",
+          "clickhouse-client --user=${CLICKHOUSE_USER} --password=${CLICKHOUSE_PASSWORD} --query='SELECT 1'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,12 +41,10 @@ services:
     ports:
       - "${INFLUX_PORT:-3001}:3001"
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/pulsify
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@{POSTGRES_ADDRESS}:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       PORT: 3001
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
 
@@ -65,18 +54,15 @@ services:
       dockerfile: apps/cinder/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/pulsify
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ADDRESS}:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       CLICKHOUSE_URL: http://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@clickhouse:8123/pulsify
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
       clickhouse:
         condition: service_healthy
 
 volumes:
-  postgres_data:
   redis_data:
   clickhouse_data:
