@@ -1,6 +1,6 @@
 export interface DisabledPageConfig {
-	disabled: boolean;
-	message?: string;
+  disabled: boolean;
+  message?: string;
 }
 
 /**
@@ -11,5 +11,5 @@ export interface DisabledPageConfig {
  *   '/downloads': { disabled: true, message: 'Downloads are temporarily unavailable.' },
  */
 export const DISABLED_PAGES: Record<string, DisabledPageConfig> = {
-	// '/downloads': { disabled: true, message: 'Downloads are temporarily unavailable.' },
+  // '/downloads': { disabled: true, message: 'Downloads are temporarily unavailable.' },
 };

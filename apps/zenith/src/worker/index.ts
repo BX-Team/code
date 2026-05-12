@@ -66,10 +66,7 @@ app.get('/api/status', async c => {
 });
 
 app.get('/api/summary', async c => {
-  const [services, incidents] = await Promise.all([
-    loadServicesWithStatus(c.env.DB),
-    loadActiveIncidents(c.env.DB),
-  ]);
+  const [services, incidents] = await Promise.all([loadServicesWithStatus(c.env.DB), loadActiveIncidents(c.env.DB)]);
   let status: 'ok' | 'degraded' | 'maintenance' = 'ok';
   if (incidents.some(i => i.type === 'manual')) {
     status = 'degraded';

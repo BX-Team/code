@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Footer, Navbar } from '@bx-team/ui';
+import { computed } from 'vue';
 import { DISCORD_URL } from '~/config/links';
 
 const status = useStatusSummary();

@@ -3,7 +3,7 @@ import { Button } from '@bx-team/ui';
 import { Home, PowerOff } from '@lucide/vue';
 
 defineProps<{
-	message?: string;
+  message?: string;
 }>();
 </script>
 

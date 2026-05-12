@@ -2,8 +2,7 @@ import { spawnSync } from 'node:child_process';
 import tailwindcss from '@tailwindcss/vite';
 
 function getGitCommit(): { hash: string; message: string } {
-  const run = (args: string[]) =>
-    spawnSync('git', args, { encoding: 'utf-8' }).stdout?.trim() ?? '';
+  const run = (args: string[]) => spawnSync('git', args, { encoding: 'utf-8' }).stdout?.trim() ?? '';
   try {
     const hash = run(['log', '-1', '--format=%h']);
     const message = run(['log', '-1', '--format=%s']);

@@ -30,7 +30,11 @@ async function fetchAll() {
 
 onMounted(() => {
   fetchAll();
-  fetch('/api/location').then(r => r.json() as Promise<LocationResponse>).then(l => { location.value = l; });
+  fetch('/api/location')
+    .then(r => r.json() as Promise<LocationResponse>)
+    .then(l => {
+      location.value = l;
+    });
   refreshTimer = setInterval(fetchAll, 30_000);
 });
 
