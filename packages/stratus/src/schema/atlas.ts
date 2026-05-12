@@ -15,7 +15,7 @@ export const atlasProjects = pgTable('atlas_projects', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const versions = pgTable('versions', {
+export const versions = pgTable('atlas_versions', {
   id: serial('id').primaryKey(),
   projectId: integer('project_id')
     .notNull()
@@ -27,7 +27,7 @@ export const versions = pgTable('versions', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const builds = pgTable('builds', {
+export const builds = pgTable('atlas_builds', {
   id: serial('id').primaryKey(),
   versionId: integer('version_id')
     .notNull()
@@ -39,7 +39,7 @@ export const builds = pgTable('builds', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const commits = pgTable('commits', {
+export const commits = pgTable('atlas_commits', {
   id: serial('id').primaryKey(),
   buildId: integer('build_id')
     .notNull()
@@ -50,7 +50,7 @@ export const commits = pgTable('commits', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const downloads = pgTable('downloads', {
+export const downloads = pgTable('atlas_downloads', {
   id: serial('id').primaryKey(),
   buildId: integer('build_id')
     .notNull()
