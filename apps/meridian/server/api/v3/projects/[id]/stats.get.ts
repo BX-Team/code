@@ -1,5 +1,5 @@
-import { db, errors, projects, serverMetadata } from '@bx-team/stratus';
-import { and, count, eq } from 'drizzle-orm';
+import { db, projects, serverMetadata } from '@bx-team/stratus';
+import { and, eq } from 'drizzle-orm';
 
 const RANGES = {
   '24h': { interval: '24 HOUR', bucket: 'toStartOfFiveMinutes' },
@@ -25,36 +25,48 @@ export default defineEventHandler(async event => {
 
   const [metadata] = await db.select().from(serverMetadata).where(eq(serverMetadata.projectId, id));
 
-  const [errorCount] = await db.select({ total: count() }).from(errors).where(eq(errors.projectId, id));
-
   let timeseries: unknown[] = [];
+  let totalErrors = 0;
 
-  if (project.type === 'server') {
-    const result = await clickhouse.query({
-      query: `
-				SELECT
-					${range.bucket}(timestamp) AS time,
-					avg(online)       AS online,
-					avg(tps)          AS tps,
-					avg(mspt)         AS mspt,
-					avg(memory_used)  AS memory_used
-				FROM server_stats
-				WHERE project_id = {projectId: String}
-					AND timestamp >= now() - INTERVAL ${range.interval}
-				GROUP BY time
-				ORDER BY time
-			`,
+  const [errorCountResult, timeseriesResult] = await Promise.all([
+    clickhouse.query({
+      query: `SELECT count() AS total FROM error_events WHERE project_id = {projectId: String}`,
       query_params: { projectId: id },
       format: 'JSONEachRow',
-    });
-    timeseries = await result.json();
+    }),
+    project.type === 'server'
+      ? clickhouse.query({
+          query: `
+            SELECT
+              ${range.bucket}(timestamp) AS time,
+              max(online)       AS online,
+              avg(tps)          AS tps,
+              avg(mspt)         AS mspt,
+              max(memory_used)  AS memory_used
+            FROM server_stats
+            WHERE project_id = {projectId: String}
+              AND timestamp >= now() - INTERVAL ${range.interval}
+            GROUP BY time
+            ORDER BY time
+          `,
+          query_params: { projectId: id },
+          format: 'JSONEachRow',
+        })
+      : null,
+  ]);
+
+  const [errorCountRow] = (await errorCountResult.json()) as Array<{ total: string }>;
+  totalErrors = Number(errorCountRow?.total ?? 0);
+
+  if (timeseriesResult) {
+    timeseries = await timeseriesResult.json();
   }
 
   return {
     project: { id: project.id, name: project.name, type: project.type, slug: project.slug },
     metadata: metadata ?? null,
     timeseries,
-    summary: { totalErrors: errorCount?.total ?? 0 },
+    summary: { totalErrors },
     range: rangeKey,
   };
 });

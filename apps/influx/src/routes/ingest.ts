@@ -5,6 +5,9 @@ import { type AuthVariables, authMiddleware } from '../middleware/auth';
 export const ingestRoute = new Hono<{ Variables: AuthVariables }>();
 
 ingestRoute.use('/e/:projectId', ...authMiddleware);
+ingestRoute.use('/ping/:projectId', ...authMiddleware);
+
+ingestRoute.get('/ping/:projectId', c => c.json({ ok: true }, 200));
 
 ingestRoute.post('/e/:projectId', async c => {
   const projectId = c.get('projectId');

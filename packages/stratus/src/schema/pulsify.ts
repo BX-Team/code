@@ -28,25 +28,6 @@ export const dsnTokens = pgTable('pulsify_dsn_tokens', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const errors = pgTable(
-  'pulsify_errors',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    projectId: uuid('project_id')
-      .notNull()
-      .references(() => projects.id, { onDelete: 'cascade' }),
-    plugin: text('plugin').notNull(),
-    message: text('message').notNull(),
-    stacktrace: text('stacktrace').notNull(),
-    level: text('level').notNull().default('error'),
-    hash: text('hash').notNull(),
-    firstSeenAt: timestamp('first_seen_at').notNull().defaultNow(),
-    lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
-    count: integer('count').notNull().default(1),
-  },
-  t => [unique().on(t.projectId, t.hash)],
-);
-
 export const pluginInstallations = pgTable(
   'pulsify_plugin_installations',
   {

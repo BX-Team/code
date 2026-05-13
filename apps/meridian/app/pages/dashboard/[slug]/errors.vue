@@ -93,6 +93,7 @@ const expanded = ref<string | null>(null);
 								<span class="sub">events</span>
 							</div>
 							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
+							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === err.id }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
 						</div>
 						<div v-if="expanded === err.id && err.stacktrace" class="err-stack">
 							<pre>{{ err.stacktrace }}</pre>
@@ -160,11 +161,19 @@ const expanded = ref<string | null>(null);
 
 .err-main {
 	display: grid;
-	grid-template-columns: 80px 1fr 80px 90px;
+	grid-template-columns: 80px 1fr 80px 90px 20px;
 	gap: 12px;
 	padding: 12px 18px;
 	align-items: center;
 }
+
+.chevron {
+	color: var(--mute);
+	transition: transform 0.2s, color 0.15s;
+	flex-shrink: 0;
+}
+.chevron.open { transform: rotate(180deg); color: var(--dim); }
+.err-row:hover .chevron { color: var(--dim); }
 
 .lvl {
 	display: inline-flex;

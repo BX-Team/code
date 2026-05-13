@@ -28,8 +28,8 @@ export const PlayerEventSchema = z.object({
   event: z.enum(['player_join', 'player_quit']),
   payload: z.object({
     player_uuid: z.string().uuid(),
-    client_version: z.string(),
-    ip_hash: z.string().optional(),
+    client_version: z.string().optional(),
+    player_ip: z.string().optional(),
   }),
 });
 

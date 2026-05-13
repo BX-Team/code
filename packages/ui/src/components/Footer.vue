@@ -30,32 +30,33 @@ const props = withDefaults(
   },
 );
 
-const effectiveColumns = computed<FooterColumn[]>(() =>
-  props.columns ?? [
-    {
-      title: 'BX Team',
-      links: [
-        { label: 'Documentation', href: '/docs' },
-        { label: 'Downloads', href: '/downloads' },
-        { label: 'Our team', href: '/team' },
-        { label: 'Status', href: 'https://status.bxteam.org' },
-      ],
-    },
-    {
-      title: 'Community',
-      links: [
-        { label: 'Discord', href: props.discordHref },
-        { label: 'GitHub', href: props.githubHref },
-      ],
-    },
-    {
-      title: 'Legal',
-      links: [
-        { label: 'Terms of use', href: '/legal/terms-of-use' },
-        { label: 'Privacy policy', href: '/legal/privacy-policy' },
-      ],
-    },
-  ],
+const effectiveColumns = computed<FooterColumn[]>(
+  () =>
+    props.columns ?? [
+      {
+        title: 'BX Team',
+        links: [
+          { label: 'Documentation', href: '/docs' },
+          { label: 'Downloads', href: '/downloads' },
+          { label: 'Our team', href: '/team' },
+          { label: 'Status', href: 'https://status.bxteam.org' },
+        ],
+      },
+      {
+        title: 'Community',
+        links: [
+          { label: 'Discord', href: props.discordHref },
+          { label: 'GitHub', href: props.githubHref },
+        ],
+      },
+      {
+        title: 'Legal',
+        links: [
+          { label: 'Terms of use', href: '/legal/terms-of-use' },
+          { label: 'Privacy policy', href: '/legal/privacy-policy' },
+        ],
+      },
+    ],
 );
 </script>
 

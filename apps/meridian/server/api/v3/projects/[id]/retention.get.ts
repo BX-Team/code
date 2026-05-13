@@ -21,13 +21,13 @@ export default defineEventHandler(async event => {
 						countIf(day1.player_uuid IS NOT NULL)          AS retained
 					FROM (
 						SELECT DISTINCT player_uuid
-						FROM player_sessions
+						FROM player_sessions FINAL
 						WHERE project_id = {projectId: String}
 							AND toDate(joined_at) = today() - 2
 					) cohort
 					LEFT JOIN (
 						SELECT DISTINCT player_uuid
-						FROM player_sessions
+						FROM player_sessions FINAL
 						WHERE project_id = {projectId: String}
 							AND toDate(joined_at) = today() - 1
 					) day1 ON cohort.player_uuid = day1.player_uuid
@@ -45,13 +45,13 @@ export default defineEventHandler(async event => {
 						countIf(day7.player_uuid IS NOT NULL)          AS retained
 					FROM (
 						SELECT DISTINCT player_uuid
-						FROM player_sessions
+						FROM player_sessions FINAL
 						WHERE project_id = {projectId: String}
 							AND toDate(joined_at) = today() - 8
 					) cohort
 					LEFT JOIN (
 						SELECT DISTINCT player_uuid
-						FROM player_sessions
+						FROM player_sessions FINAL
 						WHERE project_id = {projectId: String}
 							AND toDate(joined_at) = today() - 7
 					) day7 ON cohort.player_uuid = day7.player_uuid

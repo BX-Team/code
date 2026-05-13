@@ -2,13 +2,21 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+:root {
+  --vis-tooltip-background-color: transparent;
+  --vis-tooltip-border-color: transparent;
+  --vis-tooltip-padding: 0;
+  --vis-tooltip-border-radius: 0;
+  --vis-tooltip-box-shadow: none;
+}
+
 @custom-variant dark (&:is(.dark *));
 
-[data-sonner-toaster][data-sonner-theme='dark'] {
-	--normal-bg: var(--bg-1);
-	--normal-bg-hover: var(--bg-2);
-	--normal-border: var(--line);
-	--normal-border-hover: var(--line-2);
-	--normal-text: var(--fg-hi);
-	--border-radius: var(--r-md);
+[data-sonner-toaster][data-sonner-theme="dark"] {
+  --normal-bg: var(--bg-1);
+  --normal-bg-hover: var(--bg-2);
+  --normal-border: var(--line);
+  --normal-border-hover: var(--line-2);
+  --normal-text: var(--fg-hi);
+  --border-radius: var(--r-md);
 }

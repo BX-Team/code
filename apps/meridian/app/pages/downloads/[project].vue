@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
 import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
-import { GITHUB_URL } from '~/config/links';
 import { useRoute } from 'vue-router';
 import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue';
 import type { Build, Project, VersionWithBuilds } from '@/lib/atlas';
 import { formatFileSize, getAllVersions } from '@/lib/atlas';
+import { GITHUB_URL } from '~/config/links';
 
 const route = useRoute();
 const projectId = String(route.params.project);

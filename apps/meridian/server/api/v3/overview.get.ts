@@ -70,7 +70,7 @@ export default defineEventHandler(async event => {
     serverIds.length
       ? clickhouse
           .query({
-            query: `SELECT countDistinct(player_uuid) AS players FROM player_sessions WHERE project_id IN ({projectIds: Array(String)}) AND joined_at >= now() - INTERVAL 24 HOUR`,
+            query: `SELECT countDistinct(player_uuid) AS players FROM player_sessions FINAL WHERE project_id IN ({projectIds: Array(String)}) AND joined_at >= now() - INTERVAL 24 HOUR`,
             query_params: { projectIds: serverIds },
             format: 'JSONEachRow',
           })

@@ -42,19 +42,26 @@ interface PlayersResponse {
   summary: { uniquePlayers: number; newPlayers: number };
 }
 
-const { data: stats, pending } = await useAsyncData<StatsResponse | null>(
+const {
+  data: stats,
+  pending,
+  refresh: refreshStats,
+} = await useAsyncData<StatsResponse | null>(
   `project-stats-${slug.value}`,
   () =>
     project.value
       ? $fetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
       : Promise.resolve(null),
-  { watch: [range] },
+  { watch: [range, project] },
 );
 
-const { data: players } = await useAsyncData<PlayersResponse | null>(`project-players-${slug.value}`, () =>
-  project.value?.type === 'server'
-    ? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
-    : Promise.resolve(null),
+const { data: players } = await useAsyncData<PlayersResponse | null>(
+  `project-players-${slug.value}`,
+  () =>
+    project.value?.type === 'server'
+      ? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
+      : Promise.resolve(null),
+  { watch: [project] },
 );
 
 interface ErrorRow {
@@ -70,8 +77,10 @@ interface ErrorsResponse {
   total: number;
 }
 
-const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(`project-errors-${slug.value}`, () =>
-  project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
+  `project-errors-${slug.value}`,
+  () => (project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null)),
+  { watch: [project] },
 );
 
 interface ClientVersionsResponse {
@@ -112,7 +121,7 @@ const { data: clientVersions } = await useAsyncData<ClientVersionsResponse | nul
           query: { range: range.value },
         })
       : Promise.resolve(null),
-  { watch: [range] },
+  { watch: [range, project] },
 );
 
 const { data: geography } = await useAsyncData<GeographyResponse | null>(
@@ -121,7 +130,7 @@ const { data: geography } = await useAsyncData<GeographyResponse | null>(
     project.value?.type === 'server'
       ? $fetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
       : Promise.resolve(null),
-  { watch: [range] },
+  { watch: [range, project] },
 );
 
 const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | null>(
@@ -132,13 +141,16 @@ const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | n
           query: { range: range.value },
         })
       : Promise.resolve(null),
-  { watch: [range] },
+  { watch: [range, project] },
 );
 
-const { data: retention } = await useAsyncData<RetentionResponse | null>(`project-retention-${slug.value}`, () =>
-  project.value?.type === 'server'
-    ? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
-    : Promise.resolve(null),
+const { data: retention } = await useAsyncData<RetentionResponse | null>(
+  `project-retention-${slug.value}`,
+  () =>
+    project.value?.type === 'server'
+      ? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
+      : Promise.resolve(null),
+  { watch: [project] },
 );
 
 const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | null>(
@@ -147,6 +159,7 @@ const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | nul
     project.value && project.value.type !== 'server'
       ? $fetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
       : Promise.resolve(null),
+  { watch: [project] },
 );
 
 const seriesData = computed(() =>
@@ -184,9 +197,20 @@ const avgTps = computed(() => {
   return Math.round((sum / ts.length) * 10) / 10;
 });
 
+const onlineTrend = computed(() => {
+  const ts = stats.value?.timeseries ?? [];
+  if (ts.length < 2) return null;
+  const current = Number(latestPoint.value?.online ?? 0);
+  const prev = ts.slice(0, -1);
+  const avg = prev.reduce((a, p) => a + Number(p.online ?? 0), 0) / prev.length;
+  if (avg === 0) return null;
+  const pct = Math.round(((current - avg) / avg) * 100);
+  return { direction: pct >= 0 ? ('up' as const) : ('down' as const), value: `${pct >= 0 ? '+' : ''}${pct}%` };
+});
+
 const heapUsed = computed(() => {
   const v = Number(latestPoint.value?.memory_used ?? 0);
-  return v > 0 ? `${(v / 1024 / 1024 / 1024).toFixed(1)} GB` : '—';
+  return v > 0 ? `${(v / 1024).toFixed(1)} GB` : '—';
 });
 
 const tpsNow = computed(() => {
@@ -211,8 +235,7 @@ const msptPercent = computed(() => {
 
 const memPercent = computed(() => {
   const v = Number(latestPoint.value?.memory_used ?? 0);
-  const gb = v / 1024 / 1024 / 1024;
-  return Math.min(100, (gb / 24) * 100);
+  return Math.min(100, (v / (24 * 1024)) * 100);
 });
 
 const returningPlayers = computed(() => {
@@ -252,9 +275,9 @@ const cardStats = computed(() => {
       {
         label: 'Players online',
         value: peakOnline.value.toLocaleString(),
-        caption: `Peak today · ${peakOnline.value.toLocaleString()}`,
-        hint: `Concurrent · last ${range.value}`,
-        trend: peakOnline.value > 0 ? { direction: 'up' as const, value: '↗ live' } : undefined,
+        caption: `Peak · last ${range.value}`,
+        hint: `Current · ${Number(latestPoint.value?.online ?? 0).toLocaleString()} online`,
+        trend: onlineTrend.value ?? undefined,
       },
       {
         label: 'Avg session',
@@ -291,7 +314,7 @@ const cardStats = computed(() => {
       value: (pi?.enabled_installs ?? 0).toLocaleString(),
       caption: 'Reporting in last 24h',
       hint: `Of ${(pi?.total_installs ?? 0).toLocaleString()} total installs`,
-      trend: pi?.enabled_installs ? { direction: 'up' as const, value: '↗' } : undefined,
+      trend: pi?.enabled_installs ? { direction: 'up' as const, value: 'active' } : undefined,
     },
     {
       label: 'Total installs',
@@ -364,14 +387,19 @@ function formatDuration(seconds: number): string {
 				<h2>{{ project.name }}</h2>
 				<span class="sub">{{ metaSub || project.type }}</span>
 			</div>
-			<div class="range-seg">
-				<button
-					v-for="r in ['24h', '7d', '30d']"
-					:key="r"
-					class="seg"
-					:class="{ active: range === r }"
-					@click="range = r as any"
-				>{{ r }}</button>
+			<div class="sec-h-r">
+				<button class="refresh-btn" :disabled="pending" @click="refreshStats()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" :class="{ spin: pending }"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+				</button>
+				<div class="range-seg">
+					<button
+						v-for="r in ['24h', '7d', '30d']"
+						:key="r"
+						class="seg"
+						:class="{ active: range === r }"
+						@click="range = r as any"
+					>{{ r }}</button>
+				</div>
 			</div>
 		</div>
 
@@ -645,6 +673,25 @@ function formatDuration(seconds: number): string {
 .sec-h h2 { margin: 0; font: 600 18px var(--font-sans); color: var(--fg-hi); letter-spacing: -0.01em; }
 .sub { font: 400 13px var(--font-sans); color: var(--mute); margin-top: 2px; }
 .sec-h-l { display: flex; flex-direction: column; }
+.sec-h-r { display: flex; align-items: center; gap: 8px; }
+
+.refresh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	border: 1px solid var(--line);
+	background: var(--bg-1);
+	color: var(--dim);
+	cursor: pointer;
+	flex-shrink: 0;
+}
+.refresh-btn:hover:not(:disabled) { color: var(--fg-hi); border-color: var(--line-2); }
+.refresh-btn:disabled { opacity: 0.5; cursor: default; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.7s linear infinite; }
 
 .range-seg {
 	display: inline-flex;

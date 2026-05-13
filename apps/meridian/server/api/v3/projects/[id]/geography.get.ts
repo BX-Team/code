@@ -25,7 +25,7 @@ export default defineEventHandler(async event => {
   const result = await clickhouse.query({
     query: `
 			SELECT country_code, count() AS count
-			FROM player_sessions
+			FROM player_sessions FINAL
 			WHERE project_id = {projectId: String}
 				AND joined_at >= now() - INTERVAL ${RANGES[rangeKey]}
 			GROUP BY country_code

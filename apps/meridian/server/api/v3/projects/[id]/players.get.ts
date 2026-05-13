@@ -17,7 +17,7 @@ export default defineEventHandler(async event => {
       .query({
         query: `
           SELECT player_uuid, joined_at, client_version, country_code
-          FROM player_sessions
+          FROM player_sessions FINAL
           WHERE project_id = {projectId: String}
             AND joined_at >= now() - INTERVAL 24 HOUR
           ORDER BY joined_at DESC
@@ -32,7 +32,7 @@ export default defineEventHandler(async event => {
       .query({
         query: `
         SELECT countDistinct(player_uuid) AS unique_players
-        FROM player_sessions
+        FROM player_sessions FINAL
         WHERE project_id = {projectId: String}
           AND joined_at >= now() - INTERVAL 24 HOUR
       `,
@@ -45,11 +45,11 @@ export default defineEventHandler(async event => {
       .query({
         query: `
         SELECT countDistinct(player_uuid) AS new_players
-        FROM player_sessions
+        FROM player_sessions FINAL
         WHERE project_id = {projectId: String}
           AND joined_at >= now() - INTERVAL 24 HOUR
           AND player_uuid NOT IN (
-            SELECT DISTINCT player_uuid FROM player_sessions
+            SELECT DISTINCT player_uuid FROM player_sessions FINAL
             WHERE project_id = {projectId: String}
               AND joined_at < now() - INTERVAL 24 HOUR
           )

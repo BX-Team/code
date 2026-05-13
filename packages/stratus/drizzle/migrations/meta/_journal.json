@@ -8,6 +8,13 @@
       "when": 1778603736376,
       "tag": "0000_talented_spiral",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778712299072,
+      "tag": "0001_illegal_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

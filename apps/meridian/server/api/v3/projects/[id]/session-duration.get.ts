@@ -35,7 +35,7 @@ export default defineEventHandler(async event => {
 				count() AS total
 			FROM (
 				SELECT dateDiff('second', joined_at, left_at) AS duration_seconds
-				FROM player_sessions
+				FROM player_sessions FINAL
 				WHERE project_id = {projectId: String}
 					AND joined_at >= now() - INTERVAL ${RANGES[rangeKey]}
 					AND left_at IS NOT NULL
