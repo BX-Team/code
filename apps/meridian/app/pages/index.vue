@@ -227,7 +227,6 @@ function projectVersion(href: string): string | undefined {
 			:status="footerStatusText"
 			:status-level="footerStatusLevel"
 			status-href="https://status.bxteam.org"
-			:commit="appConfig.commit"
 		/>
 	</div>
 </template>

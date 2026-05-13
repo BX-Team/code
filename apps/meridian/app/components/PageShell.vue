@@ -29,7 +29,6 @@ const statusText = computed(() => {
 			:status="statusText"
 			:status-level="statusLevel"
 			status-href="https://status.bxteam.org"
-			:commit="appConfig.commit"
 		/>
 	</div>
 </template>
