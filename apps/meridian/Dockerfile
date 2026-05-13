@@ -16,6 +16,11 @@ COPY packages/types packages/types
 COPY packages/ui packages/ui
 COPY apps/meridian apps/meridian
 
+ARG GIT_COMMIT_HASH=unknown
+ARG GIT_COMMIT_MESSAGE=""
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
+ENV GIT_COMMIT_MESSAGE=$GIT_COMMIT_MESSAGE
+
 RUN bun run build:meridian
 
 FROM oven/bun:1.3-alpine

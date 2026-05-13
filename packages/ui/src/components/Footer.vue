@@ -121,9 +121,8 @@ const props = withDefaults(
 					{{ status }}
 				</component>
 				<div class="bx-footer__bottom-right">
-					<span v-if="commit" class="bx-footer__commit">
+					<span v-if="commit" class="bx-footer__commit" :title="commit.message || undefined">
 						<code>{{ commit.hash }}</code>
-						{{ commit.message }}
 					</span>
 					<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
 				</div>
