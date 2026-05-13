@@ -72,47 +72,82 @@ const features = [
 const projects = [
   {
     name: 'DivineMC',
-    description: 'Multi-functional Purpur fork',
-    tag: 'Server',
-    version: 'v1.21.1',
+    description:
+      'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization',
+    tag: 'Server software',
+    archived: false,
+    gameVersions: '1.19.2 – 1.21.11',
     href: 'https://github.com/BX-Team/DivineMC',
   },
   {
-    name: 'Pulsify',
-    description: 'Observability for Minecraft',
-    tag: 'Platform',
-    version: 'v0.1.0',
-    href: 'https://github.com/BX-Team/Pulsify',
-  },
-  {
     name: 'Quark',
-    description: 'Runtime dependency manager',
+    description: 'Lightweight, runtime dependency management system for plugins running on Minecraft server platforms',
     tag: 'Library',
-    version: 'v0.3.0',
+    archived: false,
     href: 'https://github.com/BX-Team/Quark',
   },
   {
     name: 'NDailyRewards',
-    description: 'Daily reward plugin',
+    description:
+      'Simple and lightweight plugin that allows you to reward your players for playing on your server every day',
     tag: 'Plugin',
-    version: 'v1.4.0',
+    archived: false,
     href: 'https://github.com/BX-Team/NDailyRewards',
   },
   {
-    name: 'Helix',
-    description: 'BX Team plugin library',
-    tag: 'Library',
-    version: 'v0.2.0',
-    href: 'https://github.com/BX-Team/Helix',
+    name: 'Nyx',
+    description: 'Modern, lightweight desktop GUI for the Mihomo proxy core',
+    tag: 'Desktop app',
+    archived: false,
+    href: 'https://github.com/BX-Team/Nyx',
+  },
+  {
+    name: 'run-server-plugin',
+    description: 'Gradle plugin for running Minecraft server instances in your IDE',
+    tag: 'Gradle plugin',
+    archived: false,
+    href: 'https://github.com/BX-Team/run-server-plugin',
   },
   {
     name: 'RealWorldSync',
-    description: 'Real-world time + weather sync',
+    description: 'Synchronizes time and weather from the real world to the game',
     tag: 'Plugin',
-    version: 'v1.0.0',
+    archived: true,
     href: 'https://github.com/BX-Team/RealWorldSync',
   },
 ];
+
+const githubRepos = projects
+  .filter(p => p.href.startsWith('https://github.com/'))
+  .map(p => p.href.replace('https://github.com/', ''));
+
+const { data: githubVersions } = await useAsyncData('github-versions', async () => {
+  if (import.meta.client) return {} as Record<string, string | null>;
+  const token = process.env.GITHUB_TOKEN;
+  const results = await Promise.allSettled(
+    githubRepos.map(async repo => {
+      const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Accept: 'application/vnd.github.v3+json',
+        },
+      });
+      if (!res.ok) return [repo, null] as const;
+      const data = await res.json();
+      return [repo, (data.tag_name as string) ?? null] as const;
+    }),
+  );
+  return Object.fromEntries(
+    results
+      .filter((r): r is PromiseFulfilledResult<readonly [string, string | null]> => r.status === 'fulfilled')
+      .map(r => r.value),
+  ) as Record<string, string | null>;
+});
+
+function projectVersion(href: string): string | undefined {
+  const repo = href.replace('https://github.com/', '');
+  return githubVersions.value?.[repo] ?? undefined;
+}
 </script>
 
 <template>
@@ -178,7 +213,9 @@ const projects = [
 				:name="p.name"
 				:description="p.description"
 				:tag="p.tag"
-				:version="p.version"
+				:version="projectVersion(p.href)"
+				:archived="p.archived"
+				:game-versions="p.gameVersions"
 				:href="p.href"
 			/>
 		</ProjectsGrid>

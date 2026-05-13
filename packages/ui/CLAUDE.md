@@ -146,7 +146,8 @@ props: {
   description: string
   tag: string
   version?: string
-  href?: string  // full-card overlay link
+  archived?: boolean  // dims card + shows "Archived" badge
+  href?: string       // full-card overlay link
 }
 ```
 

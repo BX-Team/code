@@ -4,17 +4,23 @@ defineProps<{
   description: string;
   tag: string;
   version?: string;
+  archived?: boolean;
+  gameVersions?: string;
   href?: string;
 }>();
 </script>
 
 <template>
-	<article class="bx-project-card">
+	<article class="bx-project-card" :class="{ 'bx-project-card--archived': archived }">
 		<a v-if="href" :href="href" class="bx-project-card__overlay" aria-label="View project" />
-		<div class="bx-project-card__tag">{{ tag }}</div>
+		<div class="bx-project-card__header">
+			<div class="bx-project-card__tag">{{ tag }}</div>
+			<div v-if="archived" class="bx-project-card__archived-badge">Archived</div>
+		</div>
 		<div class="bx-project-card__name">{{ name }}</div>
 		<div class="bx-project-card__desc">{{ description }}</div>
 		<div class="bx-project-card__meta">
+			<span v-if="gameVersions" class="bx-project-card__game-versions">MC {{ gameVersions }}</span>
 			<span v-if="version" class="bx-project-card__version">{{ version }}</span>
 			<span class="bx-project-card__github" aria-hidden="true">
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -32,6 +38,8 @@ defineProps<{
 	border: 1px solid var(--line);
 	border-radius: var(--r-lg);
 	position: relative;
+	display: flex;
+	flex-direction: column;
 	transition: border-color 0.2s;
 }
 
@@ -39,10 +47,26 @@ defineProps<{
 	border-color: var(--brand);
 }
 
+.bx-project-card--archived {
+	opacity: 0.6;
+}
+
+.bx-project-card--archived:hover {
+	border-color: var(--line);
+	opacity: 0.8;
+}
+
 .bx-project-card__overlay {
 	position: absolute;
 	inset: 0;
 	border-radius: inherit;
+}
+
+.bx-project-card__header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 14px;
 }
 
 .bx-project-card__tag {
@@ -54,7 +78,16 @@ defineProps<{
 	color: var(--brand-2);
 	border: 1px solid color-mix(in oklab, var(--brand-2) 30%, transparent);
 	letter-spacing: 0.04em;
-	margin-bottom: 14px;
+}
+
+.bx-project-card__archived-badge {
+	font: 600 10px var(--font-mono);
+	padding: 2px 8px;
+	border-radius: var(--r-full);
+	background: var(--bg-3);
+	color: var(--mute);
+	border: 1px solid var(--line);
+	letter-spacing: 0.04em;
 }
 
 .bx-project-card__name {
@@ -67,6 +100,7 @@ defineProps<{
 	font-size: 13.5px;
 	color: var(--dim);
 	line-height: 1.5;
+	flex-grow: 1;
 }
 
 .bx-project-card__meta {
@@ -76,6 +110,15 @@ defineProps<{
 	margin-top: 16px;
 	padding-top: 14px;
 	border-top: 1px solid var(--line);
+}
+
+.bx-project-card__game-versions {
+	font: 500 11px var(--font-mono);
+	color: var(--brand-2);
+	background: var(--brand-soft-2);
+	border: 1px solid color-mix(in oklab, var(--brand-2) 25%, transparent);
+	border-radius: var(--r-xs);
+	padding: 2px 6px;
 }
 
 .bx-project-card__version {
