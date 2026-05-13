@@ -39,7 +39,7 @@ export const ErrorEventSchema = z.object({
   plugin: z.string(),
   error: z.object({
     message: z.string(),
-    stacktrace: z.string(),
+    stacktrace: z.string().optional(),
     level: z.enum(['warning', 'error', 'fatal']).default('error'),
   }),
 });

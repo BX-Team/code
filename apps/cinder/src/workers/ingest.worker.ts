@@ -56,7 +56,9 @@ export function createIngestWorker() {
   );
 
   worker.on('failed', (job, err) => {
-    console.error(`Job ${job?.id} failed:`, err.message);
+    const cause = (err as { cause?: unknown }).cause;
+    const causeMsg = cause instanceof Error ? ` — Caused by: ${cause.message}` : '';
+    console.error(`Job ${job?.id} failed:`, err.message + causeMsg);
   });
 
   return worker;

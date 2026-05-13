@@ -4,8 +4,9 @@ import type { ErrorEvent } from '@bx-team/types/schema/pulsify';
 import { sql } from 'drizzle-orm';
 
 export async function handleErrorEvent(event: ErrorEvent, projectId: string) {
+  const stacktrace = event.error.stacktrace ?? '';
   const hash = createHash('sha256')
-    .update(event.error.message + event.error.stacktrace)
+    .update(event.error.message + stacktrace)
     .digest('hex');
 
   await db
@@ -14,7 +15,7 @@ export async function handleErrorEvent(event: ErrorEvent, projectId: string) {
       projectId,
       plugin: event.plugin,
       message: event.error.message,
-      stacktrace: event.error.stacktrace,
+      stacktrace,
       level: event.error.level,
       hash,
     })

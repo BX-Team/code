@@ -8,7 +8,7 @@ ingestRoute.use('/e/:projectId', ...authMiddleware);
 
 ingestRoute.post('/e/:projectId', async c => {
   const projectId = c.get('projectId');
-  const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
+  const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
   const receivedAt = new Date().toISOString();
 
   let body: unknown;
