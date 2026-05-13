@@ -87,4 +87,5 @@ jobs:
             -H 'accept: application/json' \
             -H 'x-api-key: ${{ secrets.DOKPLOY_API_KEY }}' \
             -H 'Content-Type: application/json' \
+            -H 'X-Internal-Token: ${{ secrets.CF_BYPASS_TOKEN }}' \
             -d '{"applicationId": "${{ secrets.MERIDIAN_APPLICATION_ID }}"}'
