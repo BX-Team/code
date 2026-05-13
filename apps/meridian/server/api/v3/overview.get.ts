@@ -1,5 +1,5 @@
-import { db, errors, projects, serverMetadata } from '@bx-team/stratus';
-import { eq, inArray, sum } from 'drizzle-orm';
+import { db, projects, serverMetadata } from '@bx-team/stratus';
+import { eq, inArray } from 'drizzle-orm';
 
 const RANGES = {
   '24h': { interval: '24 HOUR', bucket: 'toStartOfFiveMinutes' },
@@ -41,10 +41,14 @@ export default defineEventHandler(async event => {
     };
   }
 
-  const [errorCount] = await db
-    .select({ total: sum(errors.count).mapWith(Number) })
-    .from(errors)
-    .where(inArray(errors.projectId, projectIds));
+  const [errorCountRow] = await clickhouse
+    .query({
+      query: `SELECT count() AS total FROM error_events WHERE project_id IN ({projectIds: Array(String)})`,
+      query_params: { projectIds },
+      format: 'JSONEachRow',
+    })
+    .then(r => r.json<{ total: string }[]>())
+    .catch(() => [] as { total: string }[]);
 
   const [eventsResult, peakResult, playersResult, timeseries] = await Promise.all([
     serverIds.length
@@ -100,17 +104,17 @@ export default defineEventHandler(async event => {
     .from(serverMetadata)
     .where(inArray(serverMetadata.projectId, projectIds));
 
-  const errorsByProject = await db
-    .select({
-      projectId: errors.projectId,
-      total: sum(errors.count).mapWith(Number),
+  const errorsByProjectRows = await clickhouse
+    .query({
+      query: `SELECT project_id, count() AS total FROM error_events WHERE project_id IN ({projectIds: Array(String)}) GROUP BY project_id`,
+      query_params: { projectIds },
+      format: 'JSONEachRow',
     })
-    .from(errors)
-    .where(inArray(errors.projectId, projectIds))
-    .groupBy(errors.projectId);
+    .then(r => r.json<{ project_id: string; total: string }[]>())
+    .catch(() => [] as { project_id: string; total: string }[]);
 
   const metaByProject = new Map(lastSeen.map(m => [m.projectId, m]));
-  const errorsByProjectMap = new Map(errorsByProject.map(e => [e.projectId, e.total ?? 0]));
+  const errorsByProjectMap = new Map(errorsByProjectRows.map(e => [e.project_id, Number(e.total)]));
 
   const enrichedProjects = ownedProjects.map(p => ({
     ...p,
@@ -126,7 +130,7 @@ export default defineEventHandler(async event => {
       servers: ownedProjects.filter(p => p.type === 'server').length,
       plugins: ownedProjects.filter(p => p.type === 'plugin').length,
       mods: ownedProjects.filter(p => p.type === 'mod').length,
-      totalErrors: errorCount?.total ?? 0,
+      totalErrors: Number(errorCountRow?.total ?? 0),
       totalEvents24h: Number(eventsResult[0]?.total ?? 0),
       peakOnline24h: Number(peakResult[0]?.peak ?? 0),
       uniquePlayers24h: Number(playersResult[0]?.players ?? 0),
