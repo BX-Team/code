@@ -108,12 +108,12 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    apiSecretKey: process.env.API_SECRET_KEY || '',
-    r2PublicUrl: process.env.R2_PUBLIC_URL || '',
-    r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-    r2Endpoint: process.env.R2_ENDPOINT || '',
-    r2Bucket: process.env.R2_BUCKET || '',
+    apiSecretKey: '',
+    r2PublicUrl: '',
+    r2AccessKeyId: '',
+    r2SecretAccessKey: '',
+    r2Endpoint: '',
+    r2Bucket: '',
   },
 
   compatibilityDate: '2025-01-01',
