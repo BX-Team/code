@@ -1082,8 +1082,8 @@ li.active .ic { color: var(--brand); }
 
 	.pv-body {
 		grid-template-columns: 1fr;
-		height: auto;
-		min-height: 400px;
+		height: 520px;
+		overflow: hidden;
 	}
 
 	.pv-side,
