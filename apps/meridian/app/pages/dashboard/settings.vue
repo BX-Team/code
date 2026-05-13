@@ -63,7 +63,7 @@ async function deleteAccount() {
   deletingAccount.value = true;
   try {
     await authClient.deleteUser();
-    await navigateTo('/');
+    window.location.href = '/';
   } catch (err: any) {
     toast.error(err?.message ?? 'Failed to delete account');
     deletingAccount.value = false;
