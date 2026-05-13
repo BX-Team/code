@@ -26,7 +26,7 @@ export function createIngestWorker() {
 
       const e = parsed.data;
       const countryCode = lookupCountry(ip);
-      const ts = new Date(e.timestamp).toISOString().replace('T', ' ').replace('Z', '');
+      const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace('T', ' ');
 
       await Promise.all([
         // Route by type

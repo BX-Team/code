@@ -8,7 +8,7 @@ export async function handleMetric(event: CustomMetric, projectId: string) {
       {
         project_id: projectId,
         event_type: 'metric',
-        timestamp: new Date(event.timestamp).toISOString().replace('T', ' ').replace('Z', ''),
+        timestamp: new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' '),
         properties: JSON.stringify({ name: event.name, value: event.value, labels: event.labels }),
       },
     ],

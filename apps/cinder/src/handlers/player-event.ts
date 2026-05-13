@@ -2,7 +2,7 @@ import type { PlayerEvent } from '@bx-team/types/schema/pulsify';
 import { clickhouse } from '../lib/clickhouse';
 
 export async function handlePlayerEvent(event: PlayerEvent, projectId: string, countryCode: string) {
-  const ts = new Date(event.timestamp).toISOString().replace('T', ' ').replace('Z', '');
+  const ts = new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' ');
 
   if (event.event === 'player_join') {
     await clickhouse.insert({

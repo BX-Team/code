@@ -50,7 +50,7 @@ export async function handleHeartbeat(event: Heartbeat, projectId: string, count
     values: [
       {
         project_id: projectId,
-        timestamp: new Date(event.timestamp).toISOString().replace('T', ' ').replace('Z', ''),
+        timestamp: new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' '),
         online: event.server.online,
         tps: event.server.tps,
         mspt: event.server.mspt,
