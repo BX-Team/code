@@ -22,6 +22,9 @@ services:
       CLICKHOUSE_DB: default
       CLICKHOUSE_USER: ${CLICKHOUSE_USER}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    networks:
+      - default
+      - dokploy-network
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -80,6 +83,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+      
+networks:
+  dokploy-network:
+    external: true
 
 volumes:
   redis_data:
