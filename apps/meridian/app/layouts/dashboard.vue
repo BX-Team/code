@@ -40,7 +40,9 @@ watch(
 		<CreateProjectDialog />
 		<SearchDialog />
 		<ConfirmDialog />
-		<Toaster position="bottom-right" rich-colors />
+		<Teleport to="body">
+			<Toaster position="bottom-right" rich-colors theme="dark" />
+		</Teleport>
 	</div>
 </template>
 

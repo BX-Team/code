@@ -3,3 +3,12 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+[data-sonner-toaster][data-sonner-theme='dark'] {
+	--normal-bg: var(--bg-1);
+	--normal-bg-hover: var(--bg-2);
+	--normal-border: var(--line);
+	--normal-border-hover: var(--line-2);
+	--normal-text: var(--fg-hi);
+	--border-radius: var(--r-md);
+}

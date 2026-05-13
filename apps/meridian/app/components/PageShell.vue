@@ -6,6 +6,9 @@ import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 const status = useStatusSummary();
 const appConfig = useAppConfig();
 
+const { data: session } = await useSession();
+const loggedIn = computed(() => !!session.value?.user);
+
 const statusLevel = computed((): 'ok' | 'warn' | 'err' => {
   if (status.value === 'degraded') return 'err';
   if (status.value === 'maintenance') return 'warn';
@@ -21,7 +24,7 @@ const statusText = computed(() => {
 
 <template>
 	<div class="shell">
-		<Navbar :discord-href="DISCORD_URL" />
+		<Navbar :discord-href="DISCORD_URL" :logged-in="loggedIn" />
 		<slot />
 		<Footer
 			:github-href="GITHUB_URL"

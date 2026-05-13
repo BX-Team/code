@@ -28,9 +28,7 @@ const currentSlug = computed(() => route.params.slug as string | undefined);
 
 const navItems = [
   { id: 'overview', label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { id: 'analytics', label: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
   { id: 'search', label: 'Search', icon: Search, action: 'search' as const },
-  { id: 'issues', label: 'Issues', href: '/dashboard/issues', icon: Shield },
 ];
 
 function isActiveNav(item: { href?: string; action?: string }) {
