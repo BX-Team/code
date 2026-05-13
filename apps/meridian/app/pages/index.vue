@@ -160,7 +160,7 @@ function projectVersion(href: string): string | undefined {
 
 		<!-- Hero -->
 		<Hero
-			kicker="Pulsify · Open Beta"
+			kicker="Pulsify · Open Beta starting soon"
 			lede="BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players."
 			no-atmosphere
 		>
@@ -174,7 +174,7 @@ function projectVersion(href: string): string | undefined {
 			</template>
 			<template #cta>
 				<Button variant="primary" href="/docs" @click="umTrackEvent('cta_click', { action: 'explore_docs' })">Explore docs</Button>
-				<Button variant="secondary" href="/dashboard" @click="umTrackEvent('cta_click', { action: 'try_pulsify' })">Try Pulsify</Button>
+				<!-- <Button variant="secondary" href="/dashboard" @click="umTrackEvent('cta_click', { action: 'try_pulsify' })">Try Pulsify</Button> -->
 			</template>
 		</Hero>
 

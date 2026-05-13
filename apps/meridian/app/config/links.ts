@@ -4,10 +4,9 @@ export const GITHUB_URL = 'https://github.com/BX-Team';
 const DOCS_GITHUB_ORG = 'BX-Team';
 const DOCS_GITHUB_REPO = 'docs';
 const DOCS_GITHUB_BRANCH = 'master';
-const DOCS_CONTENT_DIR = 'content';
 
 export function docsEditUrl(stem: string, extension = 'md'): string {
-  return `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/edit/${DOCS_GITHUB_BRANCH}/${DOCS_CONTENT_DIR}/${stem}.${extension}`;
+  return `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/edit/${DOCS_GITHUB_BRANCH}/${stem}.${extension}`;
 }
 
 export function docsIssueUrl(title?: string): string {
