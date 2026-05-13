@@ -2,6 +2,7 @@
 import { Button } from '@bx-team/ui';
 import { Calendar, Download, ExternalLink, GitCommit, Package } from '@lucide/vue';
 import { type Build, formatDate, formatFileSize, getChannelColor } from '@/lib/atlas';
+import { GITHUB_URL } from '~/config/links';
 
 const props = defineProps<{
   build: Build;
@@ -36,7 +37,7 @@ function dl() {
 			<h4><GitCommit :size="14" :stroke-width="1.7" /> Commits</h4>
 			<ul>
 				<li v-for="c in build.commits" :key="c.sha">
-					<a :href="`https://github.com/BX-Team/${projectName}/commit/${c.sha}`" target="_blank" rel="noopener noreferrer" class="sha-link">
+					<a :href="`${GITHUB_URL}/${projectName}/commit/${c.sha}`" target="_blank" rel="noopener noreferrer" class="sha-link">
 						<code>{{ c.sha.substring(0, 7) }}</code>
 						<ExternalLink :size="11" :stroke-width="1.8" />
 					</a>

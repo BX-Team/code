@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
+import { GITHUB_URL } from '~/config/links';
 
 interface TeamMember {
   name: string;
@@ -87,7 +88,7 @@ useHead({
           BX Team is a group of developers and contributors who work together to
           maintain and improve the BX Team projects.
         </p>
-        <Button href="https://github.com/BX-Team" target="_blank" rel="noopener noreferrer" variant="primary">
+        <Button :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" variant="primary">
           <img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
           Visit our GitHub
         </Button>

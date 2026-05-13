@@ -1,4 +1,5 @@
 export const DISCORD_URL = 'https://discord.gg/qNyybSSPm5';
+export const GITHUB_URL = 'https://github.com/BX-Team';
 
 const DOCS_GITHUB_ORG = 'BX-Team';
 const DOCS_GITHUB_REPO = 'docs';

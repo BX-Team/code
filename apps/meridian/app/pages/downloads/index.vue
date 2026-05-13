@@ -3,6 +3,7 @@ import { Button } from '@bx-team/ui';
 import { ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
 import type { Build, ProjectGroup, ProjectsResponse } from '@/lib/atlas';
 import { formatFileSize, getChannelColor } from '@/lib/atlas';
+import { GITHUB_URL } from '~/config/links';
 
 const { data: projects } = await useAsyncData<ProjectGroup[]>(
   'downloads:projects',
@@ -79,7 +80,7 @@ useHead({
             <ul>
               <li v-for="c in p.latestBuild.commits.slice(0, 3)" :key="c.sha">
                 <a
-                  :href="`https://github.com/BX-Team/${p.project.name}/commit/${c.sha}`"
+                  :href="`${GITHUB_URL}/${p.project.name}/commit/${c.sha}`"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="sha"

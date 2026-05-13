@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
 import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
+import { GITHUB_URL } from '~/config/links';
 import { useRoute } from 'vue-router';
 import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue';
 import type { Build, Project, VersionWithBuilds } from '@/lib/atlas';
@@ -48,7 +49,7 @@ useHead({
   meta: [{ name: 'description', content: computed(() => `Download the latest ${project.value.name} builds.`) }],
 });
 
-const githubUrl = computed(() => `https://github.com/BX-Team/${project.value.name}`);
+const githubUrl = computed(() => `${GITHUB_URL}/${project.value.name}`);
 const docsUrl = computed(() => `/docs/${projectId}`);
 </script>
 

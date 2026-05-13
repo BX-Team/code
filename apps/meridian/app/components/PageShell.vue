@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Footer, Navbar } from '@bx-team/ui';
 import { computed } from 'vue';
-import { DISCORD_URL } from '~/config/links';
+import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const status = useStatusSummary();
+const appConfig = useAppConfig();
 
 const statusLevel = computed((): 'ok' | 'warn' | 'err' => {
   if (status.value === 'degraded') return 'err';
@@ -23,10 +24,12 @@ const statusText = computed(() => {
 		<Navbar :discord-href="DISCORD_URL" />
 		<slot />
 		<Footer
+			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
 			:status="statusText"
 			:status-level="statusLevel"
 			status-href="https://status.bxteam.org"
+			:commit="appConfig.commit"
 		/>
 	</div>
 </template>

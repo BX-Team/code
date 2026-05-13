@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Footer, Navbar } from '@bx-team/ui';
 import { Scale } from '@lucide/vue';
-import { DISCORD_URL } from '~/config/links';
+import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const bxStatus = useStatusSummary();
 const footerStatusLevel = computed((): 'ok' | 'warn' | 'err' => {
@@ -74,6 +74,7 @@ const related = computed(() => {
 		</main>
 
 		<Footer
+			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
 			:status="footerStatusText"
 			:status-level="footerStatusLevel"

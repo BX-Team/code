@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, ProjectsGrid } from '@bx-team/ui';
 import { Activity, AlertCircle, Box, Database, Users, Zap } from '@lucide/vue';
-import { DISCORD_URL } from '~/config/links';
+import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const appConfig = useAppConfig();
 const bxStatus = useStatusSummary();
@@ -222,6 +222,7 @@ function projectVersion(href: string): string | undefined {
 
 		<!-- Footer -->
 		<Footer
+			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
 			:status="footerStatusText"
 			:status-level="footerStatusLevel"

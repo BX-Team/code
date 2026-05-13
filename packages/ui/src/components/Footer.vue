@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import BrandMark from './BrandMark.vue';
 
 export interface FooterLink {
@@ -23,39 +24,39 @@ const props = withDefaults(
     commit?: { hash: string; message: string };
   }>(),
   {
-    columns: () => [
-      {
-        title: 'BX Team',
-        links: [
-          { label: 'Documentation', href: '/docs' },
-          { label: 'Downloads', href: '/downloads' },
-          { label: 'Our team', href: '/team' },
-          { label: 'Status', href: '/status' },
-        ],
-      },
-      {
-        title: 'Community',
-        links: [
-          { label: 'Discord', href: 'https://discord.gg/qNyybSSPm5' },
-          { label: 'GitHub', href: 'https://github.com/BX-Team' },
-          { label: 'Contribute', href: '/contribute' },
-        ],
-      },
-      {
-        title: 'Legal',
-        links: [
-          { label: 'Terms of use', href: '/legal/terms-of-use' },
-          { label: 'Privacy policy', href: '/legal/privacy-policy' },
-        ],
-      },
-    ],
     blurb:
       'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players.',
     status: 'All systems normal',
     statusLevel: 'ok',
-    githubHref: 'https://github.com/BX-Team',
-    discordHref: 'https://discord.gg/qNyybSSPm5',
   },
+);
+
+const effectiveColumns = computed<FooterColumn[]>(() =>
+  props.columns ?? [
+    {
+      title: 'BX Team',
+      links: [
+        { label: 'Documentation', href: '/docs' },
+        { label: 'Downloads', href: '/downloads' },
+        { label: 'Our team', href: '/team' },
+        { label: 'Status', href: 'https://status.bxteam.org' },
+      ],
+    },
+    {
+      title: 'Community',
+      links: [
+        { label: 'Discord', href: props.discordHref },
+        { label: 'GitHub', href: props.githubHref },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Terms of use', href: '/legal/terms-of-use' },
+        { label: 'Privacy policy', href: '/legal/privacy-policy' },
+      ],
+    },
+  ],
 );
 </script>
 
@@ -98,7 +99,7 @@ const props = withDefaults(
 				</div>
 
 				<div class="bx-footer__cols">
-					<div v-for="col in columns" :key="col.title" class="bx-footer__col">
+					<div v-for="col in effectiveColumns" :key="col.title" class="bx-footer__col">
 						<h5>{{ col.title }}</h5>
 						<ul>
 							<li v-for="link in col.links" :key="link.label">
