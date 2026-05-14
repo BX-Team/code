@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": false,
+  "baseBranchPatterns": ["master"],
+  "commitMessagePrefix": "chore(deps): ",
+  "labels": ["🔄 dependencies"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "ignoreTests": true
+    },
+    {
+      "groupName": "Vue / Nuxt ecosystem",
+      "matchPackageNames": [
+        "vue",
+        "nuxt",
+        "@nuxt/content",
+        "@nuxt/fonts",
+        "vue-router",
+        "vue-sonner",
+        "@vueuse/core",
+        "nuxt-umami",
+        "@lucide/vue",
+        "@shikijs/transformers"
+      ]
+    },
+    {
+      "groupName": "Vite & plugins",
+      "matchPackageNames": [
+        "vite",
+        "@vitejs/plugin-vue",
+        "@cloudflare/vite-plugin",
+        "@tailwindcss/vite"
+      ]
+    },
+    {
+      "groupName": "Tailwind CSS",
+      "matchPackageNames": ["tailwindcss", "tw-animate-css"]
+    },
+    {
+      "groupName": "Drizzle ORM",
+      "matchPackageNames": ["drizzle-orm", "drizzle-kit"]
+    },
+    {
+      "groupName": "BullMQ & Redis",
+      "matchPackageNames": ["bullmq", "ioredis"]
+    },
+    {
+      "groupName": "TypeScript & @types",
+      "matchPackageNames": ["typescript"],
+      "matchPackagePatterns": ["^@types/"]
+    },
+    {
+      "groupName": "Cloudflare tooling",
+      "matchPackageNames": ["wrangler"],
+      "matchPackagePatterns": ["^@cloudflare/"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "groupName": "CSS class utilities",
+      "matchPackageNames": [
+        "clsx",
+        "tailwind-merge",
+        "class-variance-authority"
+      ]
+    },
+    {
+      "groupName": "TanStack",
+      "matchPackagePatterns": ["^@tanstack/"]
+    },
+    {
+      "groupName": "Unovis charts",
+      "matchPackagePatterns": ["^@unovis/"]
+    }
+  ]
+}
