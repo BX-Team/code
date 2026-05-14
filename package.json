@@ -10,8 +10,7 @@
     "build:meridian": "turbo run build --filter=@bx-team/meridian",
     "build:influx": "turbo run build --filter=@bx-team/influx",
     "build:cinder": "turbo run build --filter=@bx-team/cinder",
-    "lint": "biome check .",
-    "typecheck": "turbo run typecheck"
+    "lint": "biome check ."
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

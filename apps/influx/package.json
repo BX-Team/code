@@ -3,8 +3,7 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "lint": "biome check .",
-    "typecheck": "tsc --noEmit"
+    "lint": "biome check ."
   },
   "dependencies": {
     "@bx-team/stratus": "workspace:*",
