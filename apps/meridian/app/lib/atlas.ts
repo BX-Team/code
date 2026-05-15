@@ -169,8 +169,9 @@ export function getAllVersions(versionGroups: Record<string, string[]>): string[
 
 export function getOrderedVersionGroups(versionGroups: Record<string, string[]>): [string, string[]][] {
   return Object.entries(versionGroups).sort((a, b) => {
-    const aNum = parseFloat(a[0]);
-    const bNum = parseFloat(b[0]);
-    return bNum - aNum;
+    const [aMajor, aMinor] = a[0].split('.').map(p => parseInt(p, 10) || 0);
+    const [bMajor, bMinor] = b[0].split('.').map(p => parseInt(p, 10) || 0);
+    if (aMajor !== bMajor) return bMajor - aMajor;
+    return bMinor - aMinor;
   });
 }
