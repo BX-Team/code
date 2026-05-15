@@ -25,10 +25,7 @@ export default defineEventHandler(async event => {
   const id = requireParam(event, 'id');
   const query = getQuery(event);
 
-  const status = (typeof query.status === 'string' ? query.status : 'unresolved') as
-    | 'unresolved'
-    | 'resolved'
-    | 'all';
+  const status = (typeof query.status === 'string' ? query.status : 'unresolved') as 'unresolved' | 'resolved' | 'all';
   const sortKey = (typeof query.sort === 'string' && SORT_COLUMNS[query.sort] ? query.sort : 'last_seen') as
     | 'last_seen'
     | 'first_seen'

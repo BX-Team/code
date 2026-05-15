@@ -40,7 +40,6 @@ const stats = computed(() => [
     hint: 'Never seen on this server before',
   },
 ]);
-
 </script>
 
 <template>

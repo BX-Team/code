@@ -82,7 +82,8 @@ interface ErrorsResponse {
 
 const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
   `project-errors-${slug.value}`,
-  () => (project.value ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null)),
+  () =>
+    project.value ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
   { watch: [project] },
 );
 
@@ -131,7 +132,9 @@ const { data: geography } = await useAsyncData<GeographyResponse | null>(
   `project-geography-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
+      ? requestFetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, {
+          query: { range: range.value },
+        })
       : Promise.resolve(null),
   { watch: [range, project] },
 );

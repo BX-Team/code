@@ -66,9 +66,7 @@
         "atlas_projects_key_unique": {
           "name": "atlas_projects_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -133,12 +131,8 @@
           "name": "atlas_builds_version_id_atlas_versions_id_fk",
           "tableFrom": "atlas_builds",
           "tableTo": "atlas_versions",
-          "columnsFrom": [
-            "version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["version_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -197,12 +191,8 @@
           "name": "atlas_commits_build_id_atlas_builds_id_fk",
           "tableFrom": "atlas_commits",
           "tableTo": "atlas_builds",
-          "columnsFrom": [
-            "build_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["build_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -273,12 +263,8 @@
           "name": "atlas_downloads_build_id_atlas_builds_id_fk",
           "tableFrom": "atlas_downloads",
           "tableTo": "atlas_builds",
-          "columnsFrom": [
-            "build_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["build_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -346,12 +332,8 @@
           "name": "atlas_versions_project_id_atlas_projects_id_fk",
           "tableFrom": "atlas_versions",
           "tableTo": "atlas_projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -418,12 +400,8 @@
           "name": "pulsify_dsn_tokens_project_id_pulsify_projects_id_fk",
           "tableFrom": "pulsify_dsn_tokens",
           "tableTo": "pulsify_projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -433,9 +411,7 @@
         "pulsify_dsn_tokens_key_unique": {
           "name": "pulsify_dsn_tokens_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -492,12 +468,8 @@
           "name": "pulsify_plugin_installations_plugin_id_pulsify_projects_id_fk",
           "tableFrom": "pulsify_plugin_installations",
           "tableTo": "pulsify_projects",
-          "columnsFrom": [
-            "plugin_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["plugin_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -505,12 +477,8 @@
           "name": "pulsify_plugin_installations_server_id_pulsify_projects_id_fk",
           "tableFrom": "pulsify_plugin_installations",
           "tableTo": "pulsify_projects",
-          "columnsFrom": [
-            "server_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["server_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -520,10 +488,7 @@
         "pulsify_plugin_installations_plugin_id_server_id_unique": {
           "name": "pulsify_plugin_installations_plugin_id_server_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "plugin_id",
-            "server_id"
-          ]
+          "columns": ["plugin_id", "server_id"]
         }
       },
       "policies": {},
@@ -593,12 +558,8 @@
           "name": "pulsify_projects_owner_id_auth_users_id_fk",
           "tableFrom": "pulsify_projects",
           "tableTo": "auth_users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -608,9 +569,7 @@
         "pulsify_projects_slug_unique": {
           "name": "pulsify_projects_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -660,12 +619,8 @@
           "name": "pulsify_resolved_issues_project_id_pulsify_projects_id_fk",
           "tableFrom": "pulsify_resolved_issues",
           "tableTo": "pulsify_projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -675,10 +630,7 @@
         "pulsify_resolved_issues_project_id_fingerprint_unique": {
           "name": "pulsify_resolved_issues_project_id_fingerprint_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "project_id",
-            "fingerprint"
-          ]
+          "columns": ["project_id", "fingerprint"]
         }
       },
       "policies": {},
@@ -734,12 +686,8 @@
           "name": "pulsify_server_metadata_project_id_pulsify_projects_id_fk",
           "tableFrom": "pulsify_server_metadata",
           "tableTo": "pulsify_projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -749,9 +697,7 @@
         "pulsify_server_metadata_project_id_unique": {
           "name": "pulsify_server_metadata_project_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "project_id"
-          ]
+          "columns": ["project_id"]
         }
       },
       "policies": {},
@@ -864,12 +810,8 @@
           "name": "auth_accounts_user_id_auth_users_id_fk",
           "tableFrom": "auth_accounts",
           "tableTo": "auth_users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -962,12 +904,8 @@
           "name": "auth_sessions_user_id_auth_users_id_fk",
           "tableFrom": "auth_sessions",
           "tableTo": "auth_users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -977,9 +915,7 @@
         "auth_sessions_token_unique": {
           "name": "auth_sessions_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -1068,9 +1004,7 @@
         "auth_users_email_unique": {
           "name": "auth_users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1149,29 +1083,17 @@
     "public.channel": {
       "name": "channel",
       "schema": "public",
-      "values": [
-        "ALPHA",
-        "BETA",
-        "STABLE"
-      ]
+      "values": ["ALPHA", "BETA", "STABLE"]
     },
     "public.support_status": {
       "name": "support_status",
       "schema": "public",
-      "values": [
-        "SUPPORTED",
-        "DEPRECATED",
-        "UNSUPPORTED"
-      ]
+      "values": ["SUPPORTED", "DEPRECATED", "UNSUPPORTED"]
     },
     "public.pulsify_project_type": {
       "name": "pulsify_project_type",
       "schema": "public",
-      "values": [
-        "server",
-        "plugin",
-        "mod"
-      ]
+      "values": ["server", "plugin", "mod"]
     }
   },
   "schemas": {},
