@@ -15,6 +15,13 @@
       "when": 1778712299072,
       "tag": "0001_illegal_smiling_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778869030901,
+      "tag": "0002_free_texas_twister",
+      "breakpoints": true
     }
   ]
 }

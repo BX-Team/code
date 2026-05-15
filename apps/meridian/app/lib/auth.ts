@@ -1,7 +1,7 @@
 import { account, db, session, user, verification } from '@bx-team/stratus';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { magicLink } from 'better-auth/plugins';
+import { admin, magicLink } from 'better-auth/plugins';
 import { Resend } from 'resend';
 
 export const auth = betterAuth({
@@ -23,6 +23,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    admin(),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         const resend = new Resend(process.env.RESEND_API_KEY);

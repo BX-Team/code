@@ -12,6 +12,4 @@ export interface DisabledPageConfig {
  */
 export const DISABLED_PAGES: Record<string, DisabledPageConfig> = {
   // '/downloads': { disabled: true, message: 'Downloads are temporarily unavailable.' },
-  '/login': { disabled: true, message: 'Pulsify is currently in testing before launching open beta, expect news.' },
-  '/dashboard': { disabled: true, message: 'Pulsify is currently in testing before launching open beta, expect news.' },
 };
