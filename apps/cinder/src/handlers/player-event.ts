@@ -13,10 +13,8 @@ function sessionKey(projectId: string, uuid: string) {
   return `pulsify:session:${projectId}:${uuid}`;
 }
 
-export async function handlePlayerEvent(event: PlayerEvent, projectId: string, serverCountryCode: string) {
-  const countryCode = event.payload.player_ip
-    ? lookupCountry(event.payload.player_ip) || serverCountryCode
-    : serverCountryCode;
+export async function handlePlayerEvent(event: PlayerEvent, projectId: string, _serverCountryCode: string) {
+  const countryCode = event.payload.player_ip ? lookupCountry(event.payload.player_ip) : '';
   const ts = new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' ');
 
   if (event.event === 'player_join') {

@@ -24,12 +24,14 @@ useHead({
   titleTemplate: '%s | Pulsify',
 });
 
+const requestFetch = useRequestFetch();
+
 const {
   data: tokens,
   refresh: refreshTokens,
   pending,
 } = await useAsyncData<DsnToken[]>(`project-tokens-${slug.value}`, () =>
-  project.value ? $fetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),
+  project.value ? requestFetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),
 );
 
 const { openConfirm } = useConfirmDialog();

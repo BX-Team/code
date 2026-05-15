@@ -27,13 +27,7 @@ function relativeTime(iso: string | null) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function statusLabel(row: ProjectRow): { label: string; cls: string } {
-  if (row.errors > 0) return { label: 'Issues', cls: 'warn' };
-  if (!row.lastSeenAt) return { label: 'Pending', cls: 'muted' };
-  const age = Date.now() - new Date(row.lastSeenAt).getTime();
-  if (age > 1000 * 60 * 60 * 2) return { label: 'Offline', cls: 'muted' };
-  return { label: 'Healthy', cls: 'ok' };
-}
+const statusLabel = projectStatus;
 </script>
 
 <template>
@@ -75,8 +69,10 @@ function statusLabel(row: ProjectRow): { label: string; cls: string } {
 							@click="navigateTo(`/dashboard/${row.slug}`)"
 						>
 							<td class="name-cell">
-								<span class="proj-dot" :class="statusLabel(row).cls" />
-								<span class="proj-name">{{ row.name }}</span>
+								<span class="name-inner">
+									<span class="proj-dot" :class="statusLabel(row).cls" />
+									<span class="proj-name">{{ row.name }}</span>
+								</span>
 							</td>
 							<td><span class="type-badge">{{ row.type }}</span></td>
 							<td>
@@ -142,8 +138,8 @@ function statusLabel(row: ProjectRow): { label: string; cls: string } {
 .tbl tbody tr.clickable { cursor: pointer; }
 .tbl tbody tr.clickable:hover { background: var(--bg-2); }
 
-.name-cell {
-	display: flex;
+.name-inner {
+	display: inline-flex;
 	align-items: center;
 	gap: 10px;
 }

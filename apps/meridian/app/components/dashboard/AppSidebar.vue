@@ -109,7 +109,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 					:class="{ active: currentSlug === project.slug }"
 					@click="navigateTo(`/dashboard/${project.slug}`)"
 				>
-					<span class="proj-dot" />
+					<span class="proj-dot" :class="projectStatus(project).cls" />
 					{{ project.name }}
 					<span class="meta">{{ project.type.charAt(0).toUpperCase() + project.type.slice(1) }}</span>
 				</button>
@@ -266,6 +266,8 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 	box-shadow: 0 0 6px color-mix(in oklab, var(--ok) 60%, transparent);
 	flex: 0 0 6px;
 }
+.proj-dot.warn  { background: var(--warn); box-shadow: 0 0 6px color-mix(in oklab, var(--warn) 60%, transparent); }
+.proj-dot.muted { background: var(--mute); box-shadow: none; }
 
 .side-foot {
 	margin-top: auto;

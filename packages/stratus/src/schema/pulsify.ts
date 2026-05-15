@@ -59,3 +59,17 @@ export const serverMetadata = pgTable(
   },
   t => [unique().on(t.projectId)],
 );
+
+export const resolvedIssues = pgTable(
+  'pulsify_resolved_issues',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    fingerprint: text('fingerprint').notNull(),
+    resolvedAt: timestamp('resolved_at').notNull().defaultNow(),
+    resolvedBy: text('resolved_by'),
+  },
+  t => [unique().on(t.projectId, t.fingerprint)],
+);

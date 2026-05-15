@@ -144,6 +144,12 @@ const tooltipTemplate = (d: DataPoint) => {
 	border: 1px solid var(--line);
 	border-radius: 12px;
 	padding: 18px;
+	--vis-tooltip-background-color: transparent;
+	--vis-tooltip-border-color: transparent;
+	--vis-tooltip-padding: 0;
+	--vis-tooltip-border-radius: 0;
+	--vis-tooltip-box-shadow: none;
+	--vis-tooltip-text-color: var(--fg-hi);
 }
 
 .chart-hd {

@@ -28,10 +28,12 @@ CREATE TABLE IF NOT EXISTS server_stats
     online       UInt32,
     tps          Float32,
     mspt         Float32,
-    memory_used  UInt32
+    memory_used  UInt32,
+    memory_max   UInt32 DEFAULT 0
 )
 ENGINE = MergeTree()
 ORDER BY (project_id, timestamp);
+-- existing deployments: ALTER TABLE server_stats ADD COLUMN IF NOT EXISTS memory_max UInt32 DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS error_events
 (

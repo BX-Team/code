@@ -30,9 +30,11 @@ watch(range, r => umTrackEvent('dashboard_range_change', { range: r }));
 
 onMounted(() => umTrackView());
 
+const requestFetch = useRequestFetch();
+
 const { data: overview, pending } = await useAsyncData<OverviewResponse>(
   'v3-overview',
-  () => $fetch<OverviewResponse>('/api/v3/overview', { query: { range: range.value } }),
+  () => requestFetch<OverviewResponse>('/api/v3/overview', { query: { range: range.value } }),
   { watch: [range] },
 );
 
@@ -71,7 +73,7 @@ const stats = computed(() => {
 
 const seriesData = computed(() =>
   (overview.value?.timeseries ?? []).map(p => ({
-    date: new Date(p.time),
+    date: parseClickhouseDate(p.time),
     online: Number(p.online ?? 0),
   })),
 );

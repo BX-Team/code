@@ -62,6 +62,17 @@ services:
       retries: 5
       start_period: 15s
 
+  geoipupdate:
+    image: maxmindinc/geoipupdate:latest
+    restart: unless-stopped
+    environment:
+      GEOIPUPDATE_ACCOUNT_ID: ${MAXMIND_ACCOUNT_ID}
+      GEOIPUPDATE_LICENSE_KEY: ${MAXMIND_LICENSE_KEY}
+      GEOIPUPDATE_EDITION_IDS: GeoLite2-Country
+      GEOIPUPDATE_FREQUENCY: 168
+    volumes:
+      - geoip_data:/usr/share/GeoIP
+
   cinder:
     build:
       context: ../
@@ -71,6 +82,9 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ADDRESS}:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       CLICKHOUSE_URL: http://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@clickhouse:8123/default
+      GEOIP_DB_PATH: /var/lib/geoip/GeoLite2-Country.mmdb
+    volumes:
+      - geoip_data:/var/lib/geoip:ro
     networks:
       - default
       - dokploy-network
@@ -97,3 +111,4 @@ networks:
 volumes:
   redis_data:
   clickhouse_data:
+  geoip_data:

@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { Check, RotateCcw } from '@lucide/vue';
+import { toast } from 'vue-sonner';
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' });
+
+type Status = 'unresolved' | 'resolved' | 'all';
+type Sort = 'last_seen' | 'first_seen' | 'events';
 
 interface ErrorRow {
   id: string;
@@ -13,10 +18,15 @@ interface ErrorRow {
   count: number;
   firstSeenAt: string;
   lastSeenAt: string;
+  resolved: boolean;
+  resolvedAt: string | null;
 }
 interface ErrorsResponse {
   errors: ErrorRow[];
   total: number;
+  counts: { unresolved: number; resolved: number; all: number };
+  sort: Sort;
+  status: Status;
 }
 
 const route = useRoute();
@@ -25,8 +35,20 @@ const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-const { data, pending } = await useAsyncData<ErrorsResponse | null>(`project-errors-page-${slug.value}`, () =>
-  project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+const requestFetch = useRequestFetch();
+
+const status = ref<Status>('unresolved');
+const sort = ref<Sort>('last_seen');
+
+const { data, pending, refresh } = await useAsyncData<ErrorsResponse | null>(
+  `project-errors-page-${slug.value}`,
+  () =>
+    project.value
+      ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`, {
+          query: { status: status.value, sort: sort.value },
+        })
+      : Promise.resolve(null),
+  { watch: [status, sort, project] },
 );
 
 function levelClass(level: string) {
@@ -35,17 +57,34 @@ function levelClass(level: string) {
   return 'info';
 }
 
-function relativeTime(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+const expanded = ref<string | null>(null);
+
+const pendingResolve = ref<Set<string>>(new Set());
+
+async function toggleResolved(err: ErrorRow, event: MouseEvent) {
+  event.stopPropagation();
+  if (!project.value || pendingResolve.value.has(err.id)) return;
+  pendingResolve.value.add(err.id);
+  const nextResolved = !err.resolved;
+  try {
+    await $fetch(`/api/v3/projects/${project.value.id}/errors/resolve`, {
+      method: 'POST',
+      body: { fingerprint: err.id, resolved: nextResolved },
+    });
+    toast.success(nextResolved ? 'Issue resolved' : 'Issue reopened');
+    await refresh();
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Failed to update issue');
+  } finally {
+    pendingResolve.value.delete(err.id);
+  }
 }
 
-const expanded = ref<string | null>(null);
+const sortOptions: Array<{ value: Sort; label: string }> = [
+  { value: 'last_seen', label: 'Last seen' },
+  { value: 'first_seen', label: 'First seen' },
+  { value: 'events', label: 'Events' },
+];
 </script>
 
 <template>
@@ -58,9 +97,45 @@ const expanded = ref<string | null>(null);
 		<div class="px-4 lg:px-6">
 			<div class="card err-card">
 				<div class="card-hd">
-					<div>
-						<h3>Issues</h3>
-						<p>{{ data?.total ?? 0 }} total · across all nodes</p>
+					<div class="hd-l">
+						<div class="status-tabs">
+							<button
+								class="status-tab"
+								:class="{ active: status === 'unresolved' }"
+								@click="status = 'unresolved'"
+							>
+								Unresolved
+								<span class="count">{{ data?.counts?.unresolved ?? 0 }}</span>
+							</button>
+							<button
+								class="status-tab"
+								:class="{ active: status === 'resolved' }"
+								@click="status = 'resolved'"
+							>
+								Resolved
+								<span class="count">{{ data?.counts?.resolved ?? 0 }}</span>
+							</button>
+							<button
+								class="status-tab"
+								:class="{ active: status === 'all' }"
+								@click="status = 'all'"
+							>
+								All
+								<span class="count">{{ data?.counts?.all ?? 0 }}</span>
+							</button>
+						</div>
+					</div>
+					<div class="hd-r">
+						<span class="sort-label">Sort by</span>
+						<div class="sort-seg">
+							<button
+								v-for="opt in sortOptions"
+								:key="opt.value"
+								class="seg"
+								:class="{ active: sort === opt.value }"
+								@click="sort = opt.value"
+							>{{ opt.label }}</button>
+						</div>
 					</div>
 				</div>
 
@@ -72,20 +147,25 @@ const expanded = ref<string | null>(null);
 					</div>
 				</div>
 				<div v-else-if="!data?.errors.length" class="err-empty">
-					No issues reported. Nice.
+					<template v-if="status === 'resolved'">No resolved issues yet.</template>
+					<template v-else-if="status === 'unresolved'">No unresolved issues. Nice.</template>
+					<template v-else>No issues reported.</template>
 				</div>
 				<template v-else>
 					<div
 						v-for="err in data.errors"
 						:key="err.id"
 						class="err-row"
-						:class="{ expanded: expanded === err.id }"
+						:class="{ expanded: expanded === err.id, resolved: err.resolved }"
 						@click="expanded = expanded === err.id ? null : err.id"
 					>
 						<div class="err-main">
 							<span class="lvl" :class="levelClass(err.level)">{{ err.level }}</span>
 							<div class="err-msg">
-								<div class="err-title">{{ err.message }}</div>
+								<div class="err-title">
+									{{ err.message }}
+									<span v-if="err.resolved" class="resolved-tag">resolved</span>
+								</div>
 								<div class="err-meta">{{ err.plugin }} · first seen {{ relativeTime(err.firstSeenAt) }}</div>
 							</div>
 							<div class="err-count">
@@ -93,7 +173,18 @@ const expanded = ref<string | null>(null);
 								<span class="sub">events</span>
 							</div>
 							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
+							<button
+								class="resolve-btn"
+								:class="{ resolved: err.resolved }"
+								:disabled="pendingResolve.has(err.id)"
+								:title="err.resolved ? 'Reopen issue' : 'Mark as resolved'"
+								@click="toggleResolved(err, $event)"
+							>
+								<RotateCcw v-if="err.resolved" :size="13" :stroke-width="1.8" />
+								<Check v-else :size="13" :stroke-width="2" />
+							</button>
 							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === err.id }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+							<span v-else class="chevron-placeholder" />
 						</div>
 						<div v-if="expanded === err.id && err.stacktrace" class="err-stack">
 							<pre>{{ err.stacktrace }}</pre>
@@ -121,12 +212,70 @@ const expanded = ref<string | null>(null);
 	overflow: hidden;
 }
 .err-card { padding: 0; }
+
 .card-hd {
-	padding: 18px 18px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 18px;
 	border-bottom: 1px solid var(--line);
+	flex-wrap: wrap;
 }
-.card-hd h3 { margin: 0 0 2px; font: 600 14.5px var(--font-sans); color: var(--fg-hi); }
-.card-hd p  { margin: 0; font: 400 12.5px var(--font-sans); color: var(--mute); }
+.hd-l { display: flex; align-items: center; gap: 12px; }
+.hd-r { display: flex; align-items: center; gap: 10px; }
+
+.status-tabs {
+	display: inline-flex;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 3px;
+	gap: 2px;
+}
+.status-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	font: 500 12px var(--font-sans);
+	color: var(--dim);
+	border-radius: 6px;
+	cursor: pointer;
+	border: none;
+	background: transparent;
+}
+.status-tab.active { background: var(--bg-3); color: var(--fg-hi); }
+.status-tab:hover:not(.active) { color: var(--fg-hi); }
+.status-tab .count {
+	font: 600 10.5px var(--font-mono);
+	color: var(--mute);
+	padding: 1px 6px;
+	border-radius: 9999px;
+	background: var(--bg-1);
+	border: 1px solid var(--line);
+}
+.status-tab.active .count { color: var(--fg-hi); }
+
+.sort-label { font: 500 11.5px var(--font-sans); color: var(--mute); }
+.sort-seg {
+	display: inline-flex;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 3px;
+}
+.seg {
+	padding: 5px 10px;
+	font: 500 11.5px var(--font-sans);
+	color: var(--dim);
+	border-radius: 6px;
+	cursor: pointer;
+	border: none;
+	background: transparent;
+}
+.seg.active { background: var(--bg-3); color: var(--fg-hi); }
+.seg:hover:not(.active) { color: var(--fg-hi); }
 
 .err-empty {
 	padding: 48px;
@@ -158,10 +307,12 @@ const expanded = ref<string | null>(null);
 }
 .err-row:last-child { border-bottom: 0; }
 .err-row:hover .err-main { background: var(--bg-2); }
+.err-row.resolved .err-main { opacity: 0.6; }
+.err-row.resolved:hover .err-main { opacity: 0.85; }
 
 .err-main {
 	display: grid;
-	grid-template-columns: 80px 1fr 80px 90px 20px;
+	grid-template-columns: 80px 1fr 80px 90px 28px 16px;
 	gap: 12px;
 	padding: 12px 18px;
 	align-items: center;
@@ -174,6 +325,7 @@ const expanded = ref<string | null>(null);
 }
 .chevron.open { transform: rotate(180deg); color: var(--dim); }
 .err-row:hover .chevron { color: var(--dim); }
+.chevron-placeholder { display: inline-block; width: 14px; height: 14px; }
 
 .lvl {
 	display: inline-flex;
@@ -208,6 +360,21 @@ const expanded = ref<string | null>(null);
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+.err-row.resolved .err-title { text-decoration: line-through; }
+.resolved-tag {
+	display: inline-block;
+	margin-left: 8px;
+	font: 600 9px var(--font-mono);
+	padding: 2px 6px;
+	border-radius: 4px;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	background: color-mix(in oklab, var(--ok, var(--brand-2)) 18%, transparent);
+	color: var(--ok, var(--brand-2));
+	border: 1px solid color-mix(in oklab, var(--ok, var(--brand-2)) 40%, transparent);
+	text-decoration: none;
+	vertical-align: 1px;
+}
 .err-meta {
 	font: 400 11.5px var(--font-mono);
 	color: var(--mute);
@@ -220,6 +387,35 @@ const expanded = ref<string | null>(null);
 .err-count { font: 600 13px var(--font-mono); color: var(--fg-hi); text-align: right; }
 .err-count .sub { display: block; font: 400 10.5px var(--font-mono); color: var(--mute); }
 .err-when { font: 400 11.5px var(--font-mono); color: var(--mute); text-align: right; }
+
+.resolve-btn {
+	display: inline-grid;
+	place-items: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 6px;
+	border: 1px solid var(--line);
+	background: var(--bg-1);
+	color: var(--dim);
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.resolve-btn:hover:not(:disabled) {
+	color: var(--ok, var(--brand-2));
+	border-color: color-mix(in oklab, var(--ok, var(--brand-2)) 50%, var(--line));
+	background: color-mix(in oklab, var(--ok, var(--brand-2)) 12%, var(--bg-1));
+}
+.resolve-btn.resolved {
+	color: var(--ok, var(--brand-2));
+	border-color: color-mix(in oklab, var(--ok, var(--brand-2)) 40%, var(--line));
+	background: color-mix(in oklab, var(--ok, var(--brand-2)) 10%, var(--bg-1));
+}
+.resolve-btn.resolved:hover:not(:disabled) {
+	color: var(--dim);
+	border-color: var(--line);
+	background: var(--bg-2);
+}
+.resolve-btn:disabled { opacity: 0.5; cursor: default; }
 
 .err-stack {
 	border-top: 1px solid var(--line);

@@ -5,6 +5,8 @@ export type Project = {
   type: 'server' | 'plugin' | 'mod';
   description: string | null;
   createdAt: string;
+  lastSeenAt: string | null;
+  errors: number;
 };
 
 export function useProjects() {

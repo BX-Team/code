@@ -32,6 +32,7 @@ export async function handleHeartbeat(event: Heartbeat, projectId: string, count
         tps: event.server.tps,
         mspt: event.server.mspt,
         memory_used: event.server.memory_used_mb,
+        memory_max: event.server.memory_max_mb,
       },
     ],
     format: 'JSONEachRow',

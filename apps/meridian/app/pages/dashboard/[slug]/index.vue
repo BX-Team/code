@@ -14,6 +14,8 @@ const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.
 
 useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' });
 
+const requestFetch = useRequestFetch();
+
 const range = ref<'24h' | '7d' | '30d'>('24h');
 
 interface TimePoint {
@@ -22,6 +24,7 @@ interface TimePoint {
   tps?: number;
   mspt?: number;
   memory_used?: number;
+  memory_max?: number;
 }
 
 interface StatsResponse {
@@ -50,7 +53,7 @@ const {
   `project-stats-${slug.value}`,
   () =>
     project.value
-      ? $fetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
+      ? requestFetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
       : Promise.resolve(null),
   { watch: [range, project] },
 );
@@ -59,7 +62,7 @@ const { data: players } = await useAsyncData<PlayersResponse | null>(
   `project-players-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? $fetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
+      ? requestFetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -79,7 +82,7 @@ interface ErrorsResponse {
 
 const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
   `project-errors-${slug.value}`,
-  () => (project.value ? $fetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null)),
+  () => (project.value ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null)),
   { watch: [project] },
 );
 
@@ -117,7 +120,7 @@ const { data: clientVersions } = await useAsyncData<ClientVersionsResponse | nul
   `project-client-versions-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? $fetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, {
+      ? requestFetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -128,7 +131,7 @@ const { data: geography } = await useAsyncData<GeographyResponse | null>(
   `project-geography-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? $fetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
+      ? requestFetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, { query: { range: range.value } })
       : Promise.resolve(null),
   { watch: [range, project] },
 );
@@ -137,7 +140,7 @@ const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | n
   `project-session-duration-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? $fetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, {
+      ? requestFetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -148,7 +151,7 @@ const { data: retention } = await useAsyncData<RetentionResponse | null>(
   `project-retention-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? $fetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
+      ? requestFetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -157,14 +160,14 @@ const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | nul
   `project-plugin-insights-${slug.value}`,
   () =>
     project.value && project.value.type !== 'server'
-      ? $fetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
+      ? requestFetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
       : Promise.resolve(null),
   { watch: [project] },
 );
 
 const seriesData = computed(() =>
   (stats.value?.timeseries ?? []).map(p => ({
-    date: new Date(p.time),
+    date: parseClickhouseDate(p.time),
     online: Number(p.online ?? 0),
     tps: Number(p.tps ?? 0),
   })),
@@ -213,6 +216,11 @@ const heapUsed = computed(() => {
   return v > 0 ? `${(v / 1024).toFixed(1)} GB` : '—';
 });
 
+const heapMax = computed(() => {
+  const v = Number(latestPoint.value?.memory_max ?? 0);
+  return v > 0 ? `${(v / 1024).toFixed(1)} GB` : '';
+});
+
 const tpsNow = computed(() => {
   const v = Number(latestPoint.value?.tps ?? 0);
   return v > 0 ? v.toFixed(2) : '—';
@@ -234,8 +242,10 @@ const msptPercent = computed(() => {
 });
 
 const memPercent = computed(() => {
-  const v = Number(latestPoint.value?.memory_used ?? 0);
-  return Math.min(100, (v / (24 * 1024)) * 100);
+  const used = Number(latestPoint.value?.memory_used ?? 0);
+  const max = Number(latestPoint.value?.memory_max ?? 0);
+  if (max <= 0) return 0;
+  return Math.min(100, (used / max) * 100);
 });
 
 const returningPlayers = computed(() => {
@@ -348,16 +358,6 @@ function levelClass(level: string) {
   return 'info';
 }
 
-function relativeTime(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
 const metaSub = computed(() => {
   if (!project.value || !stats.value?.metadata) return '';
   const m = stats.value.metadata;
@@ -432,7 +432,7 @@ function formatDuration(seconds: number): string {
 					</div>
 					<div class="h-cell">
 						<div class="hl">Heap used</div>
-						<div class="hv">{{ heapUsed }}</div>
+						<div class="hv">{{ heapUsed }}<span v-if="heapMax" class="hu">/{{ heapMax }}</span></div>
 						<div class="hb"><div :style="{ width: memPercent + '%', background: 'var(--brand)' }" /></div>
 					</div>
 				</div>

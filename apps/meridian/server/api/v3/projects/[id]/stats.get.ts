@@ -42,7 +42,8 @@ export default defineEventHandler(async event => {
               max(online)       AS online,
               avg(tps)          AS tps,
               avg(mspt)         AS mspt,
-              max(memory_used)  AS memory_used
+              max(memory_used)  AS memory_used,
+              max(memory_max)   AS memory_max
             FROM server_stats
             WHERE project_id = {projectId: String}
               AND timestamp >= now() - INTERVAL ${range.interval}

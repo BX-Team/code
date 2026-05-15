@@ -1,4 +1,4 @@
-import { db, projects, serverMetadata } from '@bx-team/stratus';
+import { db, projects, resolvedIssues, serverMetadata } from '@bx-team/stratus';
 import { eq, inArray } from 'drizzle-orm';
 
 const RANGES = {
@@ -41,14 +41,16 @@ export default defineEventHandler(async event => {
     };
   }
 
-  const [errorCountRow] = await clickhouse
-    .query({
-      query: `SELECT count() AS total FROM error_events WHERE project_id IN ({projectIds: Array(String)})`,
-      query_params: { projectIds },
-      format: 'JSONEachRow',
-    })
-    .then(r => r.json<{ total: string }[]>())
-    .catch(() => [] as { total: string }[]);
+  const resolvedRows = await db
+    .select({ projectId: resolvedIssues.projectId, fingerprint: resolvedIssues.fingerprint })
+    .from(resolvedIssues)
+    .where(inArray(resolvedIssues.projectId, projectIds));
+
+  const resolvedByProject = new Map<string, Set<string>>();
+  for (const r of resolvedRows) {
+    if (!resolvedByProject.has(r.projectId)) resolvedByProject.set(r.projectId, new Set());
+    resolvedByProject.get(r.projectId)?.add(r.fingerprint);
+  }
 
   const [eventsResult, peakResult, playersResult, timeseries] = await Promise.all([
     serverIds.length
@@ -84,7 +86,22 @@ export default defineEventHandler(async event => {
     serverIds.length
       ? clickhouse
           .query({
-            query: `SELECT ${range.bucket}(timestamp) AS time, sum(online) AS online, avg(tps) AS tps FROM server_stats WHERE project_id IN ({projectIds: Array(String)}) AND timestamp >= now() - INTERVAL ${range.interval} GROUP BY time ORDER BY time`,
+            query: `
+              SELECT time, sum(online) AS online, avg(tps) AS tps
+              FROM (
+                SELECT
+                  ${range.bucket}(timestamp) AS time,
+                  project_id,
+                  max(online)                AS online,
+                  avg(tps)                   AS tps
+                FROM server_stats
+                WHERE project_id IN ({projectIds: Array(String)})
+                  AND timestamp >= now() - INTERVAL ${range.interval}
+                GROUP BY time, project_id
+              )
+              GROUP BY time
+              ORDER BY time
+            `,
             query_params: { projectIds: serverIds },
             format: 'JSONEachRow',
           })
@@ -106,15 +123,25 @@ export default defineEventHandler(async event => {
 
   const errorsByProjectRows = await clickhouse
     .query({
-      query: `SELECT project_id, count() AS total FROM error_events WHERE project_id IN ({projectIds: Array(String)}) GROUP BY project_id`,
+      query: `
+        SELECT project_id, lower(hex(MD5(concat(plugin, message, level, stacktrace)))) AS fingerprint
+        FROM error_events
+        WHERE project_id IN ({projectIds: Array(String)})
+        GROUP BY project_id, plugin, message, level, stacktrace
+      `,
       query_params: { projectIds },
       format: 'JSONEachRow',
     })
-    .then(r => r.json<{ project_id: string; total: string }[]>())
-    .catch(() => [] as { project_id: string; total: string }[]);
+    .then(r => r.json<{ project_id: string; fingerprint: string }[]>())
+    .catch(() => [] as { project_id: string; fingerprint: string }[]);
 
   const metaByProject = new Map(lastSeen.map(m => [m.projectId, m]));
-  const errorsByProjectMap = new Map(errorsByProjectRows.map(e => [e.project_id, Number(e.total)]));
+  const errorsByProjectMap = new Map<string, number>();
+  for (const row of errorsByProjectRows) {
+    if (resolvedByProject.get(row.project_id)?.has(row.fingerprint)) continue;
+    errorsByProjectMap.set(row.project_id, (errorsByProjectMap.get(row.project_id) ?? 0) + 1);
+  }
+  const totalErrors = Array.from(errorsByProjectMap.values()).reduce((s, n) => s + n, 0);
 
   const enrichedProjects = ownedProjects.map(p => ({
     ...p,
@@ -130,7 +157,7 @@ export default defineEventHandler(async event => {
       servers: ownedProjects.filter(p => p.type === 'server').length,
       plugins: ownedProjects.filter(p => p.type === 'plugin').length,
       mods: ownedProjects.filter(p => p.type === 'mod').length,
-      totalErrors: Number(errorCountRow?.total ?? 0),
+      totalErrors,
       totalEvents24h: Number(eventsResult[0]?.total ?? 0),
       peakOnline24h: Number(peakResult[0]?.peak ?? 0),
       uniquePlayers24h: Number(playersResult[0]?.players ?? 0),

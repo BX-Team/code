@@ -37,7 +37,7 @@ async function submit() {
   submitting.value = true;
   error.value = '';
   try {
-    await $fetch('/api/v3/projects', {
+    const created = await $fetch<{ slug: string }>('/api/v3/projects', {
       method: 'POST',
       body: {
         name: name.value.trim(),
@@ -46,14 +46,16 @@ async function submit() {
         description: description.value.trim() || undefined,
       },
     });
+    const createdSlug = created.slug;
     name.value = '';
     slug.value = '';
     slugEdited.value = false;
     type.value = 'server';
     description.value = '';
     open.value = false;
-    refreshNuxtData('v3-projects');
-    refreshNuxtData('v3-overview');
+    await refreshNuxtData('v3-projects');
+    await refreshNuxtData('v3-overview');
+    await navigateTo(`/dashboard/${createdSlug}`);
   } catch (e: any) {
     error.value = e?.data?.message ?? 'Something went wrong';
   } finally {
