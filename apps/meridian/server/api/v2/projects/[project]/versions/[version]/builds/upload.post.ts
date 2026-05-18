@@ -25,16 +25,34 @@ export default defineEventHandler(async event => {
   try {
     const parts = await readMultipartFormData(event);
     const filePart = parts?.find(p => p.name === 'file');
-    const metadataPart = parts?.find(p => p.name === 'metadata');
 
     if (!filePart?.data) {
       setResponseStatus(event, 400);
       return { ok: false, error: 'Bad Request', message: 'No file provided' };
     }
 
-    const metadata = UploadMetadataSchema.parse(
-      metadataPart?.data ? JSON.parse(new TextDecoder().decode(metadataPart.data)) : {},
-    );
+    const decodePart = (name: string) => {
+      const part = parts?.find(p => p.name === name);
+      return part?.data?.length ? new TextDecoder().decode(part.data) : undefined;
+    };
+
+    const metadataRaw = decodePart('metadata');
+    const metadataInput: Record<string, unknown> = metadataRaw ? JSON.parse(metadataRaw) : {};
+
+    if (metadataInput.buildNumber === undefined) {
+      const raw = decodePart('buildNumber');
+      if (raw !== undefined) metadataInput.buildNumber = Number(raw);
+    }
+    if (metadataInput.channel === undefined) {
+      const raw = decodePart('channel');
+      if (raw !== undefined) metadataInput.channel = raw;
+    }
+    if (metadataInput.commits === undefined) {
+      const raw = decodePart('commits');
+      if (raw !== undefined) metadataInput.commits = JSON.parse(raw);
+    }
+
+    const metadata = UploadMetadataSchema.parse(metadataInput);
 
     const [project] = await db.select().from(atlasProjects).where(eq(atlasProjects.key, projectKey)).limit(1);
 
@@ -121,16 +139,16 @@ export default defineEventHandler(async event => {
 
     await db.insert(downloads).values({
       buildId: insertedBuild.id,
-      name: fileName.replace(/\.[^.]+$/, ''),
+      name: 'application',
       fileName,
       filePath: r2Key,
       size: fileBytes.length,
       sha256,
     });
 
-    setResponseStatus(event, 202);
+    setResponseStatus(event, 200);
     return {
-      message: 'Build received and queued for processing',
+      message: 'Build uploaded successfully',
       build: {
         id: buildNumber,
         project: projectKey,
