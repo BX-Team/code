@@ -9,6 +9,10 @@ import { GITHUB_URL } from '~/config/links';
 
 const route = useRoute();
 const projectId = String(route.params.project);
+const queryVersion = computed(() => {
+  const v = route.query.version;
+  return typeof v === 'string' && v ? v : null;
+});
 
 const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const projectResp = await $fetch<{ project: Project; version_groups: Record<string, string[]> }>(
@@ -21,19 +25,21 @@ const { data } = await useAsyncData(`project:${projectId}`, async () => {
 
   const { project, version_groups } = projectResp;
 
+  const availableVersions = getAllVersions(version_groups);
+  const requestedVersion = queryVersion.value && availableVersions.includes(queryVersion.value) ? queryVersion.value : null;
+  const initialVersion = requestedVersion ?? project.latestVersion ?? '';
+
   const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([
     $fetch<VersionWithBuilds[]>(`/api/v2/projects/${projectId}/versions`).catch(() => [] as VersionWithBuilds[]),
     project.latestVersion
       ? $fetch<Build>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(() => null)
       : Promise.resolve(null),
-    project.latestVersion
-      ? $fetch<Build[]>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds`).catch(
-          () => [] as Build[],
-        )
+    initialVersion
+      ? $fetch<Build[]>(`/api/v2/projects/${projectId}/versions/${initialVersion}/builds`).catch(() => [] as Build[])
       : Promise.resolve([] as Build[]),
   ]);
 
-  return { project, version_groups, versionsMetadata, latestBuild, initialBuilds };
+  return { project, version_groups, versionsMetadata, latestBuild, initialBuilds, initialVersion };
 });
 
 if (!data.value) throw createError({ statusCode: 500, statusMessage: 'Failed to load project', fatal: true });
@@ -43,6 +49,10 @@ const latestBuild = computed(() => data.value!.latestBuild);
 const allVersions = computed(() => getAllVersions(data.value!.version_groups));
 const versionsMetadata = computed(() => data.value!.versionsMetadata);
 const initialBuilds = computed(() => data.value!.initialBuilds);
+const initialVersion = computed(() => data.value!.initialVersion);
+const initialShowExperimental = computed(
+  () => !!project.value.experimentalVersion && initialVersion.value === project.value.experimentalVersion,
+);
 
 useHead({
   title: computed(() => project.value.name),
@@ -120,10 +130,12 @@ const docsUrl = computed(() => `/docs/${projectId}`);
             :project-id="projectId"
             :project-name="project.name"
             :initial-versions="allVersions"
-            :default-version="project.latestVersion ?? ''"
+            :default-version="initialVersion"
+            :stable-default-version="project.latestVersion ?? ''"
             :experimental-version="project.experimentalVersion"
             :versions-metadata="versionsMetadata"
             :initial-builds="initialBuilds"
+            :initial-show-experimental="initialShowExperimental"
           />
         </div>
       </section>

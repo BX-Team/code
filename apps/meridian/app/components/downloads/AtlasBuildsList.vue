@@ -10,13 +10,15 @@ const props = defineProps<{
   projectName: string;
   initialVersions: string[];
   defaultVersion: string;
+  stableDefaultVersion?: string;
   versionsMetadata?: VersionWithBuilds[];
   experimentalVersion?: string;
   initialBuilds?: Build[];
+  initialShowExperimental?: boolean;
 }>();
 
 const selectedVersion = ref(props.defaultVersion);
-const showExperimental = ref(false);
+const showExperimental = ref(!!props.initialShowExperimental);
 const builds = ref<Build[]>(props.initialBuilds ?? []);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -46,7 +48,7 @@ watch(selectedVersion, async v => {
 function onToggle(v: boolean) {
   showExperimental.value = v;
   if (!v && selectedVersion.value === props.experimentalVersion) {
-    selectedVersion.value = props.defaultVersion;
+    selectedVersion.value = props.stableDefaultVersion || props.defaultVersion;
   }
 }
 </script>
