@@ -76,7 +76,7 @@ const projects = [
       'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization',
     tag: 'Server software',
     archived: false,
-    gameVersions: '1.19.2 – 1.21.11',
+    gameVersions: '1.19.2 – 26.1.2',
     href: 'https://github.com/BX-Team/DivineMC',
   },
   {
