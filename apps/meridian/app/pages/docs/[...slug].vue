@@ -34,6 +34,20 @@ const { data: surr } = await useAsyncData(
   { watch: [() => route.path] },
 );
 
+const { data: navigation } = await useAsyncData(
+  'docs-nav',
+  () => queryCollectionNavigation('docs', ['icon', 'badge']),
+  { default: () => [] },
+);
+
+function pathHasPage(nodes: any[], target: string): boolean {
+  for (const node of nodes) {
+    if (node.path === target) return node.page !== false;
+    if (node.children && pathHasPage(node.children, target)) return true;
+  }
+  return false;
+}
+
 watch(
   page,
   p => {
@@ -55,10 +69,14 @@ const next = computed(() => surr.value?.[1] ?? null);
 
 const breadcrumbs = computed(() => {
   const parts = route.path.replace('/docs/', '').split('/');
-  return parts.map((part, i) => ({
-    label: part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-    path: '/docs/' + parts.slice(0, i + 1).join('/'),
-  }));
+  return parts.map((part, i) => {
+    const path = '/docs/' + parts.slice(0, i + 1).join('/');
+    return {
+      label: part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      path,
+      exists: pathHasPage(navigation.value || [], path),
+    };
+  });
 });
 </script>
 
@@ -68,7 +86,8 @@ const breadcrumbs = computed(() => {
 			<NuxtLink to="/docs">Docs</NuxtLink>
 			<span class="sep">/</span>
 			<template v-for="(crumb, i) in breadcrumbs" :key="crumb.path">
-				<NuxtLink v-if="i < breadcrumbs.length - 1" :to="crumb.path">{{ crumb.label }}</NuxtLink>
+				<NuxtLink v-if="i < breadcrumbs.length - 1 && crumb.exists" :to="crumb.path">{{ crumb.label }}</NuxtLink>
+				<span v-else-if="i < breadcrumbs.length - 1" class="static">{{ crumb.label }}</span>
 				<span v-else class="here">{{ crumb.label }}</span>
 				<span v-if="i < breadcrumbs.length - 1" class="sep">/</span>
 			</template>
@@ -120,6 +139,10 @@ const breadcrumbs = computed(() => {
 }
 .crumbs .sep {
 	opacity: 0.5;
+}
+.crumbs .static {
+	color: var(--mute);
+	cursor: default;
 }
 .crumbs .here {
 	color: var(--dim);
