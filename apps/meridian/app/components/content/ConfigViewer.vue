@@ -268,7 +268,7 @@ function fmtVal(v: unknown): string {
 	background: var(--bg-0);
 	border-radius: 0 0 12px 12px;
 	padding: 8px 0 12px;
-	overflow-x: auto;
+	overflow-x: hidden;
 }
 
 .cv-tree {
@@ -287,6 +287,8 @@ function fmtVal(v: unknown): string {
 	padding-right: 12px;
 	border-radius: 4px;
 	transition: background .12s;
+	flex-wrap: wrap;
+	min-width: 0;
 }
 .cv-row:hover { background: rgba(255,255,255,.03); }
 
@@ -307,7 +309,13 @@ function fmtVal(v: unknown): string {
 
 /* Leaf */
 .cv-key { color: var(--dim); white-space: nowrap; }
-.cv-val { white-space: nowrap; }
+.cv-val {
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+	min-width: 0;
+	flex: 1 1 auto;
+}
 
 .tk-true  { color: var(--brand-2); }
 .tk-false { color: var(--err); }
