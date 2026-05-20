@@ -116,34 +116,35 @@ export default defineEventHandler(async event => {
       };
     }
 
-    const [insertedBuild] = await db
-      .insert(builds)
-      .values({ versionId: version.id, buildNumber, channel: channelValue, time: new Date() })
-      .returning();
+    const insertedBuild = await db.transaction(async tx => {
+      const [created] = await tx
+        .insert(builds)
+        .values({ versionId: version.id, buildNumber, channel: channelValue, time: new Date() })
+        .returning();
 
-    if (!insertedBuild) {
-      setResponseStatus(event, 500);
-      return { ok: false, error: 'Internal Server Error', message: 'Failed to insert build' };
-    }
+      if (!created) throw new Error('Failed to insert build');
 
-    if (metadata.commits?.length) {
-      await db.insert(commits).values(
-        metadata.commits.map(c => ({
-          buildId: insertedBuild.id,
-          sha: c.sha,
-          message: c.message,
-          time: new Date(c.time),
-        })),
-      );
-    }
+      if (metadata.commits?.length) {
+        await tx.insert(commits).values(
+          metadata.commits.map(c => ({
+            buildId: created.id,
+            sha: c.sha,
+            message: c.message,
+            time: new Date(c.time),
+          })),
+        );
+      }
 
-    await db.insert(downloads).values({
-      buildId: insertedBuild.id,
-      name: 'application',
-      fileName,
-      filePath: r2Key,
-      size: fileBytes.length,
-      sha256,
+      await tx.insert(downloads).values({
+        buildId: created.id,
+        name: 'application',
+        fileName,
+        filePath: r2Key,
+        size: fileBytes.length,
+        sha256,
+      });
+
+      return created;
     });
 
     setResponseStatus(event, 200);
@@ -158,11 +159,16 @@ export default defineEventHandler(async event => {
     };
   } catch (error) {
     console.error('Error uploading build:', error);
+    const err = error as { message?: string; cause?: unknown };
+    const cause = err.cause as { message?: string; code?: string; detail?: string } | undefined;
+    const causeText = cause
+      ? [cause.code && `[${cause.code}]`, cause.message, cause.detail].filter(Boolean).join(' ')
+      : '';
     setResponseStatus(event, 500);
     return {
       ok: false,
       error: 'Internal Server Error',
-      message: `Failed to upload build: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: `Failed to upload build: ${err.message ?? 'Unknown error'}${causeText ? ` — ${causeText}` : ''}`,
     };
   }
 });
