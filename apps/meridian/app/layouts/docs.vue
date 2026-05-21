@@ -211,10 +211,6 @@ function closeSwitcher(e: Event) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
-    e.preventDefault();
-    searchOpen.value = true;
-  }
   if (e.key === 'Escape') {
     searchOpen.value = false;
     mobileSidebarOpen.value = false;

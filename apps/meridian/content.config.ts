@@ -27,5 +27,26 @@ export default defineContentConfig({
         lastUpdated: z.string().optional(),
       }),
     }),
+    roadmap: defineCollection({
+      type: 'page',
+      source: 'roadmap/*.md',
+      schema: z.object({
+        title: z.string(),
+        slug: z.string(),
+        icon: z.string(),
+        accent: z.string().optional(),
+        order: z.number(),
+        blurb: z.string(),
+        items: z.array(
+          z.object({
+            id: z.string(),
+            title: z.string(),
+            status: z.enum(['planned', 'progress', 'review', 'shipped']),
+            progress: z.number().optional(),
+            description: z.string().optional(),
+          }),
+        ),
+      }),
+    }),
   },
 });

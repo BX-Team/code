@@ -28,7 +28,7 @@ const sections: TeamSection[] = [
     description: 'The main team that leads the projects and makes strategic decisions.',
     members: [
       { name: 'NONPLAYT', github: 'NONPLAYT', role: 'Founder' },
-      { name: 'wiyba', github: 'wiyba', role: 'Developer' },
+      { name: 'wiyba', github: 'wiyba', role: 'Developer & Designer' },
       { name: 'Thoutpinqq', github: 'VladKekes', role: 'Co-Founder' },
     ],
   },
@@ -37,12 +37,12 @@ const sections: TeamSection[] = [
     description: 'The team responsible for the moderation and management of the projects.',
     members: [
       { name: 'ROUMAY', role: 'Discord Moderator' },
-      { name: 'p4ts4k', github: 'P4TS4KK', role: 'Task Manager' },
+      { name: 'p4ts4k', github: 'P4TS4KK', role: 'Process Manager' },
     ],
   },
 ];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'website'];
+const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'Pulsify', 'run-server-plugin', 'docs'];
 
 const { data: contributors } = await useAsyncData<GithubContributor[]>(
   'team:contributors',

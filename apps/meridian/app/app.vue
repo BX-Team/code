@@ -4,8 +4,11 @@ const disabledPage = useState<{ message?: string } | null>('disabled-page');
 
 <template>
 	<DisabledPage v-if="disabledPage" :message="disabledPage.message" />
-	<NuxtLayout v-else>
-		<NuxtRouteAnnouncer />
-		<NuxtPage />
-	</NuxtLayout>
+	<template v-else>
+		<NuxtLayout>
+			<NuxtRouteAnnouncer />
+			<NuxtPage />
+		</NuxtLayout>
+		<CommandPalette />
+	</template>
 </template>

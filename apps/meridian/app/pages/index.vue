@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, ProjectsGrid } from '@bx-team/ui';
 import { Activity, AlertCircle, Box, Database, Users, Zap } from '@lucide/vue';
+import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const appConfig = useAppConfig();
@@ -156,7 +157,12 @@ function projectVersion(href: string): string | undefined {
 		<div class="lp-atmosphere" aria-hidden="true" />
 
 		<!-- Floating pill navbar -->
-		<Navbar :discord-href="DISCORD_URL" :logged-in="loggedIn" />
+		<Navbar
+			:discord-href="DISCORD_URL"
+			:logged-in="loggedIn"
+			search-enabled
+			@search="openCommandPalette()"
+		/>
 
 		<!-- Hero -->
 		<Hero

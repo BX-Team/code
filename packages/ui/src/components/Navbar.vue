@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import BrandMark from './BrandMark.vue';
 
 export interface NavLink {
@@ -17,6 +17,7 @@ const props = withDefaults(
     dashboardHref?: string;
     discordHref?: string;
     loggedIn?: boolean;
+    searchEnabled?: boolean;
   }>(),
   {
     active: '',
@@ -24,20 +25,27 @@ const props = withDefaults(
       { id: 'downloads', label: 'Downloads', href: '/downloads' },
       { id: 'documentation', label: 'Documentation', href: '/docs' },
       { id: 'team', label: 'Team', href: '/team' },
-      { id: 'status', label: 'Status', href: 'https://status.bxteam.org' },
-      { id: 'maven', label: 'Maven', href: 'https://repo.bxteam.org' },
+      { id: 'roadmap', label: 'Roadmap', href: '/roadmap' },
     ],
     brandHref: '/',
     loginHref: '/login',
     dashboardHref: '/dashboard',
     discordHref: 'https://discord.gg/qNyybSSPm5',
     loggedIn: false,
+    searchEnabled: false,
   },
 );
 
 const emit = defineEmits<{
   navigate: [id: string];
+  search: [];
 }>();
+
+const isMac = ref(false);
+onMounted(() => {
+  isMac.value = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+});
+const kbdLabel = computed(() => (isMac.value ? '⌘K' : 'Ctrl K'));
 
 const mobileOpen = ref(false);
 </script>
@@ -62,6 +70,20 @@ const mobileOpen = ref(false);
 					{{ link.label }}
 				</a>
 			</div>
+
+			<button
+				v-if="searchEnabled"
+				type="button"
+				class="bx-bar__search"
+				aria-label="Open search"
+				@click="emit('search')"
+			>
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="7" />
+					<line x1="21" y1="21" x2="16.65" y2="16.65" />
+				</svg>
+				<span class="bx-bar__search-kbd">{{ kbdLabel }}</span>
+			</button>
 
 			<div class="bx-bar__right-wrap">
 				<slot name="right">
@@ -108,6 +130,19 @@ const mobileOpen = ref(false);
 			</div>
 
 			<nav class="bx-drawer__nav">
+				<button
+					v-if="searchEnabled"
+					type="button"
+					class="bx-drawer__search"
+					@click="mobileOpen = false; emit('search')"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<circle cx="11" cy="11" r="7" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<span>Search</span>
+					<span class="bx-drawer__search-kbd">{{ kbdLabel }}</span>
+				</button>
 				<a
 					v-for="link in links"
 					:key="link.id"
@@ -202,6 +237,44 @@ const mobileOpen = ref(false);
 	display: flex;
 	align-items: center;
 	gap: 4px;
+}
+
+.bx-bar__search {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 30px;
+	padding: 0 8px 0 10px;
+	margin-left: 6px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: var(--r-full);
+	color: var(--mute);
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.bx-bar__search:hover {
+	color: var(--fg-hi);
+	border-color: var(--line-2);
+	background: var(--bg-3);
+}
+
+.bx-bar__search svg {
+	flex-shrink: 0;
+}
+
+.bx-bar__search-kbd {
+	display: inline-flex;
+	align-items: center;
+	height: 18px;
+	padding: 0 6px;
+	background: var(--bg-3);
+	border: 1px solid var(--line);
+	border-radius: var(--r-xs);
+	font: 600 10.5px var(--font-mono);
+	color: var(--mute);
+	letter-spacing: 0.02em;
 }
 
 .bx-bar__right-wrap {
@@ -359,6 +432,43 @@ const mobileOpen = ref(false);
 	background: rgba(255, 255, 255, 0.04);
 }
 
+.bx-drawer__search {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 12px 14px;
+	margin-bottom: 6px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: var(--r-md);
+	color: var(--dim);
+	font: 500 14px var(--font-sans);
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s;
+}
+
+.bx-drawer__search:hover {
+	color: var(--fg-hi);
+	border-color: var(--line-2);
+}
+
+.bx-drawer__search svg {
+	color: var(--mute);
+	flex-shrink: 0;
+}
+
+.bx-drawer__search-kbd {
+	margin-left: auto;
+	padding: 2px 6px;
+	background: var(--bg-3);
+	border: 1px solid var(--line);
+	border-radius: var(--r-xs);
+	font: 600 10.5px var(--font-mono);
+	color: var(--mute);
+	letter-spacing: 0.02em;
+}
+
 .bx-drawer__footer {
 	display: flex;
 	flex-direction: column;
@@ -432,6 +542,10 @@ const mobileOpen = ref(false);
 	}
 
 	.bx-bar__right-wrap {
+		display: none;
+	}
+
+	.bx-bar__search {
 		display: none;
 	}
 

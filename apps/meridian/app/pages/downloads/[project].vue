@@ -26,7 +26,8 @@ const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const { project, version_groups } = projectResp;
 
   const availableVersions = getAllVersions(version_groups);
-  const requestedVersion = queryVersion.value && availableVersions.includes(queryVersion.value) ? queryVersion.value : null;
+  const requestedVersion =
+    queryVersion.value && availableVersions.includes(queryVersion.value) ? queryVersion.value : null;
   const initialVersion = requestedVersion ?? project.latestVersion ?? '';
 
   const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([

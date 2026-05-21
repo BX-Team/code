@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Footer, Navbar } from '@bx-team/ui';
 import { computed } from 'vue';
+import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const status = useStatusSummary();
@@ -24,7 +25,12 @@ const statusText = computed(() => {
 
 <template>
 	<div class="shell">
-		<Navbar :discord-href="DISCORD_URL" :logged-in="loggedIn" />
+		<Navbar
+			:discord-href="DISCORD_URL"
+			:logged-in="loggedIn"
+			search-enabled
+			@search="openCommandPalette()"
+		/>
 		<slot />
 		<Footer
 			:github-href="GITHUB_URL"
