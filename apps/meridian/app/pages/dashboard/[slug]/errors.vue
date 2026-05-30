@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Check, RotateCcw } from '@lucide/vue';
+import { Ban, BellOff, Check, MoreHorizontal, RotateCcw } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' });
 
-type Status = 'unresolved' | 'resolved' | 'all';
+type Status = 'unresolved' | 'resolved' | 'ignored' | 'all';
 type Sort = 'last_seen' | 'first_seen' | 'events';
+type IssueStatus = 'open' | 'resolved' | 'ignored' | 'muted';
+type IssueAction = 'resolve' | 'ignore' | 'mute' | 'reopen';
 
 interface ErrorRow {
   id: string;
@@ -18,8 +20,11 @@ interface ErrorRow {
   count: number;
   firstSeenAt: string;
   lastSeenAt: string;
-  resolved: boolean;
+  status: IssueStatus;
+  mutedUntil: string | null;
   resolvedAt: string | null;
+  firstVersion: string | null;
+  lastVersion: string | null;
   serverVersion: string | null;
   serverSoftware: string | null;
   pluginVersion: string | null;
@@ -27,7 +32,7 @@ interface ErrorRow {
 interface ErrorsResponse {
   errors: ErrorRow[];
   total: number;
-  counts: { unresolved: number; resolved: number; all: number };
+  counts: { unresolved: number; resolved: number; ignored: number; all: number };
   sort: Sort;
   status: Status;
 }
@@ -87,28 +92,88 @@ function levelClass(level: string) {
   return 'info';
 }
 
+const STATUS_LABEL: Record<IssueStatus, string> = {
+  open: 'Open',
+  resolved: 'Resolved',
+  ignored: 'Ignored',
+  muted: 'Muted',
+};
+
 const expanded = ref<string | null>(null);
+const menuOpen = ref<string | null>(null);
+const pendingStatus = ref<Set<string>>(new Set());
 
-const pendingResolve = ref<Set<string>>(new Set());
+interface VersionStat {
+  version: string | null;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+}
+const versionStats = ref<Record<string, VersionStat[]>>({});
+const versionsLoading = ref<Set<string>>(new Set());
 
-async function toggleResolved(err: ErrorRow, event: MouseEvent) {
+async function toggleExpand(err: ErrorRow) {
+  const next = expanded.value === err.id ? null : err.id;
+  expanded.value = next;
+  if (next && project.value && !versionStats.value[err.id] && !versionsLoading.value.has(err.id)) {
+    versionsLoading.value.add(err.id);
+    try {
+      const res = await $fetch<{ versions: VersionStat[] }>(`/api/v3/projects/${project.value.id}/errors/versions`, {
+        query: { fingerprint: err.id },
+      });
+      versionStats.value[err.id] = res.versions;
+    } catch {
+      versionStats.value[err.id] = [];
+    } finally {
+      versionsLoading.value.delete(err.id);
+    }
+  }
+}
+
+function vbWidth(id: string, count: number): string {
+  const stats = versionStats.value[id] ?? [];
+  const max = Math.max(1, ...stats.map(s => s.count));
+  return `${Math.max(4, (count / max) * 100)}%`;
+}
+
+function toggleMenu(err: ErrorRow, event: MouseEvent) {
   event.stopPropagation();
-  if (!project.value || pendingResolve.value.has(err.id)) return;
-  pendingResolve.value.add(err.id);
-  const nextResolved = !err.resolved;
+  menuOpen.value = menuOpen.value === err.id ? null : err.id;
+}
+
+async function setStatus(err: ErrorRow, action: IssueAction, event: MouseEvent) {
+  event.stopPropagation();
+  menuOpen.value = null;
+  if (!project.value || pendingStatus.value.has(err.id)) return;
+  pendingStatus.value.add(err.id);
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}/errors/resolve`, {
+    await $fetch(`/api/v3/projects/${project.value.id}/errors/status`, {
       method: 'POST',
-      body: { fingerprint: err.id, resolved: nextResolved },
+      body: { fingerprint: err.id, action },
     });
-    toast.success(nextResolved ? 'Issue resolved' : 'Issue reopened');
+    const msg =
+      action === 'resolve'
+        ? 'Issue resolved'
+        : action === 'ignore'
+          ? 'Issue ignored'
+          : action === 'mute'
+            ? 'Issue muted for 24h'
+            : 'Issue reopened';
+    toast.success(msg);
     await refresh();
   } catch (e: any) {
     toast.error(e?.data?.message ?? 'Failed to update issue');
   } finally {
-    pendingResolve.value.delete(err.id);
+    pendingStatus.value.delete(err.id);
   }
 }
+
+const statusTabs: Array<{ value: Status; label: string }> = [
+  { value: 'unresolved', label: 'Unresolved' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'ignored', label: 'Ignored' },
+  { value: 'all', label: 'All' },
+];
 
 const sortOptions: Array<{ value: Sort; label: string }> = [
   { value: 'last_seen', label: 'Last seen' },
@@ -124,34 +189,22 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	<template v-else>
 		<ProjectTabs :slug="project.slug" :project-type="project.type" />
 
+		<div v-if="menuOpen" class="menu-backdrop" @click="menuOpen = null" />
+
 		<div class="px-4 lg:px-6">
 			<div class="card err-card">
 				<div class="card-hd">
 					<div class="hd-l">
 						<div class="status-tabs">
 							<button
+								v-for="t in statusTabs"
+								:key="t.value"
 								class="status-tab"
-								:class="{ active: status === 'unresolved' }"
-								@click="status = 'unresolved'"
+								:class="{ active: status === t.value }"
+								@click="status = t.value"
 							>
-								Unresolved
-								<span class="count">{{ data?.counts?.unresolved ?? 0 }}</span>
-							</button>
-							<button
-								class="status-tab"
-								:class="{ active: status === 'resolved' }"
-								@click="status = 'resolved'"
-							>
-								Resolved
-								<span class="count">{{ data?.counts?.resolved ?? 0 }}</span>
-							</button>
-							<button
-								class="status-tab"
-								:class="{ active: status === 'all' }"
-								@click="status = 'all'"
-							>
-								All
-								<span class="count">{{ data?.counts?.all ?? 0 }}</span>
+								{{ t.label }}
+								<span class="count">{{ data?.counts?.[t.value] ?? 0 }}</span>
 							</button>
 						</div>
 					</div>
@@ -178,6 +231,7 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 				</div>
 				<div v-else-if="!data?.errors.length" class="err-empty">
 					<template v-if="status === 'resolved'">No resolved issues yet.</template>
+					<template v-else-if="status === 'ignored'">No ignored issues.</template>
 					<template v-else-if="status === 'unresolved'">No unresolved issues. Nice.</template>
 					<template v-else>No issues reported.</template>
 				</div>
@@ -186,18 +240,19 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 						v-for="err in data.errors"
 						:key="err.id"
 						class="err-row"
-						:class="{ expanded: expanded === err.id, resolved: err.resolved }"
-						@click="expanded = expanded === err.id ? null : err.id"
+						:class="{ expanded: expanded === err.id, resolved: err.status === 'resolved', ignored: err.status === 'ignored', muted: err.status === 'muted' }"
+						@click="toggleExpand(err)"
 					>
 						<div class="err-main">
 							<span class="lvl" :class="levelClass(err.level)">{{ err.level }}</span>
 							<div class="err-msg">
 								<div class="err-title">
 									{{ err.message }}
-									<span v-if="err.resolved" class="resolved-tag">resolved</span>
+									<span v-if="err.status !== 'open'" class="status-tag" :class="err.status">{{ STATUS_LABEL[err.status] }}</span>
 								</div>
 								<div class="err-meta">{{ err.plugin }} · first seen {{ relativeTime(err.firstSeenAt) }}</div>
-								<div v-if="err.serverSoftware || err.pluginVersion" class="ctx-pills">
+								<div v-if="err.firstVersion || err.serverSoftware || err.pluginVersion" class="ctx-pills">
+									<span v-if="err.firstVersion" class="ctx-pill ver">introduced v{{ err.firstVersion }}</span>
 									<span v-if="err.serverSoftware" class="ctx-pill">{{ err.serverSoftware }}<template v-if="err.serverVersion"> {{ err.serverVersion }}</template></span>
 									<span v-if="err.pluginVersion" class="ctx-pill">v{{ err.pluginVersion }}</span>
 								</div>
@@ -207,21 +262,44 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 								<span class="sub">events</span>
 							</div>
 							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
-							<button
-								class="resolve-btn"
-								:class="{ resolved: err.resolved }"
-								:disabled="pendingResolve.has(err.id)"
-								:title="err.resolved ? 'Reopen issue' : 'Mark as resolved'"
-								@click="toggleResolved(err, $event)"
-							>
-								<RotateCcw v-if="err.resolved" :size="13" :stroke-width="1.8" />
-								<Check v-else :size="13" :stroke-width="2" />
-							</button>
+							<div class="err-actions" @click.stop>
+								<button
+									class="action-btn"
+									:disabled="pendingStatus.has(err.id)"
+									title="Change status"
+									@click="toggleMenu(err, $event)"
+								>
+									<MoreHorizontal :size="15" :stroke-width="2" />
+								</button>
+								<div v-if="menuOpen === err.id" class="action-menu">
+									<button v-if="err.status !== 'resolved'" @click="setStatus(err, 'resolve', $event)">
+										<Check :size="13" :stroke-width="2" /> Resolve
+									</button>
+									<button v-if="err.status !== 'ignored'" @click="setStatus(err, 'ignore', $event)">
+										<Ban :size="13" :stroke-width="1.8" /> Ignore
+									</button>
+									<button v-if="err.status !== 'muted'" @click="setStatus(err, 'mute', $event)">
+										<BellOff :size="13" :stroke-width="1.8" /> Mute 24h
+									</button>
+									<button v-if="err.status !== 'open'" @click="setStatus(err, 'reopen', $event)">
+										<RotateCcw :size="13" :stroke-width="1.8" /> Reopen
+									</button>
+								</div>
+							</div>
 							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === err.id }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
 							<span v-else class="chevron-placeholder" />
 						</div>
-						<div v-if="expanded === err.id && err.stacktrace" class="err-stack">
-							<pre>{{ err.stacktrace }}</pre>
+						<div v-if="expanded === err.id" class="err-stack">
+							<div v-if="versionsLoading.has(err.id)" class="vb-loading">Loading versions…</div>
+							<div v-else-if="versionStats[err.id]?.length" class="version-breakdown">
+								<div class="vb-title">Affected versions</div>
+								<div v-for="v in versionStats[err.id]" :key="v.version ?? 'unknown'" class="vb-row">
+									<span class="vb-ver">{{ v.version ? 'v' + v.version : 'unknown' }}</span>
+									<span class="vb-bar"><span class="vb-fill" :style="{ width: vbWidth(err.id, v.count) }" /></span>
+									<span class="vb-count">{{ v.count.toLocaleString() }}</span>
+								</div>
+							</div>
+							<pre v-if="err.stacktrace">{{ err.stacktrace }}</pre>
 						</div>
 					</div>
 				</template>
@@ -292,11 +370,17 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	color: var(--mute);
 }
 
+.menu-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 20;
+}
+
 .card {
 	background: var(--bg-1);
 	border: 1px solid var(--line);
 	border-radius: 12px;
-	overflow: hidden;
+	overflow: visible;
 }
 .err-card { padding: 0; }
 
@@ -394,8 +478,12 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 }
 .err-row:last-child { border-bottom: 0; }
 .err-row:hover .err-main { background: var(--bg-2); }
-.err-row.resolved .err-main { opacity: 0.6; }
-.err-row.resolved:hover .err-main { opacity: 0.85; }
+.err-row.resolved .err-main,
+.err-row.ignored .err-main,
+.err-row.muted .err-main { opacity: 0.6; }
+.err-row.resolved:hover .err-main,
+.err-row.ignored:hover .err-main,
+.err-row.muted:hover .err-main { opacity: 0.85; }
 
 .err-main {
 	display: grid;
@@ -448,7 +536,7 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	text-overflow: ellipsis;
 }
 .err-row.resolved .err-title { text-decoration: line-through; }
-.resolved-tag {
+.status-tag {
 	display: inline-block;
 	margin-left: 8px;
 	font: 600 9px var(--font-mono);
@@ -456,11 +544,23 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	border-radius: 4px;
 	letter-spacing: .04em;
 	text-transform: uppercase;
+	text-decoration: none;
+	vertical-align: 1px;
+}
+.status-tag.resolved {
 	background: color-mix(in oklab, var(--ok, var(--brand-2)) 18%, transparent);
 	color: var(--ok, var(--brand-2));
 	border: 1px solid color-mix(in oklab, var(--ok, var(--brand-2)) 40%, transparent);
-	text-decoration: none;
-	vertical-align: 1px;
+}
+.status-tag.ignored {
+	background: var(--bg-3);
+	color: var(--mute);
+	border: 1px solid var(--line);
+}
+.status-tag.muted {
+	background: color-mix(in oklab, var(--info) 16%, transparent);
+	color: var(--info);
+	border: 1px solid color-mix(in oklab, var(--info) 38%, transparent);
 }
 .err-meta {
 	font: 400 11.5px var(--font-mono);
@@ -475,7 +575,8 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 .err-count .sub { display: block; font: 400 10.5px var(--font-mono); color: var(--mute); }
 .err-when { font: 400 11.5px var(--font-mono); color: var(--mute); text-align: right; }
 
-.resolve-btn {
+.err-actions { position: relative; display: flex; justify-content: center; }
+.action-btn {
 	display: inline-grid;
 	place-items: center;
 	width: 26px;
@@ -487,22 +588,38 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	cursor: pointer;
 	transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.resolve-btn:hover:not(:disabled) {
-	color: var(--ok, var(--brand-2));
-	border-color: color-mix(in oklab, var(--ok, var(--brand-2)) 50%, var(--line));
-	background: color-mix(in oklab, var(--ok, var(--brand-2)) 12%, var(--bg-1));
+.action-btn:hover:not(:disabled) { color: var(--fg-hi); border-color: var(--line-2); background: var(--bg-2); }
+.action-btn:disabled { opacity: 0.5; cursor: default; }
+
+.action-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	right: 0;
+	z-index: 30;
+	min-width: 132px;
+	background: var(--bg-1);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	box-shadow: 0 8px 24px rgba(0,0,0,.35);
 }
-.resolve-btn.resolved {
-	color: var(--ok, var(--brand-2));
-	border-color: color-mix(in oklab, var(--ok, var(--brand-2)) 40%, var(--line));
-	background: color-mix(in oklab, var(--ok, var(--brand-2)) 10%, var(--bg-1));
-}
-.resolve-btn.resolved:hover:not(:disabled) {
+.action-menu button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 9px;
+	font: 500 12px var(--font-sans);
 	color: var(--dim);
-	border-color: var(--line);
-	background: var(--bg-2);
+	background: transparent;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	text-align: left;
 }
-.resolve-btn:disabled { opacity: 0.5; cursor: default; }
+.action-menu button:hover { background: var(--bg-2); color: var(--fg-hi); }
 
 .err-stack {
 	border-top: 1px solid var(--line);
@@ -518,6 +635,31 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	line-height: 1.6;
 }
 
+.vb-loading { font: 400 12px var(--font-mono); color: var(--mute); }
+.version-breakdown {
+	margin-bottom: 14px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--line);
+}
+.vb-title {
+	font: 600 11px var(--font-mono);
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: var(--mute);
+	margin-bottom: 8px;
+}
+.vb-row {
+	display: grid;
+	grid-template-columns: 100px 1fr 64px;
+	align-items: center;
+	gap: 10px;
+	padding: 3px 0;
+}
+.vb-ver { font: 500 11.5px var(--font-mono); color: var(--fg-hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vb-bar { height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden; }
+.vb-fill { display: block; height: 100%; background: var(--brand); border-radius: 3px; }
+.vb-count { font: 400 11.5px var(--font-mono); color: var(--mute); text-align: right; }
+
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 @media (min-width: 1024px) { .lg\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } }
 
@@ -529,6 +671,11 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	color: var(--dim);
+}
+.ctx-pill.ver {
+	background: color-mix(in oklab, var(--brand) 14%, transparent);
+	border-color: color-mix(in oklab, var(--brand) 32%, transparent);
+	color: var(--brand);
 }
 
 .cross-errors-section { margin-top: 18px; }

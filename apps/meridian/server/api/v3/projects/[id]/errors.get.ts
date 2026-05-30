@@ -1,5 +1,7 @@
-import { db, projects, resolvedIssues } from '@bx-team/stratus';
+import { db, issues, projects } from '@bx-team/stratus';
 import { and, eq } from 'drizzle-orm';
+
+type IssueStatus = 'open' | 'resolved' | 'ignored' | 'muted';
 
 interface ErrorRow {
   id: string;
@@ -10,8 +12,11 @@ interface ErrorRow {
   count: number;
   firstSeenAt: string;
   lastSeenAt: string;
-  resolved: boolean;
+  status: IssueStatus;
+  mutedUntil: string | null;
   resolvedAt: string | null;
+  firstVersion: string | null;
+  lastVersion: string | null;
   serverVersion: string | null;
   serverSoftware: string | null;
   pluginVersion: string | null;
@@ -28,7 +33,11 @@ export default defineEventHandler(async event => {
   const id = requireParam(event, 'id');
   const query = getQuery(event);
 
-  const status = (typeof query.status === 'string' ? query.status : 'unresolved') as 'unresolved' | 'resolved' | 'all';
+  const status = (typeof query.status === 'string' ? query.status : 'unresolved') as
+    | 'unresolved'
+    | 'resolved'
+    | 'ignored'
+    | 'all';
   const sortKey = (typeof query.sort === 'string' && SORT_COLUMNS[query.sort] ? query.sort : 'last_seen') as
     | 'last_seen'
     | 'first_seen'
@@ -42,24 +51,24 @@ export default defineEventHandler(async event => {
 
   if (!project) throw createError({ statusCode: 404, message: 'Project not found' });
 
-  const [rowsResult, totalResult, resolvedRows] = await Promise.all([
+  const [rowsResult, totalResult, issueRows] = await Promise.all([
     clickhouse.query({
       query: `
         SELECT
-          lower(hex(MD5(concat(plugin, ${normalizeExpr('message')}, level, ${normalizeExpr('stacktrace')})))) AS id,
-          plugin,
-          argMax(message, timestamp)        AS msg,
-          argMax(stacktrace, timestamp)     AS stack,
-          level,
-          count()                           AS count,
-          min(timestamp)                    AS first_seen_at,
-          max(timestamp)                    AS last_seen_at,
+          fingerprint                        AS id,
+          any(plugin)                        AS plugin,
+          argMax(message, timestamp)         AS msg,
+          argMax(stacktrace, timestamp)      AS stack,
+          any(level)                         AS level,
+          count()                            AS count,
+          min(timestamp)                     AS first_seen_at,
+          max(timestamp)                     AS last_seen_at,
           argMax(server_version, timestamp)  AS server_version,
           argMax(server_software, timestamp) AS server_software,
           argMax(plugin_version, timestamp)  AS plugin_version
         FROM error_events
-        WHERE project_id = {projectId: String}
-        GROUP BY plugin, ${normalizeExpr('message')}, level, ${normalizeExpr('stacktrace')}
+        WHERE project_id = {projectId: String} AND fingerprint != ''
+        GROUP BY fingerprint
         ORDER BY ${sortColumn} DESC
         LIMIT 200
       `,
@@ -68,17 +77,24 @@ export default defineEventHandler(async event => {
     }),
     clickhouse.query({
       query: `
-        SELECT countDistinct(concat(plugin, ${normalizeExpr('message')}, level, ${normalizeExpr('stacktrace')})) AS total
+        SELECT uniqExact(fingerprint) AS total
         FROM error_events
-        WHERE project_id = {projectId: String}
+        WHERE project_id = {projectId: String} AND fingerprint != ''
       `,
       query_params: { projectId: id },
       format: 'JSONEachRow',
     }),
     db
-      .select({ fingerprint: resolvedIssues.fingerprint, resolvedAt: resolvedIssues.resolvedAt })
-      .from(resolvedIssues)
-      .where(eq(resolvedIssues.projectId, id)),
+      .select({
+        fingerprint: issues.fingerprint,
+        status: issues.status,
+        mutedUntil: issues.mutedUntil,
+        resolvedAt: issues.resolvedAt,
+        firstVersion: issues.firstVersion,
+        lastVersion: issues.lastVersion,
+      })
+      .from(issues)
+      .where(eq(issues.projectId, id)),
   ]);
 
   const rows = (await rowsResult.json()) as Array<{
@@ -97,10 +113,20 @@ export default defineEventHandler(async event => {
 
   const [totalRow] = (await totalResult.json()) as Array<{ total: string }>;
 
-  const resolvedMap = new Map(resolvedRows.map(r => [r.fingerprint, r.resolvedAt]));
+  const issueMap = new Map(issueRows.map(r => [r.fingerprint, r]));
+  const now = Date.now();
+
+  // A mute auto-expires: a 'muted' issue past its window behaves as open again until the next
+  // event flips it back in the registry, so listing reflects that immediately.
+  const effectiveStatus = (rec: (typeof issueRows)[number] | undefined): IssueStatus => {
+    if (!rec) return 'open';
+    if (rec.status === 'muted' && rec.mutedUntil && rec.mutedUntil.getTime() < now) return 'open';
+    return rec.status;
+  };
 
   const all: ErrorRow[] = rows.map(r => {
-    const resolvedAt = resolvedMap.get(r.id) ?? null;
+    const rec = issueMap.get(r.id);
+    const eff = effectiveStatus(rec);
     return {
       id: r.id,
       plugin: r.plugin,
@@ -110,22 +136,31 @@ export default defineEventHandler(async event => {
       count: Number(r.count),
       firstSeenAt: r.first_seen_at,
       lastSeenAt: r.last_seen_at,
-      resolved: resolvedAt !== null,
-      resolvedAt: resolvedAt ? new Date(resolvedAt).toISOString() : null,
+      status: eff,
+      mutedUntil: rec?.mutedUntil ? new Date(rec.mutedUntil).toISOString() : null,
+      resolvedAt: rec?.resolvedAt ? new Date(rec.resolvedAt).toISOString() : null,
+      firstVersion: rec?.firstVersion ?? null,
+      lastVersion: rec?.lastVersion ?? null,
       serverVersion: r.server_version || null,
       serverSoftware: r.server_software || null,
       pluginVersion: r.plugin_version || null,
     };
   });
 
-  const filtered =
-    status === 'all' ? all : status === 'resolved' ? all.filter(r => r.resolved) : all.filter(r => !r.resolved);
-
   const counts = {
-    unresolved: all.filter(r => !r.resolved).length,
-    resolved: all.filter(r => r.resolved).length,
+    unresolved: all.filter(r => r.status === 'open').length,
+    resolved: all.filter(r => r.status === 'resolved').length,
+    ignored: all.filter(r => r.status === 'ignored').length,
     all: all.length,
   };
+
+  const filtered = all.filter(r => {
+    if (status === 'all') return true;
+    if (status === 'unresolved') return r.status === 'open';
+    if (status === 'resolved') return r.status === 'resolved';
+    if (status === 'ignored') return r.status === 'ignored';
+    return true;
+  });
 
   return {
     errors: filtered,

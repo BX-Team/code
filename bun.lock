@@ -110,9 +110,9 @@
     "packages/ui": {
       "name": "@bx-team/ui",
       "devDependencies": {
-        "tailwindcss": "^4.2.4",
+        "tailwindcss": "^4.3.0",
         "typescript": "^6.0.3",
-        "vue": "^3.5.33",
+        "vue": "^3.5.34",
       },
       "peerDependencies": {
         "vue": "^3.5.0",

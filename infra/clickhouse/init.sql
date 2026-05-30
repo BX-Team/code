@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS error_events
     server_version   String DEFAULT '',
     server_software  String DEFAULT '',
     plugin_version   String DEFAULT '',
+    fingerprint      String DEFAULT '',
     timestamp        DateTime
 )
 ENGINE = MergeTree()
@@ -57,6 +58,7 @@ TTL timestamp + INTERVAL 180 DAY;
 --   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS server_version String DEFAULT '';
 --   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS server_software String DEFAULT '';
 --   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS plugin_version String DEFAULT '';
+--   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS fingerprint String DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS custom_metrics
 (

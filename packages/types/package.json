@@ -3,7 +3,8 @@
   "type": "module",
   "exports": {
     "./schema/atlas": "./src/schemas/atlas.ts",
-    "./schema/pulsify": "./src/schemas/pulsify.ts"
+    "./schema/pulsify": "./src/schemas/pulsify.ts",
+    "./scrub": "./src/scrub.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

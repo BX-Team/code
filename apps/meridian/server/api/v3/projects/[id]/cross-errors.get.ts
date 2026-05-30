@@ -42,27 +42,28 @@ export default defineEventHandler(async event => {
     };
   }
 
-  // Query ClickHouse for errors from those servers where plugin name matches.
-  // Fingerprint on the normalized message/stacktrace so dynamic data doesn't split
-  // one logical crash across servers into thousands of groups.
+  // Query ClickHouse for errors from those servers where plugin name matches. Grouping uses
+  // the fingerprint stored at ingest, so the same logical crash collapses into one group
+  // across servers instead of fanning out on dynamic data.
   const rowsResult = await clickhouse.query({
     query: `
       SELECT
-        lower(hex(MD5(concat(${normalizeExpr('message')}, level, ${normalizeExpr('stacktrace')})))) AS id,
-        argMax(message, timestamp)        AS msg,
-        argMax(stacktrace, timestamp)     AS stack,
-        level,
-        count()                           AS count,
-        uniqExact(project_id)             AS server_count,
-        min(timestamp)                    AS first_seen_at,
-        max(timestamp)                    AS last_seen_at,
+        fingerprint                        AS id,
+        argMax(message, timestamp)         AS msg,
+        argMax(stacktrace, timestamp)      AS stack,
+        any(level)                         AS level,
+        count()                            AS count,
+        uniqExact(project_id)              AS server_count,
+        min(timestamp)                     AS first_seen_at,
+        max(timestamp)                     AS last_seen_at,
         argMax(server_software, timestamp) AS server_software,
         argMax(server_version, timestamp)  AS server_version,
         argMax(plugin_version, timestamp)  AS plugin_version
       FROM error_events
       WHERE project_id IN ({serverIds: Array(String)})
         AND plugin = {pluginName: String}
-      GROUP BY ${normalizeExpr('message')}, level, ${normalizeExpr('stacktrace')}
+        AND fingerprint != ''
+      GROUP BY fingerprint
       ORDER BY count DESC
       LIMIT 100
     `,

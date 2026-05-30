@@ -1,5 +1,5 @@
-import { db, projects, resolvedIssues, serverMetadata } from '@bx-team/stratus';
-import { eq, inArray } from 'drizzle-orm';
+import { db, issues, projects, serverMetadata } from '@bx-team/stratus';
+import { and, eq, inArray, ne } from 'drizzle-orm';
 
 const RANGES = {
   '24h': { interval: '24 HOUR', bucket: 'toStartOfFiveMinutes' },
@@ -41,13 +41,14 @@ export default defineEventHandler(async event => {
     };
   }
 
-  const resolvedRows = await db
-    .select({ projectId: resolvedIssues.projectId, fingerprint: resolvedIssues.fingerprint })
-    .from(resolvedIssues)
-    .where(inArray(resolvedIssues.projectId, projectIds));
+  // Anything not 'open' (resolved / ignored / muted) is suppressed from the active error count.
+  const suppressedRows = await db
+    .select({ projectId: issues.projectId, fingerprint: issues.fingerprint })
+    .from(issues)
+    .where(and(inArray(issues.projectId, projectIds), ne(issues.status, 'open')));
 
   const resolvedByProject = new Map<string, Set<string>>();
-  for (const r of resolvedRows) {
+  for (const r of suppressedRows) {
     if (!resolvedByProject.has(r.projectId)) resolvedByProject.set(r.projectId, new Set());
     resolvedByProject.get(r.projectId)?.add(r.fingerprint);
   }
@@ -124,10 +125,10 @@ export default defineEventHandler(async event => {
   const errorsByProjectRows = await clickhouse
     .query({
       query: `
-        SELECT project_id, lower(hex(MD5(concat(plugin, message, level, stacktrace)))) AS fingerprint
+        SELECT project_id, fingerprint
         FROM error_events
-        WHERE project_id IN ({projectIds: Array(String)})
-        GROUP BY project_id, plugin, message, level, stacktrace
+        WHERE project_id IN ({projectIds: Array(String)}) AND fingerprint != ''
+        GROUP BY project_id, fingerprint
       `,
       query_params: { projectIds },
       format: 'JSONEachRow',

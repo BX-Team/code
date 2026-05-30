@@ -10,6 +10,7 @@ const tabs = computed(() => {
   const base = [
     { label: 'Overview', href: `/dashboard/${props.slug}` },
     { label: 'Errors', href: `/dashboard/${props.slug}/errors` },
+    { label: 'Alerts', href: `/dashboard/${props.slug}/alerts` },
     { label: 'Settings', href: `/dashboard/${props.slug}/settings` },
   ];
   if (props.projectType === 'server') {

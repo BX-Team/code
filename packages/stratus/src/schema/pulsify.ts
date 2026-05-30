@@ -78,7 +78,16 @@ export const quotas = pgTable('pulsify_quotas', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const resolvedIssues = pgTable(
+export const issueStatusEnum = pgEnum('pulsify_issue_status', ['open', 'resolved', 'ignored', 'muted']);
+
+/**
+ * Canonical per-project issue registry — one row per error fingerprint. ClickHouse keeps the
+ * raw events (counts, timelines, version breakdowns); this table holds lifecycle state and
+ * version provenance, maintained at ingest by cinder. The physical table name is kept as the
+ * original `pulsify_resolved_issues` so the schema grows by pure column additions instead of
+ * a table rename.
+ */
+export const issues = pgTable(
   'pulsify_resolved_issues',
   {
     id: uuid('id').primaryKey().defaultRandom(),
@@ -86,8 +95,40 @@ export const resolvedIssues = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     fingerprint: text('fingerprint').notNull(),
-    resolvedAt: timestamp('resolved_at').notNull().defaultNow(),
+    plugin: text('plugin').notNull().default(''),
+    status: issueStatusEnum('status').notNull().default('open'),
+    // Plugin version recorded when the status last changed — regression detection reopens a
+    // resolved issue only when it recurs on a *newer* version than the one it was fixed in.
+    statusVersion: text('status_version'),
+    mutedUntil: timestamp('muted_until'),
+    firstVersion: text('first_version'),
+    lastVersion: text('last_version'),
+    firstSeenAt: timestamp('first_seen_at').notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
+    resolvedAt: timestamp('resolved_at'),
     resolvedBy: text('resolved_by'),
   },
   t => [unique().on(t.projectId, t.fingerprint)],
 );
+
+export const alertTypeEnum = pgEnum('pulsify_alert_type', ['new_issue', 'regression', 'error_spike']);
+
+/**
+ * Notification rules evaluated against incoming errors. `new_issue` and `regression` fire at
+ * ingest (cinder issue registry transitions); `error_spike` is evaluated periodically against
+ * ClickHouse — `threshold` events within `windowMinutes`. Delivery is a generic webhook POST,
+ * Discord-formatted automatically when the URL is a Discord webhook.
+ */
+export const alertRules = pgTable('pulsify_alert_rules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  type: alertTypeEnum('type').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  threshold: integer('threshold').notNull().default(10),
+  windowMinutes: integer('window_minutes').notNull().default(5),
+  webhookUrl: text('webhook_url').notNull(),
+  lastFiredAt: timestamp('last_fired_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});

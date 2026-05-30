@@ -1,5 +1,5 @@
-import { db, projects, resolvedIssues, serverMetadata } from '@bx-team/stratus';
-import { eq, inArray } from 'drizzle-orm';
+import { db, issues, projects, serverMetadata } from '@bx-team/stratus';
+import { and, eq, inArray, ne } from 'drizzle-orm';
 
 export default defineEventHandler(async event => {
   const session = await requireAuth(event);
@@ -26,16 +26,16 @@ export default defineEventHandler(async event => {
       .from(serverMetadata)
       .where(inArray(serverMetadata.projectId, projectIds)),
     db
-      .select({ projectId: resolvedIssues.projectId, fingerprint: resolvedIssues.fingerprint })
-      .from(resolvedIssues)
-      .where(inArray(resolvedIssues.projectId, projectIds)),
+      .select({ projectId: issues.projectId, fingerprint: issues.fingerprint })
+      .from(issues)
+      .where(and(inArray(issues.projectId, projectIds), ne(issues.status, 'open'))),
     clickhouse
       .query({
         query: `
-          SELECT project_id, lower(hex(MD5(concat(plugin, message, level, stacktrace)))) AS fingerprint
+          SELECT project_id, fingerprint
           FROM error_events
-          WHERE project_id IN ({projectIds: Array(String)})
-          GROUP BY project_id, plugin, message, level, stacktrace
+          WHERE project_id IN ({projectIds: Array(String)}) AND fingerprint != ''
+          GROUP BY project_id, fingerprint
         `,
         query_params: { projectIds },
         format: 'JSONEachRow',
