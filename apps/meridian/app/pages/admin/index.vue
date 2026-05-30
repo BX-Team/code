@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ban, CheckCircle, FolderOpen, Search, Shield, Trash2, Users, X } from '@lucide/vue';
+import { BadgeCheck, Ban, CheckCircle, FolderOpen, Search, Shield, Trash2, Users, X } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import { authClient } from '@/lib/auth-client';
 
@@ -23,6 +23,7 @@ interface UserProject {
   slug: string;
   type: string;
   description: string | null;
+  verified: boolean;
   createdAt: string;
 }
 
@@ -89,6 +90,24 @@ const deleteLoading = ref(false);
 const projectsTarget = ref<AdminUser | null>(null);
 const projectsData = ref<UserProject[]>([]);
 const projectsLoading = ref(false);
+const verifyingId = ref<string | null>(null);
+
+async function toggleVerified(p: UserProject) {
+  if (verifyingId.value) return;
+  verifyingId.value = p.id;
+  try {
+    const updated = await $fetch<{ id: string; verified: boolean }>(`/api/admin/projects/${p.id}/verify`, {
+      method: 'PATCH',
+      body: { verified: !p.verified },
+    });
+    p.verified = updated.verified;
+    toast.success(updated.verified ? `${p.name} verified` : `${p.name} unverified`);
+  } catch (err: any) {
+    toast.error(err?.data?.message ?? 'Failed to update verification');
+  } finally {
+    verifyingId.value = null;
+  }
+}
 
 async function submitBan() {
   if (!banTarget.value || banLoading.value) return;
@@ -384,10 +403,23 @@ function initials(name: string) {
             <div v-else class="proj-list">
               <div v-for="p in projectsData" :key="p.id" class="proj-item">
                 <div class="proj-info">
-                  <span class="proj-name">{{ p.name }}</span>
+                  <span class="proj-name">
+                    {{ p.name }}
+                    <BadgeCheck v-if="p.type !== 'server' && p.verified" :size="13" :stroke-width="2.2" class="verified-ic" />
+                  </span>
                   <span class="proj-slug">{{ p.slug }}</span>
                 </div>
                 <span class="badge badge-type">{{ p.type }}</span>
+                <button
+                  v-if="p.type !== 'server'"
+                  class="verify-btn"
+                  :class="{ on: p.verified }"
+                  :disabled="verifyingId === p.id"
+                  :title="p.verified ? 'Revoke name ownership verification' : 'Verify name ownership (enables cross-server reports)'"
+                  @click="toggleVerified(p)"
+                >
+                  {{ p.verified ? 'Unverify' : 'Verify' }}
+                </button>
                 <span class="proj-date">{{ formatDate(p.createdAt) }}</span>
               </div>
             </div>
@@ -790,9 +822,29 @@ function initials(name: string) {
 }
 .proj-item:last-child { border-bottom: none; }
 .proj-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.proj-name { font: 500 13.5px var(--font-sans); color: var(--fg-hi); }
+.proj-name { display: inline-flex; align-items: center; gap: 5px; font: 500 13.5px var(--font-sans); color: var(--fg-hi); }
+.verified-ic { color: var(--brand); flex-shrink: 0; }
 .proj-slug { font: 400 11.5px var(--font-mono); color: var(--mute); }
 .proj-date { font: 400 11.5px var(--font-mono); color: var(--mute); flex-shrink: 0; }
+
+.verify-btn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font: 500 11.5px var(--font-sans);
+  color: var(--dim);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.verify-btn:hover:not(:disabled) { color: var(--fg-hi); border-color: var(--line-2); }
+.verify-btn:disabled { opacity: .5; cursor: not-allowed; }
+.verify-btn.on {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-color: color-mix(in oklab, var(--brand) 30%, transparent);
+}
 
 .modal-enter-active { transition: opacity .18s ease, transform .18s ease; }
 .modal-leave-active { transition: opacity .14s ease, transform .14s ease; }

@@ -14,6 +14,7 @@ export default defineEventHandler(async event => {
       slug: projects.slug,
       type: projects.type,
       description: projects.description,
+      verified: projects.verified,
       createdAt: projects.createdAt,
     })
     .from(projects)

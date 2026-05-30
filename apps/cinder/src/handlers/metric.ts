@@ -3,13 +3,14 @@ import { clickhouse } from '../lib/clickhouse';
 
 export async function handleMetric(event: CustomMetric, projectId: string) {
   await clickhouse.insert({
-    table: 'events',
+    table: 'custom_metrics',
     values: [
       {
         project_id: projectId,
-        event_type: 'metric',
+        name: event.name,
+        value: event.value,
+        labels: event.labels ?? {},
         timestamp: new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' '),
-        properties: JSON.stringify({ name: event.name, value: event.value, labels: event.labels }),
       },
     ],
     format: 'JSONEachRow',

@@ -16,6 +16,12 @@ const rateLimitMiddleware = createMiddleware(async (c, next) => {
     const count = await redis.incr(key);
     if (count === 1) await redis.expire(key, 60);
     if (count > 100) return c.json({ error: 'Rate limit exceeded' }, 429);
+
+    // Daily quota check - 100k events per day per token
+    const dayKey = `quota:day:${token}:${new Date().toISOString().slice(0, 10)}`;
+    const dayCount = await redis.incr(dayKey);
+    if (dayCount === 1) await redis.expire(dayKey, 86400);
+    if (dayCount > 100000) return c.json({ error: 'Daily event quota exceeded' }, 429);
   }
   await next();
 });

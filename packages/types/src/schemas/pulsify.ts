@@ -41,6 +41,9 @@ export const ErrorEventSchema = z.object({
     message: z.string(),
     stacktrace: z.string().optional(),
     level: z.enum(['warning', 'error', 'fatal']).default('error'),
+    server_version: z.string().optional(),
+    server_software: z.string().optional(),
+    plugin_version: z.string().optional(),
   }),
 });
 

@@ -20,6 +20,9 @@ interface ErrorRow {
   lastSeenAt: string;
   resolved: boolean;
   resolvedAt: string | null;
+  serverVersion: string | null;
+  serverSoftware: string | null;
+  pluginVersion: string | null;
 }
 interface ErrorsResponse {
   errors: ErrorRow[];
@@ -49,6 +52,33 @@ const { data, pending, refresh } = await useAsyncData<ErrorsResponse | null>(
         })
       : Promise.resolve(null),
   { watch: [status, sort, project] },
+);
+
+interface CrossError {
+  id: string;
+  message: string;
+  stacktrace: string;
+  level: string;
+  count: number;
+  serverCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+interface CrossErrorsResponse {
+  errors: CrossError[];
+  total: number;
+  totalServers: number;
+  sharingServers: number;
+  verified: boolean;
+}
+
+const { data: crossData, pending: crossPending } = await useAsyncData<CrossErrorsResponse | null>(
+  `cross-errors-${slug.value}`,
+  () =>
+    project.value && project.value.type !== 'server'
+      ? requestFetch<CrossErrorsResponse>(`/api/v3/projects/${project.value.id}/cross-errors`)
+      : Promise.resolve(null),
+  { watch: [project] },
 );
 
 function levelClass(level: string) {
@@ -167,6 +197,10 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 									<span v-if="err.resolved" class="resolved-tag">resolved</span>
 								</div>
 								<div class="err-meta">{{ err.plugin }} · first seen {{ relativeTime(err.firstSeenAt) }}</div>
+								<div v-if="err.serverSoftware || err.pluginVersion" class="ctx-pills">
+									<span v-if="err.serverSoftware" class="ctx-pill">{{ err.serverSoftware }}<template v-if="err.serverVersion"> {{ err.serverVersion }}</template></span>
+									<span v-if="err.pluginVersion" class="ctx-pill">v{{ err.pluginVersion }}</span>
+								</div>
 							</div>
 							<div class="err-count">
 								{{ err.count.toLocaleString() }}
@@ -187,6 +221,59 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 							<span v-else class="chevron-placeholder" />
 						</div>
 						<div v-if="expanded === err.id && err.stacktrace" class="err-stack">
+							<pre>{{ err.stacktrace }}</pre>
+						</div>
+					</div>
+				</template>
+			</div>
+		</div>
+		<div v-if="project.type !== 'server'" class="cross-errors-section px-4 lg:px-6">
+			<div class="card cross-card">
+				<div class="card-hd">
+					<div class="hd-l">
+						<h3>Community reports</h3>
+						<p>Errors reported by servers running your plugin</p>
+					</div>
+					<div v-if="crossData?.verified" class="coverage-badge">
+						<span class="cov-text">Active on <strong>{{ crossData.totalServers }}</strong> server{{ crossData.totalServers !== 1 ? 's' : '' }}</span>
+						<span class="cov-sep">·</span>
+						<span class="cov-text"><strong>{{ crossData.sharingServers }}</strong> transmitting</span>
+					</div>
+				</div>
+				<div v-if="crossPending" class="cross-loading">
+					<div v-for="n in 3" :key="n" class="err-row-skeleton">
+						<span class="sk" style="width:60px" />
+						<span class="sk" style="width:100%;max-width:340px" />
+						<span class="sk" style="width:80px;margin-left:auto" />
+					</div>
+				</div>
+				<div v-else-if="crossData && !crossData.verified" class="cross-empty">
+					Community reports are available once your plugin name is verified. Verification confirms you own
+					the <strong>{{ project.name }}</strong> name so crashes from servers running it can be attributed to you.
+				</div>
+				<div v-else-if="!crossData?.errors?.length" class="cross-empty">
+					No community crashes yet. Servers need to install your plugin and report to Pulsify.
+				</div>
+				<template v-else>
+					<div
+						v-for="err in crossData.errors"
+						:key="err.id"
+						class="err-row"
+						:class="{ expanded: expanded === ('x-' + err.id) }"
+						@click="expanded = expanded === ('x-' + err.id) ? null : ('x-' + err.id)"
+					>
+						<div class="err-main cross-row-grid">
+							<span class="lvl" :class="levelClass(err.level)">{{ err.level }}</span>
+							<div class="err-msg">
+								<div class="err-title">{{ err.message }}</div>
+								<div class="err-meta">{{ err.serverCount }} server{{ err.serverCount !== 1 ? 's' : '' }} · first seen {{ relativeTime(err.firstSeenAt) }}</div>
+							</div>
+							<div class="err-count">{{ err.count.toLocaleString() }}<span class="sub">events</span></div>
+							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
+							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === ('x-' + err.id) }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+							<span v-else class="chevron-placeholder" />
+						</div>
+						<div v-if="expanded === ('x-' + err.id) && err.stacktrace" class="err-stack">
 							<pre>{{ err.stacktrace }}</pre>
 						</div>
 					</div>
@@ -433,4 +520,51 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 @media (min-width: 1024px) { .lg\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+
+.ctx-pills { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.ctx-pill {
+	font: 500 10px var(--font-mono);
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--bg-3);
+	border: 1px solid var(--line);
+	color: var(--dim);
+}
+
+.cross-errors-section { margin-top: 18px; }
+.cross-card { padding: 0; }
+.cross-card .card-hd {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--line);
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.cross-card .card-hd h3 { margin: 0 0 2px; font: 600 14px var(--font-sans); color: var(--fg-hi); }
+.cross-card .card-hd p { margin: 0; font: 400 12px var(--font-sans); color: var(--mute); }
+.coverage-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 10px;
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	font: 400 12px var(--font-sans);
+	color: var(--dim);
+}
+.cov-sep { color: var(--mute); }
+.coverage-badge strong { color: var(--fg-hi); font-weight: 600; }
+.cross-loading { display: flex; flex-direction: column; }
+.cross-empty {
+	padding: 40px;
+	text-align: center;
+	font: 400 13px var(--font-sans);
+	color: var(--mute);
+}
+.cross-row-grid {
+	grid-template-columns: 80px 1fr 80px 90px 16px !important;
+}
 </style>

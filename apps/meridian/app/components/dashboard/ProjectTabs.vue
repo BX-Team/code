@@ -14,6 +14,8 @@ const tabs = computed(() => {
   ];
   if (props.projectType === 'server') {
     base.splice(1, 0, { label: 'Players', href: `/dashboard/${props.slug}/players` });
+  } else {
+    base.splice(2, 0, { label: 'Metrics', href: `/dashboard/${props.slug}/metrics` });
   }
   return base;
 });

@@ -6,6 +6,18 @@ import { authClient } from '@/lib/auth-client';
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Settings', titleTemplate: '%s | Pulsify' });
 
+type SettingsTab = 'account' | 'billing';
+const activeTab = ref<SettingsTab>('account');
+
+interface BillingResponse {
+  plan: string;
+  limits: { maxProjects: number; maxEventsPerDay: number };
+  usage: { projects: number; eventsToday: number };
+}
+const { data: billing, pending: billingPending } = await useAsyncData<BillingResponse | null>('billing', () =>
+  useRequestFetch()<BillingResponse>('/api/v3/billing').catch(() => null),
+);
+
 const { data: session, refresh } = await useSession();
 const user = computed(() => session.value?.user ?? null);
 const { openConfirm } = useConfirmDialog();
@@ -73,6 +85,11 @@ async function deleteAccount() {
 
 <template>
 	<div class="settings-wrap px-4 lg:px-6">
+		<div class="tab-bar">
+			<button class="tab" :class="{ active: activeTab === 'account' }" @click="activeTab = 'account'">Account</button>
+			<button class="tab" :class="{ active: activeTab === 'billing' }" @click="activeTab = 'billing'">Billing</button>
+		</div>
+		<template v-if="activeTab === 'account'">
 		<div class="page-title">
 			<h2>Account settings</h2>
 			<p>Manage your profile and account preferences.</p>
@@ -129,6 +146,58 @@ async function deleteAccount() {
 					<Trash2 :size="13" :stroke-width="1.7" />
 					{{ deletingAccount ? 'Deleting…' : 'Delete account' }}
 				</button>
+			</div>
+		</div>
+		</template>
+		<div v-if="activeTab === 'billing'" class="billing-section">
+			<div class="page-title">
+				<h2>Billing</h2>
+				<p>Your plan and usage limits.</p>
+			</div>
+
+			<div class="card">
+				<div class="card-hd">
+					<h3>Current plan</h3>
+					<p>You are on the free plan.</p>
+				</div>
+				<div class="plan-content">
+					<div class="plan-badge free">Free</div>
+					<p class="plan-desc">The free plan includes all features with the limits below. Paid plans coming soon.</p>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-hd">
+					<h3>Usage</h3>
+					<p>Your current usage for this period.</p>
+				</div>
+				<div v-if="billingPending" class="usage-loading">Loading…</div>
+				<div v-else class="usage-rows">
+					<div class="usage-row">
+						<div class="usage-info">
+							<span class="usage-label">Projects</span>
+							<span class="usage-count">{{ billing?.usage.projects ?? 0 }} / {{ billing?.limits.maxProjects ?? 10 }}</span>
+						</div>
+						<div class="usage-bar">
+							<div
+								class="usage-fill"
+								:style="{ width: Math.min(100, ((billing?.usage.projects ?? 0) / (billing?.limits.maxProjects ?? 10)) * 100) + '%' }"
+							/>
+						</div>
+					</div>
+					<div class="usage-row">
+						<div class="usage-info">
+							<span class="usage-label">Events today</span>
+							<span class="usage-count">{{ (billing?.usage.eventsToday ?? 0).toLocaleString() }} / {{ (billing?.limits.maxEventsPerDay ?? 100000).toLocaleString() }}</span>
+						</div>
+						<div class="usage-bar">
+							<div
+								class="usage-fill"
+								:style="{ width: Math.min(100, ((billing?.usage.eventsToday ?? 0) / (billing?.limits.maxEventsPerDay ?? 100000)) * 100) + '%' }"
+							/>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -245,4 +314,73 @@ async function deleteAccount() {
 
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 @media (min-width: 1024px) { .lg\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+
+.tab-bar {
+	display: flex;
+	gap: 0;
+	border-bottom: 1px solid var(--line);
+	margin-bottom: 18px;
+}
+.tab {
+	padding: 10px 16px;
+	font: 500 13.5px var(--font-sans);
+	color: var(--dim);
+	cursor: pointer;
+	border: none;
+	background: transparent;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+.tab.active { color: var(--fg-hi); border-bottom-color: var(--brand); }
+.tab:hover { color: var(--fg-hi); }
+
+.billing-section { display: flex; flex-direction: column; gap: 18px; }
+
+.plan-content { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.plan-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 12px;
+	border-radius: 99px;
+	font: 600 12px var(--font-sans);
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	width: fit-content;
+}
+.plan-badge.free {
+	background: var(--bg-3);
+	color: var(--dim);
+	border: 1px solid var(--line);
+}
+.plan-desc { margin: 0; font: 400 13px var(--font-sans); color: var(--mute); }
+
+.usage-loading { padding: 18px; font: 400 13px var(--font-sans); color: var(--mute); }
+.usage-rows { display: flex; flex-direction: column; }
+.usage-row {
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--line);
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.usage-row:last-child { border-bottom: 0; }
+.usage-info {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.usage-label { font: 500 13px var(--font-sans); color: var(--fg-hi); }
+.usage-count { font: 400 12px var(--font-mono); color: var(--mute); }
+.usage-bar {
+	height: 6px;
+	background: var(--bg-3);
+	border-radius: 3px;
+	overflow: hidden;
+}
+.usage-fill {
+	height: 100%;
+	background: var(--brand);
+	border-radius: 3px;
+	transition: width 0.3s ease;
+}
 </style>

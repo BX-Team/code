@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS events
     properties  String
 )
 ENGINE = MergeTree()
-ORDER BY (project_id, timestamp);
+ORDER BY (project_id, timestamp)
+TTL timestamp + INTERVAL 90 DAY;
 
 CREATE TABLE IF NOT EXISTS player_sessions
 (
@@ -19,7 +20,8 @@ CREATE TABLE IF NOT EXISTS player_sessions
     ver             UInt8
 )
 ENGINE = ReplacingMergeTree(ver)
-ORDER BY (project_id, player_uuid, joined_at);
+ORDER BY (project_id, player_uuid, joined_at)
+TTL joined_at + INTERVAL 90 DAY;
 
 CREATE TABLE IF NOT EXISTS server_stats
 (
@@ -32,17 +34,38 @@ CREATE TABLE IF NOT EXISTS server_stats
     memory_max   UInt32 DEFAULT 0
 )
 ENGINE = MergeTree()
-ORDER BY (project_id, timestamp);
+ORDER BY (project_id, timestamp)
+TTL timestamp + INTERVAL 90 DAY;
 -- existing deployments: ALTER TABLE server_stats ADD COLUMN IF NOT EXISTS memory_max UInt32 DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS error_events
 (
+    project_id       String,
+    plugin           String,
+    message          String,
+    stacktrace       String,
+    level            String,
+    server_version   String DEFAULT '',
+    server_software  String DEFAULT '',
+    plugin_version   String DEFAULT '',
+    timestamp        DateTime
+)
+ENGINE = MergeTree()
+ORDER BY (project_id, timestamp)
+TTL timestamp + INTERVAL 180 DAY;
+-- existing deployments:
+--   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS server_version String DEFAULT '';
+--   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS server_software String DEFAULT '';
+--   ALTER TABLE error_events ADD COLUMN IF NOT EXISTS plugin_version String DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS custom_metrics
+(
     project_id  String,
-    plugin      String,
-    message     String,
-    stacktrace  String,
-    level       String,
+    name        LowCardinality(String),
+    value       Float64,
+    labels      Map(String, String),
     timestamp   DateTime
 )
 ENGINE = MergeTree()
-ORDER BY (project_id, timestamp);
+ORDER BY (project_id, name, timestamp)
+TTL timestamp + INTERVAL 90 DAY;
