@@ -11,33 +11,6 @@ services:
       timeout: 5s
       retries: 5
 
-  clickhouse:
-    image: clickhouse/clickhouse-server:24-alpine
-    restart: unless-stopped
-    security_opt:
-      - seccomp:unconfined
-    ports:
-      - "${CLICKHOUSE_PORT:-8123}:8123"
-    environment:
-      CLICKHOUSE_DB: default
-      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
-    networks:
-      - default
-      - dokploy-network
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "clickhouse-client --user=${CLICKHOUSE_USER} --password=${CLICKHOUSE_PASSWORD} --query='SELECT 1'",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   influx:
     build:
       context: ../
@@ -81,7 +54,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ADDRESS}:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
-      CLICKHOUSE_URL: http://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@clickhouse:8123/default
+      CLICKHOUSE_URL: http://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${CLICKHOUSE_ADDRESS}:${CLICKHOUSE_PORT:-8123}/default
       GEOIP_DB_PATH: /var/lib/geoip/GeoLite2-Country.mmdb
     volumes:
       - geoip_data:/var/lib/geoip:ro
@@ -90,8 +63,6 @@ services:
       - dokploy-network
     depends_on:
       redis:
-        condition: service_healthy
-      clickhouse:
         condition: service_healthy
     healthcheck:
       test:
@@ -110,5 +81,4 @@ networks:
 
 volumes:
   redis_data:
-  clickhouse_data:
   geoip_data:
