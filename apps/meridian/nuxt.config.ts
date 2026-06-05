@@ -86,7 +86,7 @@ export default defineNuxtConfig({
   },
 
   umami: {
-    id: '73b3992f-6a02-4cbd-a0d5-937aa585b8ae',
+    id: 'f58cff07-e60d-4407-ade0-655a5f57aaf3',
     host: 'https://analytics.bxteam.org',
     autoTrack: true,
   },
