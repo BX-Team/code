@@ -1,20 +1,21 @@
-name: Build and Push Meridian Image
+name: Build and Push Influx Image
 
 on:
   push:
     branches:
       - master
     paths:
-      - "apps/meridian/**"
-      - "packages/**"
+      - "apps/influx/**"
+      - "packages/stratus/**"
+      - "packages/types/**"
       - "package.json"
       - "bun.lock"
-      - ".github/workflows/meridian-docker.yml"
+      - ".github/workflows/influx-docker.yml"
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/meridian
+  IMAGE_NAME: ${{ github.repository_owner }}/influx
 
 jobs:
   build-and-push:
@@ -51,7 +52,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./apps/meridian/Dockerfile
+          file: ./apps/influx/Dockerfile
           platforms: linux/amd64
           push: true
           provenance: false
@@ -70,6 +71,6 @@ jobs:
       - name: Delete old image versions, keep the two newest
         uses: actions/delete-package-versions@v5
         with:
-          package-name: meridian
+          package-name: influx
           package-type: container
           min-versions-to-keep: 2

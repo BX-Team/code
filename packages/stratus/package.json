@@ -2,6 +2,7 @@
   "name": "@bx-team/stratus",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0-only",
   "exports": {
     ".": "./src/index.ts",
     "./schema/atlas": "./src/schema/atlas.ts"

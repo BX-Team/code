@@ -2,7 +2,7 @@ FROM oven/bun:1.3-alpine AS base
 WORKDIR /app
 
 # Copy all package.json files for layer caching
-COPY package.json bun.lock turbo.json ./
+COPY package.json bun.lock ./
 COPY apps/meridian/package.json apps/meridian/
 COPY packages/stratus/package.json packages/stratus/
 COPY packages/types/package.json packages/types/

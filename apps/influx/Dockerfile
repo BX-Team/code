@@ -1,7 +1,7 @@
 FROM oven/bun:1.3-alpine AS base
 WORKDIR /app
 
-COPY package.json bun.lock turbo.json ./
+COPY package.json bun.lock ./
 COPY apps/influx/package.json apps/influx/
 COPY apps/cinder/package.json apps/cinder/
 COPY apps/meridian/package.json apps/meridian/

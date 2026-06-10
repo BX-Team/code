@@ -1,20 +1,21 @@
-name: Build and Push Meridian Image
+name: Build and Push Cinder Image
 
 on:
   push:
     branches:
       - master
     paths:
-      - "apps/meridian/**"
-      - "packages/**"
+      - "apps/cinder/**"
+      - "packages/stratus/**"
+      - "packages/types/**"
       - "package.json"
       - "bun.lock"
-      - ".github/workflows/meridian-docker.yml"
+      - ".github/workflows/cinder-docker.yml"
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/meridian
+  IMAGE_NAME: ${{ github.repository_owner }}/cinder
 
 jobs:
   build-and-push:
@@ -51,7 +52,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./apps/meridian/Dockerfile
+          file: ./apps/cinder/Dockerfile
           platforms: linux/amd64
           push: true
           provenance: false
@@ -70,6 +71,6 @@ jobs:
       - name: Delete old image versions, keep the two newest
         uses: actions/delete-package-versions@v5
         with:
-          package-name: meridian
+          package-name: cinder
           package-type: container
           min-versions-to-keep: 2

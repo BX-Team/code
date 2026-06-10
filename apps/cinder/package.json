@@ -1,5 +1,6 @@
 {
   "name": "@bx-team/cinder",
+  "license": "AGPL-3.0-only",
   "module": "index.ts",
   "type": "module",
   "private": true,

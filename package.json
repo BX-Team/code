@@ -1,20 +1,20 @@
 {
   "name": "@bx-team/monorepo",
   "private": true,
+  "license": "AGPL-3.0-only",
   "scripts": {
-    "dev": "turbo run dev",
-    "dev:meridian": "turbo run dev --filter=@bx-team/meridian",
-    "dev:influx": "turbo run dev --filter=@bx-team/influx",
-    "dev:cinder": "turbo run dev --filter=@bx-team/cinder",
-    "build": "turbo run build",
-    "build:meridian": "turbo run build --filter=@bx-team/meridian",
-    "build:influx": "turbo run build --filter=@bx-team/influx",
-    "build:cinder": "turbo run build --filter=@bx-team/cinder",
+    "dev": "bun run --filter '*' dev",
+    "dev:meridian": "bun run --filter @bx-team/meridian dev",
+    "dev:influx": "bun run --filter @bx-team/influx dev",
+    "dev:cinder": "bun run --filter @bx-team/cinder dev",
+    "build": "bun run --filter '*' build",
+    "build:meridian": "bun run --filter @bx-team/meridian build",
+    "build:influx": "bun run --filter @bx-team/influx build",
+    "build:cinder": "bun run --filter @bx-team/cinder build",
     "lint": "biome check ."
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
-    "turbo": "^2.9.16"
+    "@biomejs/biome": "^2.4.16"
   },
   "workspaces": [
     "apps/*",

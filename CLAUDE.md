@@ -3,10 +3,10 @@
 This is the BX Team monorepo — it contains all BX Team projects, both frontend and backend. When entering a project, either to edit or analyse, you should read it's CLAUDE.md.
 
 ## Architecture
-- **Monorepo tooling:** [Turborepo](https://turbo.build) (`turbo.json`) + [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field)
+- **Monorepo tooling:** [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field). Run scripts across packages with `bun run --filter '<pattern>' <script>`.
 - **Frontend:** Vue 3 / Nuxt 4, Tailwind CSS v4
-- **Backend:** Hono (Ingest API), Nuxt Nitro (Downloads API, Auth, Pulsify API), Postgres, Clickhouse
-- **Indentation:** Use TAB everywhere, never spaces
+- **Backend:** Hono (Ingest API), Nuxt Nitro (Downloads API, Auth, Pulsify API), BullMQ worker (cinder), Postgres, Clickhouse, Redis
+- **Formatting:** [Biome](https://biomejs.dev) is the source of truth — 2-space indent for TS/JS/JSON and standalone CSS. Tabs are used only inside `.vue` `<template>` and `<style>` blocks (Biome doesn't reformat those). Run `bunx biome check .` before committing.
 
 ### Apps (`apps/`)
 | App               | Description                        |
