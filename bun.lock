@@ -14,7 +14,7 @@
         "@bx-team/stratus": "workspace:*",
         "@bx-team/types": "workspace:*",
         "@clickhouse/client": "^1.20.0",
-        "@maxmind/geoip2-node": "^6.3.4",
+        "@maxmind/geoip2-node": "^7.0.0",
         "bullmq": "^5.78.0",
         "drizzle-orm": "^0.45.2",
         "ioredis": "^5.11.1",
@@ -439,7 +439,7 @@
 
     "@mapbox/whoots-js": ["@mapbox/whoots-js@3.1.0", "", {}, "sha512-Es6WcD0nO5l+2BOQS4uLfNPYQaNDfbot3X1XUoloz+x0mPDS3eeORZJl06HXjwBG1fOGwCRnzK88LMdxKRrd6Q=="],
 
-    "@maxmind/geoip2-node": ["@maxmind/geoip2-node@6.3.4", "", { "dependencies": { "maxmind": "^5.0.0" } }, "sha512-BTRFHCX7Uie4wVSPXsWQfg0EVl4eGZgLCts0BTKAP+Eiyt1zmF2UPyuUZkaj0R59XSDYO+84o1THAtaenUoQYg=="],
+    "@maxmind/geoip2-node": ["@maxmind/geoip2-node@7.0.0", "", { "dependencies": { "maxmind": "^5.0.0" } }, "sha512-TUuCUXP93+cCkHmSy42vLwKquMsr20vrhcDBqqEPrpfdFFw16sL6hcmEuAyHbs2S+IVgouqsF37wnCdtbi+i7A=="],
 
     "@msgpackr-extract/msgpackr-extract-darwin-arm64": ["@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.4", "", { "os": "darwin", "cpu": "arm64" }, "sha512-LCkGo6JDfaBhgST7UpPWgNgLINpcpabaHfyz5OBx75nUYxBsaEPxjnyNjWpeb/xBup/682QnBfRBy2/LvPutZQ=="],
 

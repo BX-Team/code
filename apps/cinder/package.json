@@ -19,7 +19,7 @@
     "@bx-team/stratus": "workspace:*",
     "@bx-team/types": "workspace:*",
     "@clickhouse/client": "^1.20.0",
-    "@maxmind/geoip2-node": "^6.3.4",
+    "@maxmind/geoip2-node": "^7.0.0",
     "bullmq": "^5.78.0",
     "drizzle-orm": "^0.45.2",
     "ioredis": "^5.11.1",
