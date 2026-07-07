@@ -4,22 +4,22 @@
   "type": "module",
   "license": "AGPL-3.0-only",
   "exports": {
-    ".": "./src/index.ts",
-    "./schema/atlas": "./src/schema/atlas.ts"
+    "./d1": "./src/d1/index.ts",
+    "./d1/pulsify": "./src/d1/pulsify.ts",
+    "./d1/auth": "./src/d1/auth.ts",
+    "./d1/atlas": "./src/d1/atlas.ts"
   },
   "scripts": {
-    "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate:pulsify": "drizzle-kit generate --config drizzle.pulsify.config.ts",
+    "db:generate:auth": "drizzle-kit generate --config drizzle.auth.config.ts",
+    "db:generate:atlas": "drizzle-kit generate --config drizzle.atlas.config.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
-    "pg": "^8.21.0"
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260312.0",
     "@types/node": "^25.9.1",
-    "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10"
   }
 }

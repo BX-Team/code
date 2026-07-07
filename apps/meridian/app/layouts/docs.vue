@@ -158,7 +158,7 @@ const currentProjectId = computed(() => {
   const seg = route.path.split('/')[2];
   return projects.find(p => p.id === seg) ? seg : null;
 });
-const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) || projects[0]);
+const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) ?? projects[0]!);
 
 const projectEntry = computed(() => {
   if (!navigation.value || !currentProjectId.value) return null;
@@ -217,15 +217,16 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-function scrollToSection(id: string) {
+function scrollToSection(id: string): boolean {
   const target = document.getElementById(id);
-  if (!target) return;
+  if (!target) return false;
   if (contentRef.value) {
     contentRef.value.scrollTo({ top: target.offsetTop - 40, behavior: 'smooth' });
   } else {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   history.replaceState(null, '', `#${id}`);
+  return true;
 }
 
 function handleContentClick(e: MouseEvent) {
@@ -292,7 +293,7 @@ watch(searchQuery, q => {
   searchLoading.value = true;
   searchDebounce = setTimeout(async () => {
     try {
-      searchResults.value = await $fetch('/api/docs/search', { query: { q } });
+      searchResults.value = await searchDocs(q);
     } catch {
       searchResults.value = [];
     } finally {
@@ -360,7 +361,6 @@ onUnmounted(() => {
 				<NuxtLink to="/docs" :class="{ active: route.path.startsWith('/docs') }">Documentation</NuxtLink>
 				<NuxtLink to="/downloads">Downloads</NuxtLink>
 				<NuxtLink to="/team">Team</NuxtLink>
-				<NuxtLink to="https://status.bxteam.org">Status</NuxtLink>
 			</nav>
 
 			<div class="right">

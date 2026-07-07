@@ -1,6 +1,6 @@
-import { alertRules, db, projects } from '@bx-team/stratus';
+import { alertRules, type PulsifyDb, projects } from '@bx-team/stratus/d1';
 import { and, eq } from 'drizzle-orm';
-import { env } from '../env';
+import type { Env } from '../env';
 
 export interface IssueNotice {
   projectId: string;
@@ -38,12 +38,12 @@ const TITLES: Record<AlertPayload['type'], string> = {
   error_spike: 'Error spike',
 };
 
-function dashboardUrl(slug: string): string {
+export function dashboardUrl(env: Env, slug: string): string {
   return `${env.APP_URL.replace(/\/$/, '')}/dashboard/${slug}/errors`;
 }
 
 /** Fires `new_issue` / `regression` rules when the issue registry transitions at ingest. */
-export async function notifyIssue(notice: IssueNotice): Promise<void> {
+export async function notifyIssue(db: PulsifyDb, env: Env, notice: IssueNotice): Promise<void> {
   const rules = await db
     .select({ webhookUrl: alertRules.webhookUrl })
     .from(alertRules)
@@ -66,7 +66,7 @@ export async function notifyIssue(notice: IssueNotice): Promise<void> {
     level: notice.level,
     plugin: notice.plugin,
     version: notice.version || undefined,
-    url: dashboardUrl(project.slug),
+    url: dashboardUrl(env, project.slug),
     timestamp: new Date().toISOString(),
   };
 

@@ -1,0 +1,68 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cinder",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "observability": {
+    "enabled": true
+  },
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "vars": {
+    "ACCOUNT_ID": "6c19bad5e3a3ea0820bb7b1fa745e6c2",
+    "APP_URL": "https://bxteam.org"
+  },
+  "secrets": {
+    "required": ["AE_SQL_TOKEN", "IPINFO_TOKEN"]
+  },
+  "d1_databases": [
+    {
+      "binding": "PULSIFY_DB",
+      "database_name": "pulsify-db",
+      "database_id": "25fe9461-a10d-4a07-bfce-c34b32c99336",
+      "migrations_dir": "../../packages/stratus/drizzle/d1/pulsify"
+    }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "pulsify-ingest",
+        "max_batch_size": 20,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "pulsify-ingest-dlq"
+      }
+    ]
+  },
+  "r2_buckets": [
+    {
+      "binding": "ERROR_PAYLOADS",
+      "bucket_name": "error-payloads"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "GEOIP_CACHE",
+      "id": "8d4d151f824643c6ae28fd1612140f98"
+    }
+  ],
+  "analytics_engine_datasets": [
+    { "binding": "AE_EVENTS", "dataset": "events" },
+    { "binding": "AE_SERVER_STATS", "dataset": "server_stats" },
+    { "binding": "AE_SESSIONS", "dataset": "sessions" },
+    { "binding": "AE_ERRORS", "dataset": "errors" },
+    { "binding": "AE_CUSTOM_METRICS", "dataset": "custom_metrics" }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "SESSION_BRIDGE", "class_name": "SessionBridge" }]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["SessionBridge"]
+    }
+  ]
+}

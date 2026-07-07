@@ -1,9 +1,19 @@
-import { z } from 'zod';
+import type { D1Database, Queue } from '@cloudflare/workers-types';
 
-const schema = z.object({
-  DATABASE_URL: z.string(),
-  REDIS_URL: z.string(),
-  PORT: z.coerce.number().default(3001),
-});
+export interface IngestMessage {
+  event: unknown;
+  projectId: string;
+  receivedAt: number;
+  ip: string | null;
+}
 
-export const env = schema.parse(process.env);
+/** Workers native Rate Limiting binding. */
+export interface RateLimit {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
+export interface Env {
+  PULSIFY_DB: D1Database;
+  INGEST_QUEUE: Queue<IngestMessage>;
+  RATE_LIMITER: RateLimit;
+}

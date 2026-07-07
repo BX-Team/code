@@ -1,9 +1,13 @@
-import { db, pluginInstallations, projects, serverMetadata } from '@bx-team/stratus';
+import { pluginInstallations, projects, serverMetadata } from '@bx-team/stratus/d1';
 import type { Heartbeat } from '@bx-team/types/schema/pulsify';
 import { and, inArray, sql } from 'drizzle-orm';
-import { clickhouse } from '../lib/clickhouse';
+import type { HandlerContext } from '../env';
+import { writeServerStats } from '../lib/analytics';
 
-export async function handleHeartbeat(event: Heartbeat, projectId: string, countryCode: string) {
+export async function handleHeartbeat(ctx: HandlerContext, event: Heartbeat, projectId: string, countryCode: string) {
+  const { db, env } = ctx;
+  const now = new Date();
+
   await db
     .insert(serverMetadata)
     .values({
@@ -11,7 +15,7 @@ export async function handleHeartbeat(event: Heartbeat, projectId: string, count
       software: event.server.software,
       mcVersion: event.server.version,
       countryCode,
-      lastSeenAt: new Date(),
+      lastSeenAt: now,
     })
     .onConflictDoUpdate({
       target: serverMetadata.projectId,
@@ -19,51 +23,45 @@ export async function handleHeartbeat(event: Heartbeat, projectId: string, count
         software: event.server.software,
         mcVersion: event.server.version,
         countryCode,
-        lastSeenAt: new Date(),
+        lastSeenAt: now,
       },
     });
 
-  await clickhouse.insert({
-    table: 'server_stats',
-    values: [
-      {
-        project_id: projectId,
-        timestamp: new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' '),
-        online: event.server.online,
-        tps: event.server.tps,
-        mspt: event.server.mspt,
-        memory_used: event.server.memory_used_mb,
-        memory_max: event.server.memory_max_mb,
-      },
-    ],
-    format: 'JSONEachRow',
+  writeServerStats(env, projectId, {
+    online: event.server.online,
+    tps: event.server.tps,
+    mspt: event.server.mspt,
+    memoryUsed: event.server.memory_used_mb,
+    memoryMax: event.server.memory_max_mb,
   });
 
   try {
     if (event.plugins.length > 0) {
-      const pluginNames = event.plugins.map(p => p.name);
+      const infoByName = new Map(event.plugins.map(p => [p.name, p]));
       const matchedPlugins = await db
         .select({ id: projects.id, name: projects.name })
         .from(projects)
-        .where(and(inArray(projects.name, pluginNames), inArray(projects.type, ['plugin', 'mod'] as const)));
+        .where(and(inArray(projects.name, [...infoByName.keys()]), inArray(projects.type, ['plugin', 'mod'])));
 
-      if (matchedPlugins.length > 0) {
-        const now = new Date();
+      const rows = matchedPlugins.flatMap(pp => {
+        const info = infoByName.get(pp.name);
+        if (!info) return [];
+        return [
+          {
+            pluginId: pp.id,
+            serverId: projectId,
+            version: info.version,
+            enabled: info.enabled,
+            shareErrors: true,
+            lastSeenAt: now,
+          },
+        ];
+      });
+
+      if (rows.length > 0) {
         await db
           .insert(pluginInstallations)
-          .values(
-            matchedPlugins.map(pp => {
-              const info = event.plugins.find(p => p.name === pp.name)!;
-              return {
-                pluginId: pp.id,
-                serverId: projectId,
-                version: info.version,
-                enabled: info.enabled,
-                shareErrors: true,
-                lastSeenAt: now,
-              };
-            }),
-          )
+          .values(rows)
           .onConflictDoUpdate({
             target: [pluginInstallations.pluginId, pluginInstallations.serverId],
             set: {

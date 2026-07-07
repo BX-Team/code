@@ -1,52 +1,49 @@
-import { db, dsnTokens } from '@bx-team/stratus';
+import { createPulsifyDb, dsnTokens } from '@bx-team/stratus/d1';
 import { and, eq } from 'drizzle-orm';
-import { bearerAuth } from 'hono/bearer-auth';
 import { createMiddleware } from 'hono/factory';
-import { redis } from '../lib/redis';
+import type { Env } from '../env';
 
 export type AuthVariables = {
   projectId: string;
   tokenId: string;
+  token: string;
 };
 
-const rateLimitMiddleware = createMiddleware(async (c, next) => {
+type AuthEnv = { Bindings: Env; Variables: AuthVariables };
+
+/** Per-minute request cap (100/min/token) via the Workers Rate Limiting binding. */
+const rateLimitMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   const token = c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
   if (token) {
-    const key = `ratelimit:${token}`;
-    const count = await redis.incr(key);
-    if (count === 1) await redis.expire(key, 60);
-    if (count > 100) return c.json({ error: 'Rate limit exceeded' }, 429);
-
-    // Daily quota check - 100k events per day per token
-    const dayKey = `quota:day:${token}:${new Date().toISOString().slice(0, 10)}`;
-    const dayCount = await redis.incr(dayKey);
-    if (dayCount === 1) await redis.expire(dayKey, 86400);
-    if (dayCount > 100000) return c.json({ error: 'Daily event quota exceeded' }, 429);
+    const { success } = await c.env.RATE_LIMITER.limit({ key: token });
+    if (!success) return c.json({ error: 'Rate limit exceeded' }, 429, { 'Retry-After': '60' });
   }
   await next();
 });
 
-const bearerMiddleware = bearerAuth({
-  verifyToken: async (token, c) => {
-    const record = await db.query.dsnTokens.findFirst({
-      where: and(eq(dsnTokens.key, token), eq(dsnTokens.revoked, false)),
-      columns: { id: true, projectId: true },
-    });
+/** Bearer token verified against pulsify-db dsnTokens, scoped to the URL's projectId. */
+const bearerMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
+  const token = c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
+  if (!token) {
+    return c.json({ error: 'Unauthorized' }, 401, { 'WWW-Authenticate': 'Bearer' });
+  }
 
-    if (!record) return false;
+  const db = createPulsifyDb(c.env.PULSIFY_DB);
+  const record = await db.query.dsnTokens.findFirst({
+    where: and(eq(dsnTokens.key, token), eq(dsnTokens.revoked, false)),
+    columns: { id: true, projectId: true },
+  });
 
-    if (record.projectId !== c.req.param('projectId')) return false;
+  if (!record || record.projectId !== c.req.param('projectId')) {
+    return c.json({ error: 'Unauthorized' }, 401, { 'WWW-Authenticate': 'Bearer' });
+  }
 
-    db.update(dsnTokens)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(dsnTokens.id, record.id))
-      .catch(() => {});
+  c.executionCtx.waitUntil(db.update(dsnTokens).set({ lastUsedAt: new Date() }).where(eq(dsnTokens.id, record.id)));
 
-    c.set('projectId', record.projectId);
-    c.set('tokenId', record.id);
-
-    return true;
-  },
+  c.set('projectId', record.projectId);
+  c.set('tokenId', record.id);
+  c.set('token', token);
+  await next();
 });
 
 export const authMiddleware = [rateLimitMiddleware, bearerMiddleware] as const;

@@ -8,7 +8,7 @@ const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 /**
  * Removes player-identifying data from text before it is persisted. Error messages and
  * stacktraces routinely carry player UUIDs, IPs and emails; storing them raw would leak
- * personal data into ClickHouse and, via cross-server aggregation, to plugin authors who
+ * personal data into the analytics store and, via cross-server aggregation, to plugin authors who
  * must never learn who the players behind a crash are. Scrubbing happens at ingest so the
  * data never lands in storage in the first place — the GDPR-safe default.
  */
@@ -30,9 +30,9 @@ export function normalizeForFingerprint(text: string): string {
 }
 
 /**
- * Stable group key for an error. Computed once at ingest and stored on both the ClickHouse
- * event row and the Postgres issue registry, so the two join on an identical key without
- * relying on fragile regex parity between SQL and TypeScript normalization.
+ * Stable group key for an error. Computed once at ingest and stored on both the analytics
+ * event row and the issue registry, so the two join on an identical key without relying on
+ * fragile regex parity between SQL and TypeScript normalization.
  */
 export function computeFingerprint(plugin: string, message: string, level: string, stacktrace: string): string {
   const basis = [plugin, normalizeForFingerprint(message ?? ''), level, normalizeForFingerprint(stacktrace ?? '')].join(

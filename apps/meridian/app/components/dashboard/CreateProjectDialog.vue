@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue';
+import { api } from '@/lib/api';
 
 const open = useCreateProjectDialog();
 
@@ -37,7 +38,7 @@ async function submit() {
   submitting.value = true;
   error.value = '';
   try {
-    const created = await $fetch<{ slug: string }>('/api/v3/projects', {
+    const created = await api<{ slug: string }>('/pulsify/projects', {
       method: 'POST',
       body: {
         name: name.value.trim(),

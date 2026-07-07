@@ -4,6 +4,7 @@ import type { ProjectRow } from '@/components/dashboard/ProjectsDataTable.vue';
 import ProjectsDataTable from '@/components/dashboard/ProjectsDataTable.vue';
 import SectionCards from '@/components/dashboard/SectionCards.vue';
 import type { ChartConfig } from '@/components/ui/chart';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Dashboard', titleTemplate: '%s | Pulsify' });
@@ -30,11 +31,9 @@ watch(range, r => umTrackEvent('dashboard_range_change', { range: r }));
 
 onMounted(() => umTrackView());
 
-const requestFetch = useRequestFetch();
-
 const { data: overview, pending } = await useAsyncData<OverviewResponse>(
   'v3-overview',
-  () => requestFetch<OverviewResponse>('/api/v3/overview', { query: { range: range.value } }),
+  () => api<OverviewResponse>('/pulsify/overview', { query: { range: range.value } }),
   { watch: [range] },
 );
 
@@ -73,7 +72,7 @@ const stats = computed(() => {
 
 const seriesData = computed(() =>
   (overview.value?.timeseries ?? []).map(p => ({
-    date: parseClickhouseDate(p.time),
+    date: parseAnalyticsDate(p.time),
     online: Number(p.online ?? 0),
   })),
 );

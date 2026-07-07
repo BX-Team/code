@@ -1,0 +1,3 @@
+# Local secrets for `wrangler dev`. Copy to .dev.vars (gitignored) and fill in.
+IPINFO_TOKEN=
+AE_SQL_TOKEN=

@@ -1,0 +1,16 @@
+# Local secrets/vars for `wrangler dev`. Copy to .dev.vars (gitignored) and fill in.
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=https://azimuth.bx-team.workers.dev
+TRUSTED_ORIGINS=https://bxteam.org,http://localhost:3000
+# COOKIE_DOMAIN=.bxteam.org
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+
+# Atlas Credentials
+API_SECRET_KEY=
+R2_PUBLIC_URL=https://files.bxteam.org
+
+# Analytics Engine Token
+AE_SQL_TOKEN=

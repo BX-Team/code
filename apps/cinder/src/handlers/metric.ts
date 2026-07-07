@@ -1,18 +1,11 @@
 import type { CustomMetric } from '@bx-team/types/schema/pulsify';
-import { clickhouse } from '../lib/clickhouse';
+import type { Env } from '../env';
+import { writeMetric } from '../lib/analytics';
 
-export async function handleMetric(event: CustomMetric, projectId: string) {
-  await clickhouse.insert({
-    table: 'custom_metrics',
-    values: [
-      {
-        project_id: projectId,
-        name: event.name,
-        value: event.value,
-        labels: event.labels ?? {},
-        timestamp: new Date(event.timestamp).toISOString().slice(0, 19).replace('T', ' '),
-      },
-    ],
-    format: 'JSONEachRow',
+export function handleMetric(env: Env, event: CustomMetric, projectId: string) {
+  writeMetric(env, projectId, {
+    name: event.name,
+    value: event.value,
+    labels: event.labels ?? {},
   });
 }

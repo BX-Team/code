@@ -1,0 +1,58 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "azimuth",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "api.bxteam.org", "custom_domain": true }],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "BETTER_AUTH_URL": "https://api.bxteam.org",
+    "TRUSTED_ORIGINS": "https://bxteam.org,http://localhost:3000",
+    "COOKIE_DOMAIN": ".bxteam.org",
+    "R2_PUBLIC_URL": "https://files.bxteam.org",
+    "ACCOUNT_ID": "6c19bad5e3a3ea0820bb7b1fa745e6c2"
+  },
+  "secrets": {
+    "required": ["AE_SQL_TOKEN", "API_SECRET_KEY", "BETTER_AUTH_SECRET", "DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "AUTH_DB",
+      "database_name": "auth-db",
+      "database_id": "9f2cc9c6-5d69-4ad0-b873-81238a4b5b5a",
+      "migrations_dir": "../../packages/stratus/drizzle/d1/auth"
+    },
+    {
+      "binding": "ATLAS_DB",
+      "database_name": "atlas-db",
+      "database_id": "f10f7ede-1373-403a-8149-62b6772532ba",
+      "migrations_dir": "../../packages/stratus/drizzle/d1/atlas"
+    },
+    {
+      "binding": "PULSIFY_DB",
+      "database_name": "pulsify-db",
+      "database_id": "25fe9461-a10d-4a07-bfce-c34b32c99336",
+      "migrations_dir": "../../packages/stratus/drizzle/d1/pulsify"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ATLAS_BUCKET",
+      "bucket_name": "builds"
+    },
+    {
+      "binding": "ERROR_PAYLOADS",
+      "bucket_name": "error-payloads"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["account@bxteam.org"]
+    }
+  ]
+}

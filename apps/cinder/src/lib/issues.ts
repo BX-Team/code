@@ -1,4 +1,4 @@
-import { db, issues } from '@bx-team/stratus';
+import { issues, type PulsifyDb } from '@bx-team/stratus/d1';
 import { and, eq } from 'drizzle-orm';
 import { isNewerVersion } from './version';
 
@@ -10,12 +10,15 @@ export type IssueTransition = 'new_issue' | 'regression' | null;
  * that was previously resolved but recurs on a newer version is a `regression` (auto-reopened).
  * Plain recurrences just bump last-seen metadata.
  */
-export async function recordIssue(params: {
-  projectId: string;
-  fingerprint: string;
-  plugin: string;
-  version: string;
-}): Promise<IssueTransition> {
+export async function recordIssue(
+  db: PulsifyDb,
+  params: {
+    projectId: string;
+    fingerprint: string;
+    plugin: string;
+    version: string;
+  },
+): Promise<IssueTransition> {
   const { projectId, fingerprint, plugin, version } = params;
   const now = new Date();
 

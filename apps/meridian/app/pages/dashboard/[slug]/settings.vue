@@ -2,6 +2,7 @@
 import { Copy, Plus, Trash2 } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 
@@ -24,14 +25,12 @@ useHead({
   titleTemplate: '%s | Pulsify',
 });
 
-const requestFetch = useRequestFetch();
-
 const {
   data: tokens,
   refresh: refreshTokens,
   pending,
 } = await useAsyncData<DsnToken[]>(`project-tokens-${slug.value}`, () =>
-  project.value ? requestFetch<DsnToken[]>(`/api/v3/projects/${project.value.id}/tokens`) : Promise.resolve([]),
+  project.value ? api<DsnToken[]>(`/pulsify/projects/${project.value.id}/tokens`) : Promise.resolve([]),
 );
 
 const { openConfirm } = useConfirmDialog();
@@ -54,8 +53,8 @@ async function createToken() {
   if (creating.value || !project.value) return;
   creating.value = true;
   try {
-    const result = await $fetch<{ id: string; key: string; label: string | null; createdAt: string }>(
-      `/api/v3/projects/${project.value.id}/tokens`,
+    const result = await api<{ id: string; key: string; label: string | null; createdAt: string }>(
+      `/pulsify/projects/${project.value.id}/tokens`,
       { method: 'POST', body: { label: newLabel.value || undefined } },
     );
     justCreated.value = { key: result.key, label: result.label };
@@ -79,7 +78,7 @@ async function revokeToken(tokenId: string) {
   });
   if (!confirmed) return;
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}/tokens/${tokenId}`, { method: 'DELETE' });
+    await api(`/pulsify/projects/${project.value.id}/tokens/${tokenId}`, { method: 'DELETE' });
     await refreshTokens();
     toast.success('Token revoked');
   } catch (err: any) {
@@ -105,7 +104,7 @@ async function deleteProject() {
   if (!confirmed) return;
   deleting.value = true;
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}`, { method: 'DELETE' });
+    await api(`/pulsify/projects/${project.value.id}`, { method: 'DELETE' });
     await refreshNuxtData('v3-projects');
     await refreshNuxtData('v3-overview');
     await navigateTo('/dashboard');

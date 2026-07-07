@@ -1,5 +1,4 @@
-// Minecraft/plugin version comparison, mirroring meridian's version-utils ordering:
-//   legacy 1.X[.Y] and modern XX.Y[.Z], with pre < rc < release.
+// Minecraft/plugin version comparison: legacy 1.X[.Y] and modern XX.Y[.Z], pre < rc < release.
 // Used for regression detection — a resolved issue reopens only when it recurs on a
 // version strictly newer than the one it was fixed in.
 

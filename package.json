@@ -7,10 +7,12 @@
     "dev:meridian": "bun run --filter @bx-team/meridian dev",
     "dev:influx": "bun run --filter @bx-team/influx dev",
     "dev:cinder": "bun run --filter @bx-team/cinder dev",
+    "dev:azimuth": "bun run --filter @bx-team/azimuth dev",
     "build": "bun run --filter '*' build",
-    "build:meridian": "bun run --filter @bx-team/meridian build",
+    "build:meridian": "bun run --filter @bx-team/meridian generate",
     "build:influx": "bun run --filter @bx-team/influx build",
     "build:cinder": "bun run --filter @bx-team/cinder build",
+    "build:azimuth": "bun run --filter @bx-team/azimuth build",
     "lint": "biome check ."
   },
   "devDependencies": {

@@ -1,14 +1,13 @@
 import { Hono } from 'hono';
-import { env } from './env';
-import { healthRoute } from './routes/health';
+import type { Env } from './env';
 import { ingestRoute } from './routes/ingest';
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Env }>();
 
-app.route('/', healthRoute);
+app.get('/health', c => c.json({ status: 'ok', service: 'influx' }));
+
 app.route('/api/v1', ingestRoute);
 
 export default {
-  port: env.PORT,
   fetch: app.fetch,
-};
+} satisfies ExportedHandler<Env>;
