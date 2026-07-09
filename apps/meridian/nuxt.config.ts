@@ -92,5 +92,9 @@ export default defineNuxtConfig({
     '/login': { ssr: false },
   },
 
+  nitro: {
+    preset: 'static',
+  },
+
   compatibilityDate: '2026-01-01',
 });
