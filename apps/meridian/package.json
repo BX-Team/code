@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@bx-team/ui": "workspace:*",
-    "@lucide/vue": "^1.17.0",
+    "@lucide/vue": "^1.26.0",
     "@nuxt/content": "^3.14.0",
     "@nuxt/fonts": "^0.14.0",
     "@shikijs/transformers": "^4.2.0",

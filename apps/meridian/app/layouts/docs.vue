@@ -12,6 +12,7 @@ import {
   Database,
   DollarSign,
   Download,
+  EyeOff,
   Files,
   FileText,
   FolderDot,
@@ -27,6 +28,7 @@ import {
   Package,
   Pencil,
   Presentation,
+  Radar,
   Repeat,
   Replace,
   Search,
@@ -34,6 +36,8 @@ import {
   SquareCode,
   SquareTerminal,
   Table,
+  Torus,
+  Waypoints,
   Wrench,
   X,
 } from '@lucide/vue';
@@ -68,6 +72,7 @@ const iconMap: Record<string, Component> = {
   Database,
   DollarSign,
   Download,
+  EyeOff,
   Files,
   FileText,
   FolderDot,
@@ -81,12 +86,15 @@ const iconMap: Record<string, Component> = {
   MonitorCog,
   Package,
   Presentation,
+  Radar,
   Repeat,
   Replace,
   Shield,
   SquareCode,
   SquareTerminal,
   Table,
+  Torus,
+  Waypoints,
   Wrench,
   Atom,
 };
@@ -114,7 +122,11 @@ const projects: Project[] = [
 
 function getIcon(name?: string): Component {
   if (!name) return FileText;
-  return iconMap[name] ?? FileText;
+  const icon = iconMap[name];
+  if (!icon && import.meta.dev) {
+    console.warn(`[docs] icon "${name}" is not registered in iconMap (app/layouts/docs.vue), falling back to FileText`);
+  }
+  return icon ?? FileText;
 }
 
 const { data: navigation } = await useAsyncData(

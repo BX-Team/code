@@ -78,6 +78,8 @@ items:
 
 Doc/roadmap icons come from [Lucide](https://lucide.dev/icons/). Use the PascalCase name as-is (e.g. `Keyboard`, `GitBranch`, `MonitorCog`) — values are case-sensitive.
 
+Icons are bundled explicitly, so a new one also has to be imported and added to `iconMap` in `app/layouts/docs.vue`; otherwise the sidebar silently falls back to the generic `FileText` icon (dev builds log a warning).
+
 ## MDC Components
 
 All components use the `::ComponentName` / `::` block syntax. **Do not use the HTML-like `<Component />` self-closing syntax** — the MDC parser may swallow content that follows it.
