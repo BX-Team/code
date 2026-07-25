@@ -30,7 +30,7 @@ sentry:
 Configure the settings:
 
 - **`dsn`:** Replace the empty quotes with your DSN string.
-- **`log-level`:** Choose severity threshold — `ERROR`, `WARN`, `INFO`, or `DEBUG`. Default is `WARN`.
+- **`log-level`:** Choose severity threshold: `ERROR`, `WARN`, `INFO`, or `DEBUG`. Default is `WARN`.
 - **`only-log-thrown`:** Set to `true` to only send logs with a Java `Throwable` (recommended). Set to `false` to send any log at or above the threshold.
 :::
 

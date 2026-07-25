@@ -26,7 +26,7 @@ const config = {
       },
     },
   },
-  version: 8,
+  version: 9,
   'region-settings': {
     type: 'MCA',
     'thread-count': 4,
@@ -47,7 +47,7 @@ const config = {
       'dont-respond-ping-before-start': true,
       'send-spectator-change-packet': true,
     },
-    'player-profile-result-caching': { enabled: true, timeout: 1440 },
+    'player-profile-result-caching': { enabled: false, timeout: 1440 },
     'no-chat-reports': {
       enabled: false,
       'add-query-data': true,
@@ -62,6 +62,19 @@ const config = {
       jade: { 'jade-enable': false },
       xaeromap: { 'xaeromap-enable': false, 'xaero-map-server-id': 1269608353 },
       syncmatica: { 'syncmatica-enable': false, quota: false, 'quota-limit': 40000000 },
+    },
+    'raytrace-entity-culling': {
+      enabled: false,
+      threads: 0,
+      'check-interval-ms': 50,
+      'max-trace-distance': 64,
+      'force-visible-radius': 4.0,
+      'visibility-timeout-ms': 1000,
+      'aabb-expansion': 0.5,
+      'bounding-box-limit': 20,
+      'cull-players': true,
+      'skip-marker-armor-stands': true,
+      'skipped-entity-types': [],
     },
   },
   misc: {
@@ -101,7 +114,7 @@ const config = {
   performance: {
     chunks: {
       'native-acceleration': {
-        enabled: true,
+        enabled: false,
         'allow-avx512': false,
         'isa-target-level-override': -1,
       },
@@ -122,7 +135,7 @@ const config = {
     optimizations: {
       'disable-method-profiler': true,
       'skip-useless-secondary-poi-sensor': true,
-      'clump-orbs': true,
+      'clump-orbs': false,
       'enable-suffocation-optimization': true,
       'use-compact-bit-storage': false,
       'command-block-parse-results-caching': true,
@@ -143,16 +156,17 @@ const config = {
       'blacked-entities': ['villager', 'axolotl', 'hoglin', 'zombified_piglin', 'goat'],
     },
     'virtual-threads': {
-      enabled: false,
-      'bukkit-scheduler': false,
-      'chat-scheduler': false,
-      'tab-complete-scheduler': false,
-      'async-executor': false,
-      'command-builder-scheduler': false,
-      'server-text-filter-pool': false,
+      enabled: true,
+      'bukkit-scheduler': true,
+      'chat-scheduler': true,
+      'tab-complete-scheduler': true,
+      'async-executor': true,
+      'command-builder-scheduler': true,
+      'server-text-filter-pool': true,
     },
   },
   async: {
+    'auto-thread-allocation': false,
     'parallel-world-ticking': {
       enable: false,
       'thread-count': 4,
@@ -173,15 +187,15 @@ const config = {
       'queue-size': 0,
       'reject-policy': 'CALLER_RUNS',
     },
-    'multithreaded-tracker': {
+    'parallel-entity-tracker': {
       enable: true,
-      'compat-mode': false,
-      'max-threads': 1,
+      threads: 0,
       keepalive: 60,
-      'queue-size': 0,
     },
-    'chunk-sending': { enable: true, 'max-threads': 1 },
+    'chunk-sending': { enable: false, 'max-threads': 1 },
     'mob-spawning': { enable: true, 'async-natural-spawn': true },
+    'portal-search-prefetch': { enable: true },
+    'parallel-sensors': { enable: false, 'max-threads': 0 },
   },
 };
 
@@ -226,7 +240,8 @@ const comments: Record<string, string> = {
     'Prevents the server from responding to pings before the server is fully booted.',
   'network.general.send-spectator-change-packet':
     'When disabled, tab list will not show that the player have entered the spectator mode. Otherwise, it will act as normal spectator change packet.',
-  'network.player-profile-result-caching.enabled': 'Enables caching of player profile results on first join.',
+  'network.player-profile-result-caching.enabled':
+    'Enables caching of player profile results on first join.\nWARNING: When enabled, a cached premium profile can allow an offline (cracked) player\nto bypass online-mode authentication by joining with the same username after the\npremium player has logged in. Disable this if you run an online-mode server without\na proxy or login plugin. Default: false is recommended for online-mode servers.',
   'network.player-profile-result-caching.timeout': 'The amount of time in minutes to cache player profile results.',
   'network.no-chat-reports.enabled': 'Enables or disables the No Chat Reports feature',
   'network.no-chat-reports.add-query-data':
@@ -243,6 +258,28 @@ const comments: Record<string, string> = {
   'network.protocols.syncmatica.syncmatica-enable': 'Enables SyncMatica protocol support',
   'network.protocols.syncmatica.quota': 'Enables quota system for SyncMatica',
   'network.protocols.syncmatica.quota-limit': 'Quota limit for SyncMatica protocol',
+  'network.raytrace-entity-culling.enabled':
+    "Enables Raytrace Entity Culling, a server-side port of tr7zw's EntityCulling mod.\nEntities that a player provably cannot see (fully hidden behind opaque blocks)\nare removed from that player's entity tracker. This reduces network bandwidth,\nimproves client FPS and blinds entity-ESP cheats (e.g. freecam/x-ray style hacks\ncannot see mobs, players or items through walls anymore).\n\nVisibility is checked asynchronously via raytracing; when a hidden entity comes\ninto view it is re-tracked within one check interval plus one tracker tick.\nPlayers with very high ping may notice entities appearing slightly late when\npeeking around corners.",
+  'network.raytrace-entity-culling.threads':
+    'The number of threads used for visibility raytracing. All players share this pool.\nSet to 0 to determine automatically based on CPU core count.',
+  'network.raytrace-entity-culling.check-interval-ms':
+    'The interval in milliseconds between visibility passes for each player.\nLower values make hidden entities appear faster when they come into view,\nat the cost of more raytracing work.',
+  'network.raytrace-entity-culling.max-trace-distance':
+    'The maximum distance in blocks at which entities are raytraced.\nEntities beyond this distance are always visible (never culled).\nNOTE: each player allocates an occlusion cache of (2*distance)^3 / 4 bytes\n(~512KB at 64), so keep this value reasonable.',
+  'network.raytrace-entity-culling.force-visible-radius':
+    'Entities within this radius of the player are always visible, no raytracing done.',
+  'network.raytrace-entity-culling.visibility-timeout-ms':
+    'Once an entity is proven visible it stays visible for at least this many\nmilliseconds before it can be culled again. Prevents track/untrack packet\nflicker for entities on the edge of visibility.',
+  'network.raytrace-entity-culling.aabb-expansion':
+    'How much the entity bounding box is expanded before raytracing. Larger values\nmake entities visible slightly earlier around corners (smoother but less strict).',
+  'network.raytrace-entity-culling.bounding-box-limit':
+    'Entities with a bounding box larger than this on any axis are never culled.',
+  'network.raytrace-entity-culling.cull-players':
+    'Whether player entities may be culled too. This is the main anti-ESP protection,\nbut on PvP servers with high-ping players it can give a slight disadvantage when\npeeking around corners - disable it if that matters more to you.',
+  'network.raytrace-entity-culling.skip-marker-armor-stands':
+    'Whether invisible armor stands (often used as plugin markers/holograms) are\nalways visible and never raytraced.',
+  'network.raytrace-entity-culling.skipped-entity-types':
+    'Entity types that are never culled, e.g. ["minecraft:item_frame", "minecraft:villager"].\nGlowing entities, entities with always-visible custom names, display entities and\nfishing bobbers are always skipped regardless of this list.',
   'misc.secure-seed.enable':
     'This feature is based on Secure Seed mod by Earthcomputer.\n\nTerrain and biome generation remains the same, but all the ores and structures are generated with 1024-bit seed, instead of the usual 64-bit seed.\nThis seed is almost impossible to crack, and there are no weird links between structures.',
   'misc.secure-seed.hashing-version':
@@ -274,6 +311,8 @@ const comments: Record<string, string> = {
     'Fixes MC-118740: https://bugs.mojang.com/browse/MC-118740\nAny right click resets attack cooldown.',
   'fixes.bug.fix-mc-28289':
     'Fixes MC-28289: https://bugs.mojang.com/browse/MC-28289\nSwitching items at the same time as attacking carries over the attributes and enchantments of the previously held item.',
+  'performance.chunks.native-acceleration.enabled':
+    "Enables native (C2ME) acceleration of world generation math.\n\nWARNING: native floating-point math may not be bit-identical to Java's, so worlds\ngenerated with this enabled can differ block-by-block from vanilla generation and\nbetween machines with different CPU ISA levels. Seed-parity is NOT guaranteed.",
   'performance.chunks.native-acceleration.allow-avx512':
     'Enables AVX512 support for natives-math optimizations\n\nRead more about AVX512: https://en.wikipedia.org/wiki/AVX-512',
   'performance.chunks.native-acceleration.isa-target-level-override':
@@ -340,6 +379,8 @@ const comments: Record<string, string> = {
   'performance.virtual-threads.command-builder-scheduler':
     'Uses virtual threads for the Async Command Builder Thread Pool.',
   'performance.virtual-threads.server-text-filter-pool': 'Uses virtual threads for the server text filter pool.',
+  'async.auto-thread-allocation':
+    "Enables optimal thread allocation for Parallel World Ticking and Regionized Chunk Ticking.\nBy enabling this, both Parallel World Ticking and Regionized Chunk Ticking will get enabled and\nthread count in config will get ignored and automatically allocated based on your system's CPU cores.",
   'async.parallel-world-ticking.enable':
     "Enables Parallel World Ticking, which executes each world's tick in a separate thread while ensuring that all worlds complete their tick before the next cycle begins.\n\nRead more info about this feature at https://bxteam.org/docs/divinemc/features/parallel-world-ticking",
   'async.parallel-world-ticking.disable-hard-throw':
@@ -355,15 +396,22 @@ const comments: Record<string, string> = {
   'async.regionized-chunk-ticking.executor-thread-priority': 'Configures the thread priority of the executor',
   'async.pathfinding.reject-policy':
     'The policy to use when the queue is full and a new task is submitted.\nFLUSH_ALL: All pending tasks will be run on server thread.\nCALLER_RUNS: Newly submitted task will be run on server thread.',
-  'async.multithreaded-tracker.enable':
-    'Make entity tracking saving asynchronously, can improve performance significantly, especially in some massive entities in small area situations.',
-  'async.multithreaded-tracker.compat-mode':
-    'Enable compat mode ONLY if Citizens or NPC plugins using real entity has installed.\nCompat mode fixes visible issues with player type NPCs of Citizens.\nBut we recommend to use packet based / virtual entity NPC plugin, e.g. ZNPC Plus, Adyeshach, Fancy NPC and etc.',
+  'async.parallel-entity-tracker.enable':
+    'Runs the entity tracker across a thread pool: the read-only visibility scan and the\nper-entity packet diffs run in parallel, while pairing changes and Bukkit events are\napplied on the tick thread between them. Each phase is joined before the tick continues,\nso tracking keeps vanilla ordering and works with entity-based NPC plugins (Citizens).',
+  'async.parallel-entity-tracker.threads':
+    'Worker threads used by the tracker.\n0 = a quarter of available cores; negative = all cores minus that many.\nAt least 1 thread is always used.',
+  'async.parallel-entity-tracker.keepalive': 'Seconds an idle worker thread is kept alive before being released.',
   'async.chunk-sending.enable':
-    'Makes chunk sending asynchronous, which can significantly reduce main thread load when many players are loading chunks.',
+    'Offloads chunk packet serialization to a thread pool, which can significantly reduce\nmain thread load when many players are loading chunks. A consistent snapshot of the\nchunk is taken on its owning thread, so packets are always internally consistent and\npacket order is preserved per player.',
   'async.mob-spawning.enable':
     'Enables optimization that will offload much of the computational effort involved with spawning new mobs to a different thread.',
   'async.mob-spawning.async-natural-spawn': 'Enables offloading of natural spawning to a different thread',
+  'async.portal-search-prefetch.enable':
+    'Async pre-loads the exit portal search area (chunk and POI data) when an entity enters a nether\nportal, so the destination search at teleport time hits warm caches instead of reading from disk.',
+  'async.parallel-sensors.enable':
+    "Runs the read-only part of brain AI (sensors: nearest-entity scans, line-of-sight raycasts)\non a worker thread pool right before the entity ticking phase, instead of on the main thread\nduring each mob's tick. Sensors are a stable top entry in profiler output on servers with\nmany villagers/piglins, and they only read world state, which makes them safe to batch.",
+  'async.parallel-sensors.max-threads':
+    'The amount of threads to use for the parallel sensor phase.\nValues <= 0 mean 1/4 of available cores (at least 1).',
 };
 </script>
 

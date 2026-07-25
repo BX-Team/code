@@ -2,7 +2,12 @@
 icon: Repeat
 title: Parallel World Ticking
 description: More info about a parallel world ticking system.
+badge: Experimental
 ---
+
+::callout{type="warning"}
+  This feature is experimental and disabled by default. Test it on a staging server before enabling it in production.
+::
 
 ::callout{type="info"}
   This feature was originally took from [SparklyPaper](https://github.com/SparklyPower/SparklyPaper), all credits go to them for the original implementation.
@@ -30,7 +35,11 @@ DivineMC transitions from the traditional sequential approach by allocating a de
 This design allows multiple worlds to be processed simultaneously while ensuring that the tick cycle only advances when every world has finished processing. 
 As a result, the overall ticks per second (TPS) are determined by the world with the highest processing demand.
 
-A multi-server approach (one server per world) was considered; however, the complexities involved—such as inventory synchronization, cross-server player queries, and command handling—led to the adoption of Parallel World Ticking within a single server instance.
+Every world owns its tick thread for its entire lifetime, but the number of worlds allowed to tick *at the same moment* is capped by a semaphore with `thread-count` permits. 
+With the default of `4`, a server with ten worlds still only runs four world ticks concurrently, and the remaining worlds wait for a permit. 
+This keeps the tick threads from oversubscribing the CPU and starving the chunk system, network and plugin thread pools.
+
+A multi-server approach (one server per world) was considered; however, the complexities involved (such as inventory synchronization, cross-server player queries, and command handling) led to the adoption of Parallel World Ticking within a single server instance.
 
 ### Threading and Synchronization
 
@@ -38,18 +47,53 @@ To maintain data integrity, only the tick thread associated with a specific worl
 Any attempts to modify another world from an incorrect thread will result in an error. 
 Plugin developers must ensure that any cross-world interactions are scheduled to run on the appropriate main thread.
 
-Disabling off-main-thread exceptions is possible using the configuration setting `settings.parallel-world-ticking.disable-hard-throw` in `divinemc.yml`. 
+Disabling off-main-thread exceptions is possible using the configuration setting `async.parallel-world-ticking.disable-hard-throw` in `divinemc.yml`. 
 However, this is not recommended because bypassing these checks may lead to data corruption. 
 Addressing thread synchronization issues directly is the preferred approach.
 
 ### Compatibility and Limitations
 
 Parallel World Ticking is designed to work with most plugins, as events are generally processed within the world in which they are triggered. 
-However, certain operations—particularly those involving cross-world interactions (for example, teleporting players or entities between worlds during a server-level tick)—may encounter issues. 
+However, certain operations may encounter issues, particularly those involving cross-world interactions (for example, teleporting players or entities between worlds during a server-level tick). 
 Such operations should be scheduled to run on the correct thread to avoid conflicts.
 
-If you want to make all your plugins compatible with Parallel World Ticking, you can set `settings.parallel-world-ticking.compatability-mode` to `true` in `divinemc.yml` to make the server run all tasks synchronously, instead of asynchronously.
-But be aware, with that option enabled, the server will lag more than usual, and the performance will be drastically reduced.
+::callout{type="warning"}
+  Earlier versions offered a `compatability-mode` option that forced every task back onto a single thread. It has been removed: it negated the entire point of the feature while still paying its overhead. A plugin that is not thread-safe has to be fixed (or Parallel World Ticking has to stay off), because there is no switch that makes it safe for free.
+::
+
+### Configuration
+
+All options live in `divinemc.yml` under the `async` section.
+
+```yaml
+async:
+  parallel-world-ticking:
+    # Enable Parallel World Ticking. Disabled by default.
+    enable: false
+    # How many worlds may tick concurrently (semaphore permits).
+    thread-count: 4
+    # Records where every container menu was created, so cross-world container errors
+    # point at the culprit. Debugging aid - it allocates a Throwable per menu.
+    log-container-creation-stacktraces: false
+    # Silences 'not on main thread' errors instead of throwing.
+    # NOT recommended - see "Threading and Synchronization" above.
+    disable-hard-throw: false
+    # Show the TPS of the world the player is in, via the /tpsbar command.
+    use-per-world-tps-bar: true
+    # Show the TPS of the whole server in the TPS bar instead of the world's own TPS.
+    show-tps-of-server-instead-of-world: true
+```
+
+There is also a shortcut that configures the thread budget for you:
+
+```yaml
+async:
+  # Enables both Parallel World Ticking and Regionized Chunk Ticking and
+  # splits the available CPU threads between them, ignoring the manual thread counts.
+  auto-thread-allocation: false
+```
+
+Auto allocation requires at least 6 CPU threads; on smaller machines it logs a warning and turns itself off.
 
 ### Rationale for the Approach
 
@@ -87,6 +131,6 @@ Attempts were made to add TickThread checks to both `setBlockEntity` and `getBlo
 
 Folia’s implementation includes thread checks in these methods, but they only verify whether the current thread is a tick thread instead of ensuring it corresponds to the current world’s tick thread. In practice, `getBlockEntity` appears to be thread-safe except when it is accessed from a separate `ServerLevelTickThread`. Such access can trigger a main thread chunk load, potentially freezing the server.
 
-Additionally, the `capturedTileEntities` map is a point of concern. Although it is not frequently iterated—being accessed only via its `entrySet()`—synchronizing access to it may be beneficial for safety. Folia does not implement such synchronization.
+Additionally, the `capturedTileEntities` map is a point of concern. Although it is not frequently iterated (being accessed only via its `entrySet()`), synchronizing access to it may be beneficial for safety. Folia does not implement such synchronization.
 
 To address these issues, instead of following Folia’s exact approach, the implementation now uses `ensureTickThreadOrAsyncThread` for `getBlockEntity`, while `setBlockEntity` continues to use the `ensureTickThread` check.
