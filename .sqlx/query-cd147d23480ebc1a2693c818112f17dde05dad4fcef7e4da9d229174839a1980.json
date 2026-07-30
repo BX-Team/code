@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT status, status_version, muted_until FROM pulsify.issues\n          WHERE project_id = $1 AND fingerprint = $2\n          FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "status_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "status_version"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "muted_until",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "muted_until"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "cd147d23480ebc1a2693c818112f17dde05dad4fcef7e4da9d229174839a1980"
+}

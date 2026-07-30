@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, key, name, description, latest_version, experimental_version\n           FROM atlas.projects ORDER BY key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "latest_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "latest_version"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "experimental_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.projects",
+            "name": "experimental_version"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "6581da46c2ef76871039ce06dc855fae02985360dc16c33acbc3ac340108d0d9"
+}

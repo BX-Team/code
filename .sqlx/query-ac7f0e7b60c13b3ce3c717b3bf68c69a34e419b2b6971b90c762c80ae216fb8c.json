@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT coalesce(q.max_events_per_day, 100000)\n           FROM pulsify.projects p\n           LEFT JOIN pulsify.quotas q ON q.user_id = p.owner_id\n          WHERE p.id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "coalesce",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "ac7f0e7b60c13b3ce3c717b3bf68c69a34e419b2b6971b90c762c80ae216fb8c"
+}

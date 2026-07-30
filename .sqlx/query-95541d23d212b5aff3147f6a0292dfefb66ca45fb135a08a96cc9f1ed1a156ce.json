@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM pulsify.daily_usage WHERE day < current_date - $1::integer",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "95541d23d212b5aff3147f6a0292dfefb66ca45fb135a08a96cc9f1ed1a156ce"
+}

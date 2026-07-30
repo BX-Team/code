@@ -1,0 +1,91 @@
+name: Pull Request
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [master]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+      web: ${{ steps.filter.outputs.web }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Detect which parts of the repository changed
+        id: filter
+        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+        with:
+          filters: |
+            rust:
+              - 'apps/azimuth/**'
+              - 'apps/cinder/**'
+              - 'apps/influx/**'
+              - 'packages/analytics/**'
+              - 'packages/database/**'
+              - 'packages/geoip/**'
+              - 'packages/mail/**'
+              - 'packages/storage/**'
+              - 'packages/types/**'
+              - 'packages/util/**'
+              - '.sqlx/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'rust-toolchain.toml'
+              - 'rustfmt.toml'
+              - 'clippy.toml'
+            web:
+              - 'apps/meridian/**'
+              - 'packages/ui/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'biome.json'
+            workflows:
+              - '.github/workflows/**'
+
+  lint:
+    needs: prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lint.yml
+    with:
+      rust: ${{ needs.prepare.outputs.rust == 'true' || needs.prepare.outputs.workflows == 'true' }}
+      web: ${{ needs.prepare.outputs.web == 'true' || needs.prepare.outputs.workflows == 'true' }}
+
+  check:
+    needs: [prepare, lint]
+    if: needs.prepare.outputs.rust == 'true' || needs.prepare.outputs.workflows == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check.yml
+
+  test:
+    needs: [prepare, check]
+    if: needs.prepare.outputs.rust == 'true' || needs.prepare.outputs.workflows == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test.yml
+
+  summary:
+    if: always()
+    needs: [prepare, lint, check, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any dependency failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

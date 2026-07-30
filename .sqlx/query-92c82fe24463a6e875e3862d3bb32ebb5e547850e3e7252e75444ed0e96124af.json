@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pulsify.open_sessions\n             (project_id, player_uuid, joined_at, client_version, country_code)\n         VALUES ($1, $2, now(), $3, $4)\n         ON CONFLICT (project_id, player_uuid) DO UPDATE\n             SET joined_at = now(),\n                 client_version = EXCLUDED.client_version,\n                 country_code = EXCLUDED.country_code",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "92c82fe24463a6e875e3862d3bb32ebb5e547850e3e7252e75444ed0e96124af"
+}

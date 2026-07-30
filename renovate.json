@@ -27,20 +27,24 @@
     },
     {
       "groupName": "Vite & plugins",
-      "matchPackageNames": [
-        "vite",
-        "@vitejs/plugin-vue",
-        "@cloudflare/vite-plugin",
-        "@tailwindcss/vite"
-      ]
+      "matchPackageNames": ["vite", "@vitejs/plugin-vue", "@cloudflare/vite-plugin", "@tailwindcss/vite"]
     },
     {
       "groupName": "Tailwind CSS",
       "matchPackageNames": ["tailwindcss", "tw-animate-css"]
     },
     {
-      "groupName": "Drizzle ORM",
-      "matchPackageNames": ["drizzle-orm", "drizzle-kit"]
+      "groupName": "Rust crates",
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "groupName": "axum & tower",
+      "matchPackageNames": ["axum", "axum-extra", "tower", "tower-http", "tower_governor"]
+    },
+    {
+      "groupName": "AWS SDK",
+      "matchPackageNames": ["/^aws-/"]
     },
     {
       "groupName": "TypeScript & @types",
@@ -56,11 +60,7 @@
     },
     {
       "groupName": "CSS class utilities",
-      "matchPackageNames": [
-        "clsx",
-        "tailwind-merge",
-        "class-variance-authority"
-      ]
+      "matchPackageNames": ["clsx", "tailwind-merge", "class-variance-authority"]
     },
     {
       "groupName": "TanStack",

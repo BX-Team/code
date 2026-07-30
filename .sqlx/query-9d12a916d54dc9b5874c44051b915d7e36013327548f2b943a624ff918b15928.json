@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pulsify.issues\n             (id, project_id, fingerprint, status, status_version, muted_until, resolved_at,\n              resolved_by, first_seen_at, last_seen_at)\n         VALUES ($1, $2, $3, $4, $5, $6,\n                 CASE WHEN $4 = 'resolved' THEN now() END, $7, now(), now())\n         ON CONFLICT (project_id, fingerprint) DO UPDATE\n             SET status = EXCLUDED.status,\n                 status_version = EXCLUDED.status_version,\n                 muted_until = EXCLUDED.muted_until,\n                 resolved_at = EXCLUDED.resolved_at,\n                 resolved_by = EXCLUDED.resolved_by",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9d12a916d54dc9b5874c44051b915d7e36013327548f2b943a624ff918b15928"
+}

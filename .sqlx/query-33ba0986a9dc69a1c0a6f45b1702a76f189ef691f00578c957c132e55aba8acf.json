@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE pulsify.plugin_installations SET share_errors = $3\n          WHERE server_id = $1 AND plugin_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "33ba0986a9dc69a1c0a6f45b1702a76f189ef691f00578c957c132e55aba8acf"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE pulsify.alert_rules SET last_fired_at = now() WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4cc2db20bc663267e7c9bcf7ef7f008749db27c52cc96fa77d6d8ee41b60bfa5"
+}

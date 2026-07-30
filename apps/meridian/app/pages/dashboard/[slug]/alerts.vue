@@ -32,13 +32,10 @@ const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-
 const { data, pending, refresh } = await useAsyncData<{ rules: AlertRule[] } | null>(
   `project-alerts-${slug.value}`,
   () =>
-    project.value
-      ? api<{ rules: AlertRule[] }>(`/pulsify/projects/${project.value.id}/alerts`)
-      : Promise.resolve(null),
+    project.value ? api<{ rules: AlertRule[] }>(`/pulsify/projects/${project.value.id}/alerts`) : Promise.resolve(null),
   { watch: [project] },
 );
 
