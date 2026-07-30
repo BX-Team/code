@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE auth.verifications SET consumed_at = now()\n          WHERE value_hash = $1 AND consumed_at IS NULL AND expires_at > now()\n          RETURNING identifier",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "identifier",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.verifications",
+            "name": "identifier"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1286b7b9489e676422278698ddd528d432ba5a0a8c221ee27434b3f29bfd7913"
+}

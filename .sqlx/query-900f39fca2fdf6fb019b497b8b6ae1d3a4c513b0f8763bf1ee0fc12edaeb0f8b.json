@@ -1,0 +1,148 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT u.id, u.name, u.email, u.email_verified, u.image, u.role, u.banned,\n                u.ban_reason, u.ban_expires, u.created_at, u.updated_at\n           FROM auth.sessions s\n           JOIN auth.users u ON u.id = s.user_id\n          WHERE s.token_hash = $1 AND s.expires_at > now()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "email_verified",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "email_verified"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "image",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "image"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "role"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "banned",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "banned"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "ban_reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "ban_reason"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "ban_expires",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "ban_expires"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "auth.users",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "900f39fca2fdf6fb019b497b8b6ae1d3a4c513b0f8763bf1ee0fc12edaeb0f8b"
+}

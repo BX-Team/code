@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pulsify.quotas (user_id) VALUES ($1)\n         ON CONFLICT (user_id) DO UPDATE SET user_id = EXCLUDED.user_id\n         RETURNING max_projects, max_events_per_day",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "max_projects",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "pulsify.quotas",
+            "name": "max_projects"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "max_events_per_day",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "pulsify.quotas",
+            "name": "max_events_per_day"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "3ec4b1fd89bfa8ae3327cec356746b8757a012dfe5e0566c759e0cd9a376acf2"
+}

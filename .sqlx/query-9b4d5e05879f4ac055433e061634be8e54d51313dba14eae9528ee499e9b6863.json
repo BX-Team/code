@@ -1,0 +1,172 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, project_id, fingerprint, plugin, status, status_version, muted_until,\n                first_version, last_version, first_seen_at, last_seen_at, resolved_at, resolved_by\n           FROM pulsify.issues WHERE project_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "project_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "fingerprint",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "fingerprint"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "plugin",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "plugin"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "status_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "status_version"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "muted_until",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "muted_until"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "first_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "first_version"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "last_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "last_version"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "first_seen_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "first_seen_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "last_seen_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "last_seen_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "resolved_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "resolved_at"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "resolved_by",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "resolved_by"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "9b4d5e05879f4ac055433e061634be8e54d51313dba14eae9528ee499e9b6863"
+}

@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT project_id, last_seen_at, software, mc_version, country_code\n           FROM pulsify.server_metadata WHERE project_id = ANY($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "project_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.server_metadata",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "last_seen_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.server_metadata",
+            "name": "last_seen_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "software",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.server_metadata",
+            "name": "software"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "mc_version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.server_metadata",
+            "name": "mc_version"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "country_code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.server_metadata",
+            "name": "country_code"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "fc976ebfc63022a8736121feb1d3010eff66df70f44bbed4b6f2e87b97d5e665"
+}

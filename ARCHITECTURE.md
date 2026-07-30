@@ -1418,13 +1418,13 @@ Nuxt транспилирует через `build.transpile: ['@bx-team/ui']`. �
 │
 └── packages/
     ├── ui/                   # TypeScript, Vue — без изменений
-    ├── bx-types/             # wire-формат, fingerprint, scrub, версии, build_info
-    ├── bx-db/                # Postgres: миграции, модели, .sqlx
-    ├── bx-analytics/         # ClickHouse: схема + типизированные запросы
-    ├── bx-storage/           # S3/R2
-    ├── bx-mail/              # SMTP + шаблоны писем
-    ├── bx-geoip/             # IPinfo Lite mmdb
-    └── bx-util/              # ошибки, extractors, cors, rate limit, tracing
+    ├── types/             # wire-формат, fingerprint, scrub, версии, build_info
+    ├── database/                # Postgres: миграции, модели, .sqlx
+    ├── analytics/         # ClickHouse: схема + типизированные запросы
+    ├── storage/           # S3/R2
+    ├── mail/              # SMTP + шаблоны писем
+    ├── geoip/             # IPinfo Lite mmdb
+    └── util/              # ошибки, extractors, cors, rate limit, tracing
 ```
 
 Соглашения, скопированные с modrinth:
@@ -1446,7 +1446,7 @@ Nuxt транспилирует через `build.transpile: ['@bx-team/ui']`. �
 ```
 apps/azimuth/
 ├── Cargo.toml
-├── migrations/            # если решим держать миграции рядом с сервисом, а не в bx-db
+├── migrations/            # если решим держать миграции рядом с сервисом, а не в database
 ├── .sqlx/                 # закоммиченные offline-запросы sqlx
 ├── src/
 │   ├── main.rs            # только запуск: конфиг → пул → роутер → listener
@@ -1527,7 +1527,7 @@ apps/azimuth/
 (`stockholm/bx/...`) и имена юнитов (`podman-bx-*`) переименовывать не обязательно —
 они не пересекаются с чужими сущностями.
 
-Имена крейтов остаются короткими (`bx-types`, `bx-db`, …) — это внутренние Rust-имена,
+Имена крейтов остаются короткими (`types`, `database`, …) — это внутренние Rust-имена,
 которые нигде не соседствуют с чужими.
 
 ### 15.6 Версия сервиса и карточка на `/`
@@ -1558,8 +1558,8 @@ apps/azimuth/
 Строка для логов и заголовка `Server` собирается оттуда же:
 `Azimuth (v0.1.0/366f528)`.
 
-Функция сборки карточки живёт в `bx-types::build_info` **обычной функцией, а не макросом** —
-`CARGO_PKG_VERSION` там резолвится в самом `bx-types`, а версия всё равно общая на
+Функция сборки карточки живёт в `types::build_info` **обычной функцией, а не макросом** —
+`CARGO_PKG_VERSION` там резолвится в самом `types`, а версия всё равно общая на
 воркспейс.
 
 ### 15.7 Обязательные архитектурные правила новой версии
@@ -1567,7 +1567,7 @@ apps/azimuth/
 Это прямые ответы на §14 — то, что должно быть заложено в фундамент, а не
 починено потом:
 
-1. **Один модуль версий** (`bx-types::version`), используемый и детектом регрессий,
+1. **Один модуль версий** (`types::version`), используемый и детектом регрессий,
    и сортировкой загрузок.
 2. **Одна функция скрабинга** с одним набором правил. Уровни «что видит владелец» и
    «что видит автор плагина» различаются политикой, а не второй регуляркой.
@@ -1938,7 +1938,7 @@ Doc-комментарии на публичных элементах — одн
 - **Готово, когда:** `cargo check` и `biome ci .` зелёные на пустом воркспейсе,
   фронт собирается, PR-проверка проходит.
 
-### Фаза 1 — `packages/bx-types`
+### Фаза 1 — `packages/types`
 
 Чистая логика без ввода-вывода, поэтому идёт первой и покрывается тестами полностью.
 
@@ -1953,10 +1953,10 @@ Doc-комментарии на публичных элементах — одн
 
 ### Фаза 2 — хранилища
 
-- `packages/bx-db`: миграции (одна плоская последовательность), схемы `auth`,
+- `packages/database`: миграции (одна плоская последовательность), схемы `auth`,
   `atlas`, `pulsify` в одной базе, FK между схемами, уникальные ограничения из §15.5,
   таблица очереди, таблица открытых сессий.
-- `packages/bx-analytics`: схема ClickHouse (пять таблиц), ключи сортировки
+- `packages/analytics`: схема ClickHouse (пять таблиц), ключи сортировки
   подбираются под реальные запросы дашборда.
 - Перенос всех запросов дашборда из §9.4 в ClickHouse и проверка их на живой базе.
 - `.sqlx/` закоммичен.
@@ -2039,28 +2039,28 @@ Doc-комментарии на публичных элементах — одн
 
 | Было (TypeScript) | Стало (Rust) |
 |---|---|
-| `packages/types/src/schemas/pulsify.ts` | `bx-types::ingest` |
-| `packages/types/src/schemas/atlas.ts` | `bx-types::atlas` |
-| `packages/types/src/scrub.ts` | `bx-types::scrub` |
-| `apps/cinder/src/lib/version.ts` + `apps/azimuth/src/lib/versions.ts` | `bx-types::version` (**слияние двух**) |
-| `packages/stratus/src/d1/*.ts` | `bx-db` (миграции + `database/models`) |
+| `packages/types/src/schemas/pulsify.ts` | `types::ingest` |
+| `packages/types/src/schemas/atlas.ts` | `types::atlas` |
+| `packages/types/src/scrub.ts` | `types::scrub` |
+| `apps/cinder/src/lib/version.ts` + `apps/azimuth/src/lib/versions.ts` | `types::version` (**слияние двух**) |
+| `packages/stratus/src/d1/*.ts` | `database` (миграции + `database/models`) |
 | `apps/influx/src/routes/ingest.ts` | `apps/influx/src/routes/ingest.rs` |
 | `apps/influx/src/middleware/auth.ts` | `apps/influx/src/auth.rs` (extractor) |
-| `apps/influx/src/lib/queue.ts` | `bx-db::queue` (producer) |
+| `apps/influx/src/lib/queue.ts` | `database::queue` (producer) |
 | `apps/cinder/src/worker.ts` | `apps/cinder/src/main.rs` + `consumer.rs` |
 | `apps/cinder/src/handlers/*.ts` | `apps/cinder/src/handlers/*.rs` |
-| `apps/cinder/src/lib/analytics.ts` | `bx-analytics` (writer) |
+| `apps/cinder/src/lib/analytics.ts` | `analytics` (writer) |
 | `apps/cinder/src/lib/session.ts` (DO) | таблица `pulsify.open_sessions` + `sessions.rs` |
-| `apps/cinder/src/lib/geoip.ts` | `bx-geoip` (mmdb) |
+| `apps/cinder/src/lib/geoip.ts` | `geoip` (mmdb) |
 | `apps/cinder/src/lib/issues.ts` | `apps/cinder/src/issues.rs` |
 | `apps/cinder/src/lib/alerts.ts` + `spikes.ts` | `apps/cinder/src/alerts/` + `scheduler.rs` |
-| `apps/cinder/src/lib/error-payloads.ts` | `bx-storage::error_payloads` |
+| `apps/cinder/src/lib/error-payloads.ts` | `storage::error_payloads` |
 | `apps/azimuth/src/worker.ts` | `apps/azimuth/src/{main,lib}.rs` |
 | `apps/azimuth/src/lib/auth.ts` (Better Auth) | `apps/azimuth/src/auth/` (**своя реализация**) |
 | `apps/azimuth/src/middleware/auth.ts` | `apps/azimuth/src/auth/extractor.rs` |
 | `apps/azimuth/src/middleware/cache.ts` | заголовки `Cache-Control` + CDN |
-| `apps/azimuth/src/lib/email.ts` | `bx-mail` |
-| `apps/azimuth/src/lib/analytics-sql.ts` | `bx-analytics` (типизированные запросы) |
+| `apps/azimuth/src/lib/email.ts` | `mail` |
+| `apps/azimuth/src/lib/analytics-sql.ts` | `analytics` (типизированные запросы) |
 | `apps/azimuth/src/lib/pulsify.ts` | `apps/azimuth/src/{auth/extractor.rs, util/}` |
 | `apps/azimuth/src/lib/openapi.ts` | `utoipa` из аннотаций хендлеров |
 | `apps/azimuth/src/routes/atlas.ts` | `apps/azimuth/src/routes/atlas/` |
@@ -2162,7 +2162,7 @@ Rate limit namespace — `2001`
 |---|---|
 | `CLICKHOUSE_URL` / `CLICKHOUSE_DATABASE` | как у azimuth |
 | `APP_URL` | база для ссылок в алертах |
-| `IPINFO_MMDB_PATH` | `/var/lib/bx-geoip/ipinfo_lite.mmdb` |
+| `IPINFO_MMDB_PATH` | `/var/lib/geoip/ipinfo_lite.mmdb` |
 | `RUST_LOG` | `info` |
 
 **Сборка** — `BX_GIT_HASH` проставляется только при сборке сервиса, не зависимостей (§15.6).

@@ -1,0 +1,119 @@
+[workspace]
+resolver = "3"
+members = [
+  "apps/azimuth",
+  "apps/cinder",
+  "apps/influx",
+  "packages/analytics",
+  "packages/database",
+  "packages/geoip",
+  "packages/mail",
+  "packages/storage",
+  "packages/types",
+  "packages/util",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.0"
+repository = "https://github.com/BX-Team/code"
+license = "AGPL-3.0-only"
+
+[workspace.dependencies]
+aws-config = { version = "1.8", default-features = false, features = ["behavior-version-latest", "rt-tokio"] }
+aws-credential-types = "1.2"
+aws-sdk-s3 = { version = "1.140", default-features = false, features = ["default-https-client", "rt-tokio", "sigv4a"] }
+aws-smithy-types = "1.3"
+axum = "0.8.9"
+axum-extra = "0.12.6"
+base64 = "0.23.0"
+analytics = { path = "packages/analytics" }
+database = { path = "packages/database" }
+geoip = { path = "packages/geoip" }
+mail = { path = "packages/mail" }
+storage = { path = "packages/storage" }
+types = { path = "packages/types" }
+util = { path = "packages/util" }
+bytes = "1.12.1"
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde", "std"] }
+clickhouse = { version = "0.15.1", features = ["chrono", "uuid"] }
+dotenvy = "0.15.7"
+futures = "0.3.33"
+hex = "0.4.3"
+hmac = "0.13.0"
+http = "1.5.0"
+indexmap = { version = "2.13", features = ["serde"] }
+maxminddb = "0.30.0"
+md-5 = "0.11.0"
+mime_guess = "2.0.5"
+moka = { version = "0.12.15", features = ["future"] }
+rand = "0.10.2"
+regex = "1.13.1"
+reqwest = { version = "0.13.4", default-features = false, features = ["json", "rustls-tls-webpki-roots"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151", features = ["preserve_order"] }
+sha2 = "0.11.0"
+sqlx = { version = "0.9.0", default-features = false, features = [
+  "chrono",
+  "json",
+  "macros",
+  "migrate",
+  "postgres",
+  "runtime-tokio",
+  "tls-rustls-aws-lc-rs",
+  "uuid",
+] }
+thiserror = "2.0.19"
+tokio = "1.53.1"
+tower = "0.5.3"
+tower-http = "0.7.0"
+tower_governor = "0.8.0"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+url = "2.5"
+urlencoding = "2.1.3"
+utoipa = { version = "5.5.0", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-scalar = { version = "0.3.0", features = ["axum"] }
+uuid = { version = "1.24.0", features = ["serde", "v4"] }
+
+[workspace.lints.clippy]
+cloned_instead_of_copied = "warn"
+collection_is_never_read = "warn"
+dbg_macro = "warn"
+default_trait_access = "warn"
+explicit_iter_loop = "warn"
+filter_map_next = "warn"
+flat_map_option = "warn"
+format_push_string = "warn"
+get_unwrap = "warn"
+manual_assert = "warn"
+manual_is_variant_and = "warn"
+manual_let_else = "warn"
+match_bool = "warn"
+needless_collect = "warn"
+pathbuf_init_then_push = "warn"
+redundant_clone = "warn"
+redundant_type_annotations = "warn"
+result_large_err = "allow"
+todo = "warn"
+too_many_arguments = "allow"
+type_complexity = "allow"
+uninlined_format_args = "warn"
+unnested_or_patterns = "warn"
+wildcard_dependencies = "warn"
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3
+
+[profile.release]
+opt-level = "s"
+strip = true
+lto = true
+panic = "abort"
+
+[profile.release-service]
+inherits = "release"
+strip = false
+lto = "thin"
+panic = "unwind"

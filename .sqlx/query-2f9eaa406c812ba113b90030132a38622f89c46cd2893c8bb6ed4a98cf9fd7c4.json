@@ -1,0 +1,77 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, project_id, key, support_status, java_min_version\n           FROM atlas.versions WHERE project_id = $1 AND key = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.versions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "project_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.versions",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.versions",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "support_status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.versions",
+            "name": "support_status"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "java_min_version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "atlas.versions",
+            "name": "java_min_version"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "2f9eaa406c812ba113b90030132a38622f89c46cd2893c8bb6ed4a98cf9fd7c4"
+}

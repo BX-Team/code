@@ -1,0 +1,10 @@
+[files]
+extend-exclude = [
+  "apps/meridian/",
+  "packages/ui/",
+  "bun.lock",
+  "Cargo.lock",
+]
+
+[default.extend-words]
+mspt = "mspt"

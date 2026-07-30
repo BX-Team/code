@@ -15,7 +15,6 @@ const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.
 
 useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' });
 
-
 const range = ref<'24h' | '7d' | '30d'>('24h');
 
 interface TimePoint {
@@ -82,8 +81,7 @@ interface ErrorsResponse {
 
 const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
   `project-errors-${slug.value}`,
-  () =>
-    project.value ? api<ErrorsResponse>(`/pulsify/projects/${project.value.id}/errors`) : Promise.resolve(null),
+  () => (project.value ? api<ErrorsResponse>(`/pulsify/projects/${project.value.id}/errors`) : Promise.resolve(null)),
   { watch: [project] },
 );
 
