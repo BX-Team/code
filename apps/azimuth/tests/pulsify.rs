@@ -11,6 +11,7 @@ use chrono::{Duration, Utc};
 use database::Db;
 use database::models::{auth, pulsify};
 use http_body_util::BodyExt;
+use mail::Mailer;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use storage::Storage;
@@ -120,6 +121,13 @@ async fn fixture() -> Option<Fixture> {
         api_public_url: "https://api.bxteam.org".into(),
         trusted_origins: vec!["https://bxteam.org".into()],
         api_secret_key: "test-secret".into(),
+        cookie_domain: ".bxteam.org".into(),
+        smtp_url: "smtp://127.0.0.1:1".into(),
+        email_from: "BX Team <no-reply@bxteam.org>".into(),
+        github_client_id: String::new(),
+        github_client_secret: String::new(),
+        discord_client_id: String::new(),
+        discord_client_secret: String::new(),
         storage: storage::Config {
             endpoint: "http://127.0.0.1:1".into(),
             access_key_id: "x".into(),
@@ -132,12 +140,14 @@ async fn fixture() -> Option<Fixture> {
     };
 
     let storage = Storage::new(&config.storage);
+    let mailer = Mailer::new(&config.smtp_url, &config.email_from).expect("mailer");
 
     Some(Fixture {
         app: router(AppState::new(
             db.clone(),
             analytics.clone(),
             storage,
+            mailer,
             card(),
             config,
         )),

@@ -21,9 +21,11 @@ database = { workspace = true }
 futures = { workspace = true }
 hex = { workspace = true }
 indexmap = { workspace = true }
+mail = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 rand = { workspace = true }
+reqwest = { workspace = true }
 sha2 = { workspace = true }
 storage = { workspace = true }
 thiserror = { workspace = true }
@@ -32,6 +34,7 @@ tower-http = { workspace = true, features = ["cors", "limit", "set-header", "tim
 tracing = { workspace = true }
 types = { workspace = true }
 url = { workspace = true }
+urlencoding = { workspace = true }
 utoipa = { workspace = true }
 util = { workspace = true, features = ["analytics"] }
 uuid = { workspace = true }

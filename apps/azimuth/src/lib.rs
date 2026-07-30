@@ -195,10 +195,26 @@ pub fn router(state: AppState) -> Router {
             "/projects/{id}/alerts/{alert_id}",
             patch(routes::pulsify::alerts::update).delete(routes::pulsify::alerts::delete),
         )
-        .layer(session_cors);
+        .layer(session_cors.clone());
 
     // The two CORS policies must not overlap: a wildcard origin would strip credentials from
     // the session group, and a credentialed one would break anonymous reads of Atlas.
+    let auth = Router::new()
+        .route("/me", get(routes::auth::me))
+        .route("/session", get(routes::auth::get_session))
+        .route("/sign-in/magic-link", post(routes::auth::magic_link::send))
+        .route("/magic-link/verify", get(routes::auth::magic_link::verify))
+        .route("/sign-in/{provider}", get(routes::auth::oauth::start))
+        .route("/callback/{provider}", get(routes::auth::oauth::callback))
+        .route("/sign-out", post(routes::auth::sign_out))
+        .route("/update-user", post(routes::auth::update_user))
+        .route("/delete-user", post(routes::auth::delete_user))
+        .route("/admin/users", get(routes::auth::admin::list_users))
+        .route("/admin/users/{id}", delete(routes::auth::admin::remove))
+        .route("/admin/users/{id}/ban", post(routes::auth::admin::ban))
+        .route("/admin/users/{id}/unban", post(routes::auth::admin::unban))
+        .layer(session_cors);
+
     let public = Router::new()
         .route("/", get(routes::internal::card))
         .route("/health", get(routes::internal::health))
@@ -207,6 +223,7 @@ pub fn router(state: AppState) -> Router {
         .layer(public_cors);
 
     public
+        .nest("/auth", auth)
         .nest("/pulsify", pulsify)
         .layer(TimeoutLayer::with_status_code(
             StatusCode::SERVICE_UNAVAILABLE,
