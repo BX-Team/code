@@ -1664,9 +1664,10 @@ ClickHouse — плохая идея. Ключи объектов не меня�
 - **Все слушают loopback** (`AZIMUTH_BIND=127.0.0.1:8080`, `INFLUX_BIND=127.0.0.1:8081`),
   контейнеры запускаются с `--network=host`, потому что Postgres, ClickHouse и postfix
   доступны только по петле.
-- **Контейнер read-only, без capabilities, `no-new-privileges`, от `nobody`.** Значит:
-  бинарь статический, никаких временных файлов в ФС, всё состояние — в базах и R2.
-  Единственный смонтированный путь — каталог geoip, и тот `:ro`.
+- **Контейнер read-only, без capabilities, `no-new-privileges`, не от root.** Значит: никаких
+  временных файлов в ФС, всё состояние — в базах и R2. Единственный смонтированный путь —
+  каталог geoip, и тот `:ro`. Бинарь при этом обычный, динамический: libc едет в самом образе,
+  который тоже read-only, так что статическая линковка ничего бы не добавила (см. §17.1).
 - **Образы пинуются по digest'у** (`versions.json`), чтобы перезалитый тег не поменял
   то, что запускается при следующей пересборке хоста.
 - **Порядок запуска задаётся в модулях** (`after`/`wants` на postgres/clickhouse), но
@@ -1769,6 +1770,10 @@ PR-проверок — nixpkgs (оркестратор + переиспольз
 - Бинарь собирается один раз в CI (`cargo build --profile release-service`), затем
   копируется в минимальный образ. Как у modrinth: `Dockerfile` берёт **готовый бинарь**
   из staging-каталога, а не собирает внутри — иначе кэш Rust не переживает слой Docker.
+- База — `gcr.io/distroless/cc-debian12:nonroot`: ни шелла, ни пакетного менеджера, uid не root.
+  Отсюда жёсткая связка: **job сборки идёт на `ubuntu-22.04`** (glibc 2.35), потому что бинарь,
+  слинкованный с glibc более новой, чем в образе (2.36), там просто не запустится. Обновление
+  базового образа и раннера — парное изменение.
 - Обязательные метки: `org.opencontainers.image.source=https://github.com/BX-Team/code`
   (именно она связывает пакет с репозиторием и даёт `GITHUB_TOKEN` право на push),
   `title`, `description`, `licenses=AGPL-3.0-only`.
@@ -1784,15 +1789,12 @@ PR-проверок — nixpkgs (оркестратор + переиспольз
 
 ```
 .github/workflows/
-├── pull-request.yml     # оркестратор: prepare → lint / check / build / test → summary
-├── lint.yml             # workflow_call: fmt, clippy -D warnings, biome ci, typos, cargo-shear
-├── check.yml            # workflow_call: cargo check, sqlx prepare --check, проверка
+├── pull-request.yml     # оркестратор: prepare → lint / check → test → summary
+├── lint.yml             # workflow_call: fmt, clippy -D warnings, biome ci, typos
+├── check.yml            # workflow_call: cargo check --locked, sqlx prepare --check, проверка
 │                        #                заголовков коммитов под changelog-конфиг
-├── build.yml            # workflow_call: сборка трёх бинарей, артефакты для test.yml
-├── test.yml             # workflow_call: cargo test + интеграционные на service containers
-│                        #                (postgres + clickhouse + minio)
-├── docker.yml           # workflow_call: сборка и push образов
-├── release.yml          # workflow_dispatch: bump → tag → build → push → changelog → release
+├── test.yml             # workflow_call: cargo test на service containers (postgres + clickhouse)
+├── release.yml          # workflow_dispatch, один файл со всем графом — см. §17.4
 ├── web.yml              # meridian: biome, nuxt build, деплой на Cloudflare
 └── geoip.yml            # ежедневное обновление rolling-релиза geoip
 ```
@@ -1866,15 +1868,42 @@ Conventional Commits, `categories` раскладывает по раздела�
 
 ### 17.4 Релизный workflow
 
-По схеме Nyx, но с образами вместо инсталляторов:
+Релиз — **один файл** `release.yml`, а не цепочка переиспользуемых workflow'ов: в отличие от
+PR-проверок он запускается редко и вручную, и читать его целиком удобнее, чем прыгать по файлам.
+Граф при этом глубокий, ступенями, как у PR-пайплайна nixpkgs — на странице Actions видно, где
+именно всё встало.
 
-1. **`prepare`** — валидация формата версии (semver, с опциональным пререлизным
-   суффиксом), проставление версии в `Cargo.toml` и `Cargo.lock`, коммит бампа,
-   тег `vX.Y.Z`, поиск предыдущего тега, генерация ченджлога, создание **черновика**
-   релиза.
-2. **`build`** — сборка трёх бинарей на теге.
-3. **`docker`** — сборка и push трёх образов, сбор `deploy.json` с digest'ами.
-4. **`publish`** — публикация релиза с телом-ченджлогом, прикладывание `deploy.json`.
+```
+prepare ──┬── lint (matrix: rust / web / typos) ──┐
+          ├── check (cargo check --locked, sqlx prepare --check)
+          └── test (postgres + clickhouse)        │
+                                                  ▼
+                                                 tag
+                                                  │
+                                    build (matrix: azimuth/influx/cinder)
+                                                  │
+                                    image (matrix: azimuth/influx/cinder)
+                                                  │
+                                    manifest ──┬── changelog
+                                               ▼
+                                            publish
+                                               │
+                                            summary
+```
+
+1. **`prepare`** — валидация semver, проверка что тег ещё не занят, поиск предыдущего тега.
+2. **`lint` / `check` / `test`** — те же гейты, что и в PR: релиз не должен уметь выпустить то,
+   что не прошло бы ревью.
+3. **`tag`** — проставление версии в `Cargo.toml` + `cargo update --workspace`, коммит бампа,
+   тег `vX.Y.Z`, push. Всё дальнейшее собирается **с этого коммита**, а не с ветки.
+4. **`build`** — три бинаря матрицей, `--profile release-service`. `BX_GIT_HASH` ставится только
+   здесь, чтобы не инвалидировать кэш зависимостей.
+5. **`image`** — три образа матрицей; каждый кладёт свой digest артефактом, потому что выходы
+   матричных job'ов в GitHub Actions затирают друг друга.
+6. **`manifest`** — сборка `deploy.json` из этих артефактов.
+7. **`changelog`** — генерация тела релиза между предыдущим тегом и новым.
+8. **`publish`** — релиз с телом-ченджлогом и приложенным `deploy.json`.
+9. **`summary`** — финальный гейт: падает, если упало что угодно выше.
 
 Ручной шаг после релиза: `deploy.json` целиком вставляется в
 `/etc/nixos/bxteam/versions.json` и делается `nixos-rebuild switch`. Автоматического
@@ -2004,7 +2033,7 @@ Doc-комментарии на публичных элементах — одн
 
 ### Фаза 8 — поставка
 
-- `Dockerfile` на каждый сервис, `docker.yml` и `release.yml` (§17).
+- `Dockerfile` на каждый сервис, `release.yml` (§17.4).
 - Первый релиз `v0.1.0`, три образа в GHCR, `deploy.json`.
 - Приведение `/etc/nixos/bxteam` в соответствие: имя базы `bx_team`, актуальные
   переменные окружения, digest'ы в `versions.json`.
