@@ -3,6 +3,7 @@ import ChartAreaInteractive from '@/components/dashboard/ChartAreaInteractive.vu
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 import SectionCards from '@/components/dashboard/SectionCards.vue';
 import type { ChartConfig } from '@/components/ui/chart';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 
@@ -14,7 +15,6 @@ const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.
 
 useHead({ title: computed(() => project.value?.name ?? slug.value), titleTemplate: '%s | Pulsify' });
 
-const requestFetch = useRequestFetch();
 
 const range = ref<'24h' | '7d' | '30d'>('24h');
 
@@ -53,7 +53,7 @@ const {
   `project-stats-${slug.value}`,
   () =>
     project.value
-      ? requestFetch<StatsResponse>(`/api/v3/projects/${project.value.id}/stats`, { query: { range: range.value } })
+      ? api<StatsResponse>(`/pulsify/projects/${project.value.id}/stats`, { query: { range: range.value } })
       : Promise.resolve(null),
   { watch: [range, project] },
 );
@@ -62,7 +62,7 @@ const { data: players } = await useAsyncData<PlayersResponse | null>(
   `project-players-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`)
+      ? api<PlayersResponse>(`/pulsify/projects/${project.value.id}/players`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -83,7 +83,7 @@ interface ErrorsResponse {
 const { data: errorsData } = await useAsyncData<ErrorsResponse | null>(
   `project-errors-${slug.value}`,
   () =>
-    project.value ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`) : Promise.resolve(null),
+    project.value ? api<ErrorsResponse>(`/pulsify/projects/${project.value.id}/errors`) : Promise.resolve(null),
   { watch: [project] },
 );
 
@@ -121,7 +121,7 @@ const { data: clientVersions } = await useAsyncData<ClientVersionsResponse | nul
   `project-client-versions-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<ClientVersionsResponse>(`/api/v3/projects/${project.value.id}/client-versions`, {
+      ? api<ClientVersionsResponse>(`/pulsify/projects/${project.value.id}/client-versions`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -132,7 +132,7 @@ const { data: geography } = await useAsyncData<GeographyResponse | null>(
   `project-geography-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<GeographyResponse>(`/api/v3/projects/${project.value.id}/geography`, {
+      ? api<GeographyResponse>(`/pulsify/projects/${project.value.id}/geography`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -143,7 +143,7 @@ const { data: sessionDuration } = await useAsyncData<SessionDurationResponse | n
   `project-session-duration-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<SessionDurationResponse>(`/api/v3/projects/${project.value.id}/session-duration`, {
+      ? api<SessionDurationResponse>(`/pulsify/projects/${project.value.id}/session-duration`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -154,7 +154,7 @@ const { data: retention } = await useAsyncData<RetentionResponse | null>(
   `project-retention-${slug.value}`,
   () =>
     project.value?.type === 'server'
-      ? requestFetch<RetentionResponse>(`/api/v3/projects/${project.value.id}/retention`)
+      ? api<RetentionResponse>(`/pulsify/projects/${project.value.id}/retention`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -163,14 +163,14 @@ const { data: pluginInsights } = await useAsyncData<PluginInsightsResponse | nul
   `project-plugin-insights-${slug.value}`,
   () =>
     project.value && project.value.type !== 'server'
-      ? requestFetch<PluginInsightsResponse>(`/api/v3/projects/${project.value.id}/plugins`)
+      ? api<PluginInsightsResponse>(`/pulsify/projects/${project.value.id}/plugins`)
       : Promise.resolve(null),
   { watch: [project] },
 );
 
 const seriesData = computed(() =>
   (stats.value?.timeseries ?? []).map(p => ({
-    date: parseClickhouseDate(p.time),
+    date: parseAnalyticsDate(p.time),
     online: Number(p.online ?? 0),
     tps: Number(p.tps ?? 0),
   })),

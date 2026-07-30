@@ -121,7 +121,7 @@ interface FooterColumn { heading: string; links: FooterLink[] }
 props: {
   columns?: FooterColumn[]
   blurb?: string
-  status?: string
+  location?: string | null  // edge location label, e.g. "Warsaw, PL (WAW)"
   githubHref?: string
   discordHref?: string
 }

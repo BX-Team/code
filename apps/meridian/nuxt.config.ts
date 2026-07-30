@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/content', '@nuxt/fonts', 'nuxt-umami'],
+  modules: ['@nuxt/content', '@nuxt/fonts'],
 
   fonts: {
     families: [
@@ -85,19 +85,15 @@ export default defineNuxtConfig({
     },
   },
 
-  umami: {
-    id: 'f58cff07-e60d-4407-ade0-655a5f57aaf3',
-    host: 'https://analytics.bxteam.org',
-    autoTrack: true,
+  routeRules: {
+    '/dashboard/**': { ssr: false },
+    '/admin/**': { ssr: false },
+    '/downloads/**': { ssr: false },
+    '/login': { ssr: false },
   },
 
-  runtimeConfig: {
-    apiSecretKey: '',
-    r2PublicUrl: '',
-    r2AccessKeyId: '',
-    r2SecretAccessKey: '',
-    r2Endpoint: '',
-    r2Bucket: '',
+  nitro: {
+    preset: 'static',
   },
 
   compatibilityDate: '2026-01-01',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Metrics', titleTemplate: '%s | Pulsify' });
@@ -38,7 +39,6 @@ const route = useRoute();
 const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
-const requestFetch = useRequestFetch();
 
 const range = ref<'24h' | '7d' | '30d'>('7d');
 const selectedMetric = ref<string | null>(null);
@@ -61,7 +61,7 @@ const {
   `metrics-list-${slug.value}`,
   () =>
     project.value
-      ? requestFetch<MetricsListResponse>(`/api/v3/projects/${project.value.id}/metrics`, {
+      ? api<MetricsListResponse>(`/pulsify/projects/${project.value.id}/metrics`, {
           query: { range: range.value },
         })
       : Promise.resolve(null),
@@ -78,8 +78,8 @@ const { data: seriesData, pending: seriesPending } = await useAsyncData<MetricSe
   `metrics-series-${slug.value}`,
   () =>
     project.value && selectedMetric.value
-      ? requestFetch<MetricSeriesResponse>(
-          `/api/v3/projects/${project.value.id}/metrics/${encodeURIComponent(selectedMetric.value)}`,
+      ? api<MetricSeriesResponse>(
+          `/pulsify/projects/${project.value.id}/metrics/${encodeURIComponent(selectedMetric.value)}`,
           { query: { range: range.value } },
         )
       : Promise.resolve(null),

@@ -1,7 +1,7 @@
 ---
 title: Privacy Policy
 description: How BX Team collects, uses, and protects your information when you use our website, BX ID, and Pulsify.
-lastUpdated: May 12, 2026
+lastUpdated: July 9, 2026
 ---
 
 ## 1. Introduction
@@ -18,7 +18,6 @@ For the purposes of GDPR Article 4(7), **BX Team acts as the data controller** f
 
 - BX ID accounts (authentication, profile data)
 - Pulsify dashboard accounts and project metadata
-- Website analytics (collected via our self-hosted Umami instance — see Section 3.5)
 
 For data submitted **through the Pulsify SDK installed on a Minecraft server**, the **server operator** (the person or organization who installs Pulsify on their Minecraft server) acts as the **data controller**, and BX Team acts as the **data processor** under GDPR Article 28. Server operators are responsible for informing their players about data collection and obtaining any required consent.
 
@@ -82,30 +81,11 @@ The SDK is **open source**. Server operators can inspect, audit, or fork it. Sel
 
 ### 3.4 Email communications
 
-When you contact us at gdpr@bxteam.org or support@bxteam.org, we receive and store the contents of your email and your email address. Outgoing transactional email (magic links, support replies, notifications) is delivered through **Resend** (resend.com) — see Section 7.
+When you contact us at gdpr@bxteam.org or support@bxteam.org, we receive and store the contents of your email and your email address. Outgoing transactional email (magic links, support replies, notifications) is delivered through **Cloudflare Email Service** — see Section 7.
 
 ### 3.5 Website analytics
 
-We use a **self-hosted instance of [Umami](https://umami.is)** (`analytics.bxteam.org`) to measure how our website is used. Umami is a privacy-focused, cookieless analytics tool. The instance runs on our own infrastructure in Sweden (see Section 7) — no analytics data leaves our servers.
-
-Umami collects:
-
-- **Page views** — URL path of the page you visit, page title, referrer (the site you came from)
-- **Anonymous device information** — browser, operating system, device type (desktop / mobile / tablet), screen size, preferred language
-- **Country** — derived from your IP address; the raw IP is hashed daily with a rotating salt and is **not stored**
-- **Session-level events** — duration of the visit, bounces
-
-In addition to automatic page views, we record a small number of **custom button-click events** to understand which features visitors actually use:
-
-| Event | When it fires | Properties recorded |
-|---|---|---|
-| `cta_click` | Homepage call-to-action buttons ("Explore docs", "Try Pulsify") | `action` |
-| `github_click` | Clicks on GitHub links in the docs header and downloads pages | `location` |
-| `discord_click` | Clicks on the Discord link in the docs header | `location` |
-| `download` | Clicks on a build download button on the downloads pages | `project`, `build`, `channel` |
-| `dashboard_range_change` | Changing the time range selector inside the Pulsify dashboard | `range` |
-
-These events contain no personal data — only the technical context of the interaction. Umami does not set cookies, does not fingerprint your device, and does not track you across other websites. If you prefer, you can block `analytics.bxteam.org` in your browser or use a content blocker, and the website will continue to work normally.
+We do **not** use any website analytics, tracking, or telemetry on our website. There are no third-party analytics scripts, no fingerprinting, and no cross-site tracking.
 
 ## 4. Why we collect data and our legal basis
 
@@ -115,7 +95,6 @@ These events contain no personal data — only the technical context of the inte
 | Authenticating you and securing your sessions | Contract; legitimate interest in security (Art. 6(1)(f)) |
 | Operating the Pulsify dashboard for you | Contract (Art. 6(1)(b)) |
 | Processing telemetry on behalf of server operators | Processor relationship (Art. 28) — legal basis is the controller's responsibility |
-| Website analytics via self-hosted Umami (Section 3.5) | Legitimate interest (Art. 6(1)(f)) — privacy-friendly, cookieless, no personal data |
 | Aggregated, non-identifying product analytics | Legitimate interest (Art. 6(1)(f)) |
 | Responding to support and legal requests | Legal obligation (Art. 6(1)(c)); legitimate interest |
 
@@ -123,7 +102,7 @@ We do **not** sell your data, use it for advertising, or share it with third par
 
 ## 5. Cookies
 
-We use **only essential session cookies** required for authentication. We do not use advertising or cross-site tracking cookies. Our self-hosted Umami analytics (Section 3.5) is **cookieless**.
+We use **only essential session cookies** required for authentication. We do not use advertising or cross-site tracking cookies, and we do not run any third-party analytics or tracking scripts.
 
 | Cookie | Purpose | Duration |
 |---|---|---|
@@ -142,18 +121,17 @@ If you wish to have all data associated with you deleted earlier, contact gdpr@b
 
 ## 7. Where we store data and sub-processors
 
-All primary data — including BX ID accounts, Pulsify dashboard data, telemetry, and our self-hosted Umami analytics — is stored on **servers physically located in Sweden (European Union)**, rented from **Hostup AB**. Because storage is within the EU/EEA, no international transfer mechanisms (such as Standard Contractual Clauses) are required for EU/EEA data subjects.
+All primary data — including BX ID accounts, Pulsify dashboard data, and telemetry — is stored and processed on **Cloudflare's global network**, using Cloudflare Workers, D1 databases, R2 object storage, Durable Objects, and Analytics Engine. Cloudflare, Inc. is a United States company that operates data centers worldwide, so your data may be processed outside the EU/EEA. For these transfers we rely on the safeguards described below.
 
 We rely on the following sub-processors:
 
 | Sub-processor | Purpose | Location |
 |---|---|---|
-| Hostup AB | Database, application, and analytics hosting | Sweden (EU) |
-| Resend, Inc. | Outgoing transactional email delivery (magic links, support replies, notifications) | United States |
+| Cloudflare, Inc. | Hosting and infrastructure (databases, application, object storage, analytics) and outgoing transactional email (magic links, support replies, notifications) | United States (global network) |
 | Discord Inc. | OAuth login (only if you choose Discord sign-in) | United States |
 | GitHub, Inc. | OAuth login (only if you choose GitHub sign-in) | United States |
 
-For transfers to the United States (Resend, Discord, GitHub), we rely on the **EU-U.S. Data Privacy Framework** and/or **Standard Contractual Clauses** as adopted by those providers.
+For transfers to the United States (Cloudflare, Discord, GitHub), we rely on the **EU-U.S. Data Privacy Framework** and/or **Standard Contractual Clauses** as adopted by those providers.
 
 ## 8. Your rights under GDPR
 
