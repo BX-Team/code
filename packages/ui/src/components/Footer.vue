@@ -16,14 +16,12 @@ const props = withDefaults(
   defineProps<{
     columns?: FooterColumn[];
     blurb?: string;
-    location?: string | null;
     githubHref?: string;
     discordHref?: string;
   }>(),
   {
     blurb:
       'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players.',
-    location: null,
   },
 );
 
@@ -108,15 +106,6 @@ const effectiveColumns = computed<FooterColumn[]>(
 			</div>
 
 			<div class="bx-footer__bottom">
-				<span class="bx-footer__loc" :title="location ? `Request served by Cloudflare ${location}` : undefined">
-					<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-						<circle cx="12" cy="12" r="10" />
-						<path d="M2 12h20" />
-						<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-					</svg>
-					<span v-if="location">Served from {{ location }}</span>
-					<span v-else class="bx-footer__loc-idle">Locating edge…</span>
-				</span>
 				<div class="bx-footer__bottom-right">
 					<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
 				</div>
@@ -221,25 +210,9 @@ const effectiveColumns = computed<FooterColumn[]>(
 .bx-footer__bottom {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-end;
 	padding-top: 24px;
 	border-top: 1px solid var(--line);
-}
-
-.bx-footer__loc {
-	display: inline-flex;
-	align-items: center;
-	gap: 7px;
-	font: 500 12.5px var(--font-sans);
-	color: var(--dim);
-}
-
-.bx-footer__loc svg {
-	color: var(--brand);
-}
-
-.bx-footer__loc-idle {
-	color: var(--mute);
 }
 
 .bx-footer__bottom-right {

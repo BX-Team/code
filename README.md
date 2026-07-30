@@ -17,10 +17,10 @@ The BX Team web platform: the public site, the downloads API and Pulsify — obs
 
 ## Getting started
 
-Backend:
+Backend. It needs a PostgreSQL, a ClickHouse and an S3-compatible endpoint reachable through
+`DATABASE_URL`, `CLICKHOUSE_URL` and `R2_*`; how you run those locally is up to you.
 
 ```sh
-docker compose up -d
 cargo check --workspace
 cargo test --workspace
 ```

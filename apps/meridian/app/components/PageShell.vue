@@ -4,8 +4,6 @@ import { computed } from 'vue';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
-const colo = useColocation();
-
 const { data: session } = await useSession();
 const loggedIn = computed(() => !!session.value?.user);
 </script>
@@ -22,7 +20,6 @@ const loggedIn = computed(() => !!session.value?.user);
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:location="colo"
 		/>
 	</div>
 </template>

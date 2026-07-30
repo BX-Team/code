@@ -454,6 +454,9 @@ impl Analytics {
     }
 
     /// D1 and D7 cohorts, intersected by ClickHouse rather than pulled into the service.
+    ///
+    /// Days are UTC on both sides: `today()` would follow the server's timezone while the
+    /// timestamps are UTC, silently shifting every cohort by a day near midnight.
     pub async fn retention(&self, project_id: Uuid) -> Result<Retention, Error> {
         self.client
             .query(
@@ -464,8 +467,8 @@ impl Analytics {
                    countDistinctIf(player_uuid, d = -8 AND returned_next) AS day7_returned
                  FROM (
                    SELECT player_uuid,
-                          dateDiff('day', today(), toDate(timestamp)) AS d,
-                          has(groupArray(dateDiff('day', today(), toDate(timestamp)))
+                          dateDiff('day', toDate(now(), 'UTC'), toDate(timestamp)) AS d,
+                          has(groupArray(dateDiff('day', toDate(now(), 'UTC'), toDate(timestamp)))
                                 OVER (PARTITION BY player_uuid), d + 1) AS returned_next
                      FROM sessions
                     WHERE project_id = ?
