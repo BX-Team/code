@@ -6,6 +6,7 @@ use azimuth::{AppState, Config, card, router};
 use chrono::{DateTime, Utc};
 use database::Db;
 use http_body_util::BodyExt;
+use mail::Mailer;
 use serde_json::Value;
 use storage::Storage;
 use tower::ServiceExt;
@@ -36,6 +37,13 @@ async fn fixture() -> Option<Fixture> {
         api_public_url: "https://api.bxteam.org".into(),
         trusted_origins: vec!["https://bxteam.org".into()],
         api_secret_key: SECRET.into(),
+        cookie_domain: ".bxteam.org".into(),
+        smtp_url: "smtp://127.0.0.1:1".into(),
+        email_from: "BX Team <no-reply@bxteam.org>".into(),
+        github_client_id: String::new(),
+        github_client_secret: String::new(),
+        discord_client_id: String::new(),
+        discord_client_secret: String::new(),
         storage: storage::Config {
             endpoint: "http://127.0.0.1:1".into(),
             access_key_id: "x".into(),
@@ -54,6 +62,7 @@ async fn fixture() -> Option<Fixture> {
         &config.clickhouse_password,
     );
     let storage = Storage::new(&config.storage);
+    let mailer = Mailer::new(&config.smtp_url, &config.email_from).expect("mailer");
     let key = format!("proj{}", Uuid::new_v4().simple());
 
     Some(Fixture {
@@ -61,6 +70,7 @@ async fn fixture() -> Option<Fixture> {
             db.clone(),
             analytics,
             storage,
+            mailer,
             card(),
             config,
         )),

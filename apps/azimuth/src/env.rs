@@ -13,6 +13,13 @@ pub struct Config {
     pub api_public_url: String,
     pub trusted_origins: Vec<String>,
     pub api_secret_key: String,
+    pub cookie_domain: String,
+    pub smtp_url: String,
+    pub email_from: String,
+    pub github_client_id: String,
+    pub github_client_secret: String,
+    pub discord_client_id: String,
+    pub discord_client_secret: String,
     pub storage: storage::Config,
     pub max_upload_bytes: usize,
 }
@@ -48,6 +55,13 @@ impl Config {
                 .map(ToOwned::to_owned)
                 .collect(),
             api_secret_key: required("API_SECRET_KEY")?,
+            cookie_domain: optional("COOKIE_DOMAIN", ".bxteam.org"),
+            smtp_url: optional("SMTP_URL", "smtp://127.0.0.1:25"),
+            email_from: optional("EMAIL_FROM", "BX Team <no-reply@bxteam.org>"),
+            github_client_id: optional("GITHUB_CLIENT_ID", ""),
+            github_client_secret: optional("GITHUB_CLIENT_SECRET", ""),
+            discord_client_id: optional("DISCORD_CLIENT_ID", ""),
+            discord_client_secret: optional("DISCORD_CLIENT_SECRET", ""),
             storage: storage::Config {
                 endpoint: required("R2_ENDPOINT")?,
                 access_key_id: required("R2_ACCESS_KEY_ID")?,

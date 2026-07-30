@@ -1,7 +1,7 @@
 use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
-use crate::routes::{atlas, internal, pulsify};
+use crate::routes::{atlas, auth, internal, pulsify};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -54,10 +54,24 @@ use crate::routes::{atlas, internal, pulsify};
         pulsify::alerts::create,
         pulsify::alerts::update,
         pulsify::alerts::delete,
+        auth::me,
+        auth::get_session,
+        auth::sign_out,
+        auth::update_user,
+        auth::delete_user,
+        auth::magic_link::send,
+        auth::magic_link::verify,
+        auth::oauth::start,
+        auth::oauth::callback,
+        auth::admin::list_users,
+        auth::admin::ban,
+        auth::admin::unban,
+        auth::admin::remove,
     ),
     tags(
         (name = "atlas", description = "Project, version and build metadata"),
         (name = "pulsify", description = "Projects, telemetry, errors and alerts"),
+        (name = "auth", description = "Sign-in, sessions and user administration"),
         (name = "internal", description = "Service health and identity")
     ),
     modifiers(&SecretScheme)
