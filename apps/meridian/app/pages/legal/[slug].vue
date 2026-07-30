@@ -3,8 +3,6 @@ import { Footer, Navbar } from '@bx-team/ui';
 import { Scale } from '@lucide/vue';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
-const colo = useColocation();
-
 const route = useRoute();
 
 const { data: session } = await useSession();
@@ -66,7 +64,6 @@ const related = computed(() => {
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:location="colo"
 		/>
 	</div>
 </template>

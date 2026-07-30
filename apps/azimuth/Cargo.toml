@@ -10,7 +10,32 @@ license.workspace = true
 name = "azimuth"
 path = "src/main.rs"
 
+[build-dependencies]
+chrono = { workspace = true }
+
 [dependencies]
+analytics = { workspace = true }
+axum = { workspace = true, features = ["multipart"] }
+chrono = { workspace = true }
+database = { workspace = true }
+futures = { workspace = true }
+indexmap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+storage = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal"] }
+tower-http = { workspace = true, features = ["cors", "limit", "set-header", "timeout", "trace"] }
+tracing = { workspace = true }
+types = { workspace = true }
+utoipa = { workspace = true }
+util = { workspace = true, features = ["analytics"] }
+uuid = { workspace = true }
+
+[dev-dependencies]
+http-body-util = "0.1"
+sqlx = { workspace = true }
+tower = { workspace = true, features = ["util"] }
 
 [lints]
 workspace = true

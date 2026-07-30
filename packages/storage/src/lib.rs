@@ -3,6 +3,7 @@ use aws_credential_types::Credentials;
 use aws_sdk_s3::Client;
 use aws_sdk_s3::config::Builder;
 
+pub mod builds;
 pub mod error_payloads;
 
 #[derive(Debug, thiserror::Error)]

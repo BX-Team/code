@@ -40,7 +40,7 @@ Each project may have its own `CLAUDE.md` with detailed instructions:
 ### Comments
 Comments are rare by rule, not by taste.
 
-- Never document build files (`Cargo.toml`, `Dockerfile`, `build.rs`, `flake.nix`), CI workflows, config files (`biome.json`, `rustfmt.toml`, `docker-compose.yml`) or Nix modules.
+- Never document build files (`Cargo.toml`, `Dockerfile`, `build.rs`, `flake.nix`), CI workflows, config files (`biome.json`, `rustfmt.toml`) or Nix modules.
 - NO file-header banner comments and NO "heading"/divider comments like `// --- helpers ---` or etc. Group code with functions, not comment art.
 - Avoid inline `//` comments. Add one only when the code is correct but looks wrong — a wire-format quirk, a migration ordering constraint, a platform limit, a deliberately odd decision. Then keep it to a line or two.
 - Doc comments on exported identifiers are expected, but keep them to a single line describing intent. Code should read for itself.

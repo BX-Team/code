@@ -8,7 +8,14 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/content', '@nuxt/fonts'],
+  modules: ['@nuxt/content', '@nuxt/fonts', '@scalar/nuxt'],
+
+  scalar: {
+    darkMode: true,
+    hideClientButton: true,
+    pathRouting: { basePath: '/docs/api' },
+    url: `${process.env.VITE_API_BASE || 'https://api.bxteam.org'}/openapi.json`,
+  },
 
   fonts: {
     families: [
@@ -90,6 +97,7 @@ export default defineNuxtConfig({
     '/admin/**': { ssr: false },
     '/downloads/**': { ssr: false },
     '/login': { ssr: false },
+    '/docs/api/**': { ssr: false },
   },
 
   nitro: {
