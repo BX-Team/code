@@ -855,10 +855,8 @@ footer `"Pulsify"`. Иначе отправляется исходный JSON. �
 | Метод | Путь | Auth | Описание |
 |---|---|---|---|
 | GET | `/health` | — | `{status:"ok"}` |
-| GET | `/location` | — | `{colo, city, country}` из `request.cf` — показывается в футере сайта |
 | GET | `/` | — | **в новой версии** — карточка сервиса с версией, см. §15.6 |
-| GET | `/openapi.json` | — | OpenAPI 3.1 (только Atlas + `/health` + `/location`) |
-| GET | `/reference` | — | Scalar UI |
+| GET | `/openapi.json` | — | OpenAPI 3.1, генерируется из хендлеров |
 | GET/POST | `/auth/*` | — | Better Auth handler |
 | GET | `/auth/me` | сессия | `{user}` — зарегистрирован **до** catch-all `/auth/*` |
 
@@ -868,7 +866,7 @@ CORS:
   Разрешённые методы: `GET, POST, PATCH, DELETE, OPTIONS`, заголовки
   `Content-Type, Authorization`.
 - `/atlas/*` — CORS **без credentials** (публичное чтение из браузера).
-- `/location`, `/openapi.json` — открытый CORS.
+- `/openapi.json` — открытый CORS: его читает Scalar со страницы `bxteam.org/docs/api`.
 
 ### 9.3 azimuth — Atlas
 
@@ -1251,10 +1249,9 @@ plugins: [adminClient(), magicLinkClient()], fetchOptions: { credentials: 'inclu
 Nuxt транспилирует через `build.transpile: ['@bx-team/ui']`. Правила подробно
 описаны в `packages/ui/CLAUDE.md` — при переписи бэкенда этот файл не трогаем.
 
-Мелочь, которую легко потерять: футер показывает Cloudflare edge-локацию визитёра,
-для чего есть плагин `location.client.ts`, дёргающий `GET /location`.
-Если бэкенд переезжает с edge — этот эндпоинт либо переосмысливается, либо убирается
-вместе с элементом UI.
+Футер показывал Cloudflare edge-локацию визитёра (`location.client.ts` → `GET /location`).
+После переезда на один хост edge-локации больше нет, поэтому и эндпоинт, и элемент футера
+удалены — показывать было бы нечего.
 
 ---
 
@@ -1403,7 +1400,6 @@ Nuxt транспилирует через `build.transpile: ['@bx-team/ui']`. �
 ├── _typos.toml
 ├── biome.json                # для TS-части (meridian + ui)
 ├── package.json              # bun workspaces: apps/meridian, packages/ui — и всё
-├── docker-compose.yml        # postgres + clickhouse + minio для локальной разработки
 ├── ARCHITECTURE.md           # этот документ
 │
 ├── .github/
@@ -1459,7 +1455,7 @@ apps/azimuth/
 │   │   ├── pulsify/       # projects.rs, analytics.rs, errors.rs, metrics.rs,
 │   │   │                  # tokens.rs, alerts.rs, overview.rs, billing.rs
 │   │   ├── auth/          # magic_link.rs, oauth.rs, session.rs, admin.rs
-│   │   └── internal.rs    # /health, /location, /
+│   │   └── internal.rs    # /health, /openapi.json, /
 │   ├── models/            # API-модели: то, что сериализуется в ответ
 │   ├── database/models/   # строки БД + запросы к ним (по образцу *_item.rs)
 │   ├── analytics/         # запросы к ClickHouse, по одному модулю на виджет
@@ -1896,7 +1892,7 @@ Conventional Commits, `categories` раскладывает по раздела�
 
 - сборочные файлы — `Cargo.toml`, `Dockerfile`, `build.rs`, `flake.nix`;
 - CI-скрипты и GitHub Actions workflow'ы;
-- конфигурация — `biome.json`, `rustfmt.toml`, `clippy.toml`, `docker-compose.yml`;
+- конфигурация — `biome.json`, `rustfmt.toml`, `clippy.toml`;
 - Nix-модули, если только речь не о ловушке уровня «postfix и opendkim пишут один
   сокет по-разному»;
 - очевидный код: `// создаём пул`, `// цикл по проектам`, `// возвращаем ответ`.
@@ -1931,7 +1927,6 @@ Doc-комментарии на публичных элементах — одн
 
 - Новый репозиторий, в нём только `apps/meridian` и `packages/ui` из старого.
 - `Cargo.toml` воркспейса, `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`.
-- `docker-compose.yml`: postgres, clickhouse, minio.
 - CI по структуре из §17.2: оркестратор + `lint`/`check`, остальное добавляется по мере
   появления кода.
 - `.github/changelog_configuration.json` (§17.3).
@@ -2205,13 +2200,15 @@ apps/meridian/app/lib/api.ts   # только если меняется базо
 
 ```
 Cargo.toml  rust-toolchain.toml  rustfmt.toml  clippy.toml  _typos.toml
-docker-compose.yml
 .github/workflows/           # §17.2
 .github/changelog_configuration.json
 apps/{azimuth,influx,cinder}/Dockerfile
 ```
 
-Отдельно: `apps/meridian/app/plugins/location.client.ts` и `GET /location` завязаны на
-Cloudflare edge (`request.cf`) — после переезда на один VPS этот эндпоинт теряет смысл.
-Либо убрать элемент из футера, либо заменить на что-то осмысленное (например, регион
-хоста константой).
+Отдельно: `apps/meridian/app/plugins/location.client.ts`, `useColocation.ts` и `GET /location`
+завязаны на Cloudflare edge (`request.cf`) — после переезда на один VPS показывать нечего,
+поэтому они удалены вместе с элементом футера.
+
+Документация API живёт на `bxteam.org/docs/api`: `@scalar/nuxt` в meridian рендерит
+`https://api.bxteam.org/openapi.json`, который azimuth генерирует из хендлеров через `utoipa`.
+Отдельного `/reference` на стороне API больше нет.

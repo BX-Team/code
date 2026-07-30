@@ -5,8 +5,6 @@ import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const appConfig = useAppConfig();
-const colo = useColocation();
-
 const { data: session } = await useSession();
 const loggedIn = computed(() => !!session.value?.user);
 
@@ -219,7 +217,6 @@ function projectVersion(href: string): string | undefined {
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:location="colo"
 		/>
 	</div>
 </template>
