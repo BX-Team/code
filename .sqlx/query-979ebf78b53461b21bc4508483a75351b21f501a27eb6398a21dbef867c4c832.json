@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.plugin_id, p.name, p.slug, i.version, i.enabled, i.share_errors, i.last_seen_at\n           FROM pulsify.plugin_installations i\n           JOIN pulsify.projects p ON p.id = i.plugin_id\n          WHERE i.server_id = $1\n          ORDER BY p.name",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "plugin_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.plugin_installations",
+            "name": "plugin_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.projects",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "slug",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.projects",
+            "name": "slug"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "version",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.plugin_installations",
+            "name": "version"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "pulsify.plugin_installations",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "share_errors",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "pulsify.plugin_installations",
+            "name": "share_errors"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "last_seen_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.plugin_installations",
+            "name": "last_seen_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "979ebf78b53461b21bc4508483a75351b21f501a27eb6398a21dbef867c4c832"
+}

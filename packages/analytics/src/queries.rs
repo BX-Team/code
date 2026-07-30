@@ -16,6 +16,17 @@ pub struct TimePoint {
 }
 
 #[derive(Debug, Clone, Row, Deserialize)]
+pub struct ProjectPoint {
+    #[serde(with = "clickhouse::serde::chrono::datetime64::millis")]
+    pub time: DateTime<Utc>,
+    pub online: f64,
+    pub tps: f64,
+    pub mspt: f64,
+    pub memory_used: f64,
+    pub memory_max: f64,
+}
+
+#[derive(Debug, Clone, Row, Deserialize)]
 pub struct FingerprintCount {
     pub fingerprint: String,
     pub count: u64,
@@ -109,7 +120,10 @@ pub struct MetricSummary {
 pub struct MetricPoint {
     #[serde(with = "clickhouse::serde::chrono::datetime64::millis")]
     pub time: DateTime<Utc>,
-    pub value: f64,
+    pub avg: f64,
+    pub max: f64,
+    pub min: f64,
+    pub count: u64,
 }
 
 #[derive(Debug, Clone, Row, Deserialize)]
@@ -171,6 +185,34 @@ impl Analytics {
         self.client
             .query(&sql)
             .bind(project_ids)
+            .bind(range.hours())
+            .fetch_all()
+            .await
+    }
+
+    /// One project's telemetry, bucketed. Separate from the overview series because the project
+    /// page charts memory and MSPT too.
+    pub async fn project_timeseries(
+        &self,
+        project_id: Uuid,
+        range: Range,
+    ) -> Result<Vec<ProjectPoint>, Error> {
+        let sql = format!(
+            "SELECT toDateTime64({bucket}(timestamp), 3, 'UTC') AS time,
+                    avg(online) AS online,
+                    avg(tps) AS tps,
+                    avg(mspt) AS mspt,
+                    avg(memory_used_mb) AS memory_used,
+                    toFloat64(max(memory_max_mb)) AS memory_max
+               FROM server_stats
+              WHERE project_id = ? AND timestamp >= now() - INTERVAL ? HOUR
+              GROUP BY time
+              ORDER BY time",
+            bucket = range.bucket(),
+        );
+        self.client()
+            .query(&sql)
+            .bind(project_id)
             .bind(range.hours())
             .fetch_all()
             .await
@@ -511,7 +553,11 @@ impl Analytics {
         range: Range,
     ) -> Result<Vec<MetricPoint>, Error> {
         let sql = format!(
-            "SELECT toDateTime64({bucket}(timestamp), 3, 'UTC') AS time, avg(value) AS value
+            "SELECT toDateTime64({bucket}(timestamp), 3, 'UTC') AS time,
+                    avg(value) AS avg,
+                    max(value) AS max,
+                    min(value) AS min,
+                    count() AS count
                FROM custom_metrics
               WHERE project_id = ? AND name = ? AND timestamp >= now() - INTERVAL ? HOUR
               GROUP BY time
