@@ -40,6 +40,7 @@ chrono = { version = "0.4.45", default-features = false, features = ["clock", "s
 clickhouse = { version = "0.15.1", features = ["chrono", "uuid"] }
 dotenvy = "0.15.7"
 futures = "0.3.33"
+governor = "0.10.4"
 hex = "0.4.3"
 hmac = "0.13.0"
 http = "1.5.0"
@@ -68,7 +69,6 @@ thiserror = "2.0.19"
 tokio = "1.53.1"
 tower = "0.5.3"
 tower-http = "0.7.0"
-tower_governor = "0.8.0"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 url = "2.5"
