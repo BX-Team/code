@@ -1,7 +1,7 @@
 use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
-use crate::routes::{atlas, internal};
+use crate::routes::{atlas, internal, pulsify};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -24,9 +24,40 @@ use crate::routes::{atlas, internal};
         atlas::builds::latest,
         atlas::builds::get,
         atlas::upload::upload,
+        pulsify::overview::overview,
+        pulsify::overview::billing,
+        pulsify::projects::list,
+        pulsify::projects::create,
+        pulsify::projects::delete,
+        pulsify::projects::verify,
+        pulsify::projects::plugins,
+        pulsify::projects::installations,
+        pulsify::projects::set_share_errors,
+        pulsify::analytics::stats,
+        pulsify::analytics::players,
+        pulsify::analytics::geography,
+        pulsify::analytics::client_versions,
+        pulsify::analytics::session_duration,
+        pulsify::analytics::retention,
+        pulsify::errors::list,
+        pulsify::errors::payload,
+        pulsify::errors::versions,
+        pulsify::errors::set_status,
+        pulsify::errors::cross_errors,
+        pulsify::errors::cross_payload,
+        pulsify::metrics::list,
+        pulsify::metrics::detail,
+        pulsify::tokens::list,
+        pulsify::tokens::create,
+        pulsify::tokens::revoke,
+        pulsify::alerts::list,
+        pulsify::alerts::create,
+        pulsify::alerts::update,
+        pulsify::alerts::delete,
     ),
     tags(
         (name = "atlas", description = "Project, version and build metadata"),
+        (name = "pulsify", description = "Projects, telemetry, errors and alerts"),
         (name = "internal", description = "Service health and identity")
     ),
     modifiers(&SecretScheme)

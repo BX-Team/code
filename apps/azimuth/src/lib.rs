@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use axum::extract::DefaultBodyLimit;
 use axum::http::{HeaderValue, Method, StatusCode, header};
-use axum::routing::{get, post};
+use axum::routing::{delete, get, patch, post};
 use axum::{Json, Router};
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
@@ -13,6 +13,7 @@ use utoipa::OpenApi;
 
 pub mod auth;
 pub mod env;
+pub mod models;
 pub mod openapi;
 pub mod routes;
 pub mod state;
@@ -81,12 +82,132 @@ pub fn router(state: AppState) -> Router {
             HeaderValue::from_static(routes::atlas::CACHE_CONTROL),
         ));
 
-    Router::new()
+    // Sessions are cookies, so this group must echo one exact allowed origin, never `*`.
+    let origins: Vec<HeaderValue> = state
+        .config
+        .trusted_origins
+        .iter()
+        .filter_map(|origin| HeaderValue::from_str(origin).ok())
+        .collect();
+
+    let session_cors = CorsLayer::new()
+        .allow_origin(AllowOrigin::list(origins))
+        .allow_credentials(true)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
+
+    let pulsify = Router::new()
+        .route("/overview", get(routes::pulsify::overview::overview))
+        .route("/billing", get(routes::pulsify::overview::billing))
+        .route(
+            "/projects",
+            get(routes::pulsify::projects::list).post(routes::pulsify::projects::create),
+        )
+        .route("/projects/{id}", delete(routes::pulsify::projects::delete))
+        .route(
+            "/projects/{id}/verify",
+            patch(routes::pulsify::projects::verify),
+        )
+        .route(
+            "/projects/{id}/plugins",
+            get(routes::pulsify::projects::plugins),
+        )
+        .route(
+            "/projects/{id}/installations",
+            get(routes::pulsify::projects::installations),
+        )
+        .route(
+            "/projects/{id}/installations/{plugin_id}",
+            patch(routes::pulsify::projects::set_share_errors),
+        )
+        .route(
+            "/projects/{id}/stats",
+            get(routes::pulsify::analytics::stats),
+        )
+        .route(
+            "/projects/{id}/players",
+            get(routes::pulsify::analytics::players),
+        )
+        .route(
+            "/projects/{id}/geography",
+            get(routes::pulsify::analytics::geography),
+        )
+        .route(
+            "/projects/{id}/client-versions",
+            get(routes::pulsify::analytics::client_versions),
+        )
+        .route(
+            "/projects/{id}/session-duration",
+            get(routes::pulsify::analytics::session_duration),
+        )
+        .route(
+            "/projects/{id}/retention",
+            get(routes::pulsify::analytics::retention),
+        )
+        .route("/projects/{id}/errors", get(routes::pulsify::errors::list))
+        .route(
+            "/projects/{id}/errors/payload",
+            get(routes::pulsify::errors::payload),
+        )
+        .route(
+            "/projects/{id}/errors/versions",
+            get(routes::pulsify::errors::versions),
+        )
+        .route(
+            "/projects/{id}/errors/status",
+            post(routes::pulsify::errors::set_status),
+        )
+        .route(
+            "/projects/{id}/cross-errors",
+            get(routes::pulsify::errors::cross_errors),
+        )
+        .route(
+            "/projects/{id}/cross-errors/payload",
+            get(routes::pulsify::errors::cross_payload),
+        )
+        .route(
+            "/projects/{id}/metrics",
+            get(routes::pulsify::metrics::list),
+        )
+        .route(
+            "/projects/{id}/metrics/{name}",
+            get(routes::pulsify::metrics::detail),
+        )
+        .route(
+            "/projects/{id}/tokens",
+            get(routes::pulsify::tokens::list).post(routes::pulsify::tokens::create),
+        )
+        .route(
+            "/projects/{id}/tokens/{token_id}",
+            delete(routes::pulsify::tokens::revoke),
+        )
+        .route(
+            "/projects/{id}/alerts",
+            get(routes::pulsify::alerts::list).post(routes::pulsify::alerts::create),
+        )
+        .route(
+            "/projects/{id}/alerts/{alert_id}",
+            patch(routes::pulsify::alerts::update).delete(routes::pulsify::alerts::delete),
+        )
+        .layer(session_cors);
+
+    // The two CORS policies must not overlap: a wildcard origin would strip credentials from
+    // the session group, and a credentialed one would break anonymous reads of Atlas.
+    let public = Router::new()
         .route("/", get(routes::internal::card))
         .route("/health", get(routes::internal::health))
         .route("/openapi.json", get(openapi_document))
         .nest("/atlas", atlas)
-        .layer(public_cors)
+        .layer(public_cors);
+
+    public
+        .nest("/pulsify", pulsify)
         .layer(TimeoutLayer::with_status_code(
             StatusCode::SERVICE_UNAVAILABLE,
             Duration::from_secs(600),

@@ -176,6 +176,15 @@ async fn every_dashboard_query_runs() {
         .await
         .unwrap();
     assert_eq!(points.len(), 1);
+    assert_eq!(points[0].count, 1);
+    assert_eq!(points[0].max, 1234.0);
+
+    let project_series = analytics
+        .project_timeseries(server, Range::H24)
+        .await
+        .unwrap();
+    assert!(!project_series.is_empty());
+    assert_eq!(project_series[0].memory_max, 8192.0);
 
     // Four labels, all of them queryable — the old three-slot layout could not reach the fourth.
     let labels = analytics

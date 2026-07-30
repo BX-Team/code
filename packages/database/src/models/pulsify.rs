@@ -247,6 +247,21 @@ pub async fn consume_daily_usage(
     .await
 }
 
+/// Events a user's tokens have booked today, across all of their projects.
+pub async fn events_today(db: &Db, user_id: Uuid) -> Result<i64, Error> {
+    let total = sqlx::query_scalar!(
+        "SELECT coalesce(sum(u.count), 0)::bigint
+           FROM pulsify.daily_usage u
+           JOIN pulsify.dsn_tokens t ON t.key = u.token
+           JOIN pulsify.projects p ON p.id = t.project_id
+          WHERE p.owner_id = $1 AND u.day = current_date",
+        user_id,
+    )
+    .fetch_one(db)
+    .await?;
+    Ok(total.unwrap_or(0))
+}
+
 /// Drops usage counters older than the retention window; there is no unbounded growth.
 pub async fn prune_daily_usage(db: &Db, keep_days: i32) -> Result<u64, Error> {
     let result = sqlx::query!(
@@ -356,6 +371,32 @@ pub async fn installations_of(db: &Db, plugin_id: Uuid) -> Result<Vec<Installati
         "SELECT plugin_id, server_id, version, enabled, share_errors, last_seen_at
            FROM pulsify.plugin_installations WHERE plugin_id = $1",
         plugin_id,
+    )
+    .fetch_all(db)
+    .await
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InstalledPlugin {
+    pub plugin_id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub version: String,
+    pub enabled: bool,
+    pub share_errors: bool,
+    pub last_seen_at: DateTime<Utc>,
+}
+
+/// Plugins reported by one server, with the sharing flag its owner controls.
+pub async fn installations_on(db: &Db, server_id: Uuid) -> Result<Vec<InstalledPlugin>, Error> {
+    sqlx::query_as!(
+        InstalledPlugin,
+        "SELECT i.plugin_id, p.name, p.slug, i.version, i.enabled, i.share_errors, i.last_seen_at
+           FROM pulsify.plugin_installations i
+           JOIN pulsify.projects p ON p.id = i.plugin_id
+          WHERE i.server_id = $1
+          ORDER BY p.name",
+        server_id,
     )
     .fetch_all(db)
     .await
