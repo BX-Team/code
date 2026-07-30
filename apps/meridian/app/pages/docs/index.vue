@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, Atom, Cuboid, DollarSign, Globe } from '@lucide/vue';
+import { ArrowRight, Atom, Cuboid, DollarSign } from '@lucide/vue';
 
 definePageMeta({ layout: 'docs' });
 

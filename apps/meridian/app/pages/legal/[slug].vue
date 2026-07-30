@@ -3,17 +3,7 @@ import { Footer, Navbar } from '@bx-team/ui';
 import { Scale } from '@lucide/vue';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
-const bxStatus = useStatusSummary();
-const footerStatusLevel = computed((): 'ok' | 'warn' | 'err' => {
-  if (bxStatus.value === 'degraded') return 'err';
-  if (bxStatus.value === 'maintenance') return 'warn';
-  return 'ok';
-});
-const footerStatusText = computed(() => {
-  if (bxStatus.value === 'degraded') return 'Some systems degraded';
-  if (bxStatus.value === 'maintenance') return 'Maintenance in progress';
-  return 'All systems operational';
-});
+const colo = useColocation();
 
 const route = useRoute();
 
@@ -76,9 +66,7 @@ const related = computed(() => {
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:status="footerStatusText"
-			:status-level="footerStatusLevel"
-			status-href="https://status.bxteam.org"
+			:location="colo"
 		/>
 	</div>
 </template>

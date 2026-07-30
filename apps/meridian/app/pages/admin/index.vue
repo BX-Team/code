@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BadgeCheck, Ban, CheckCircle, FolderOpen, Search, Shield, Trash2, Users, X } from '@lucide/vue';
 import { toast } from 'vue-sonner';
+import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
@@ -41,17 +42,19 @@ const {
   () =>
     authClient.admin
       .listUsers({
-        limit: PAGE_SIZE,
-        offset: page.value * PAGE_SIZE,
-        ...(search.value
-          ? { searchValue: search.value, searchField: 'email' as const, searchOperator: 'contains' as const }
-          : {}),
-        ...(filterStatus.value === 'banned'
-          ? { filterField: 'banned', filterValue: true, filterOperator: 'eq' as const }
-          : {}),
-        ...(filterStatus.value === 'active'
-          ? { filterField: 'banned', filterValue: false, filterOperator: 'eq' as const }
-          : {}),
+        query: {
+          limit: PAGE_SIZE,
+          offset: page.value * PAGE_SIZE,
+          ...(search.value
+            ? { searchValue: search.value, searchField: 'email' as const, searchOperator: 'contains' as const }
+            : {}),
+          ...(filterStatus.value === 'banned'
+            ? { filterField: 'banned', filterValue: true, filterOperator: 'eq' as const }
+            : {}),
+          ...(filterStatus.value === 'active'
+            ? { filterField: 'banned', filterValue: false, filterOperator: 'eq' as const }
+            : {}),
+        },
       })
       .then(r => r.data),
   { server: false, watch: [page, filterStatus] },
@@ -96,7 +99,7 @@ async function toggleVerified(p: UserProject) {
   if (verifyingId.value) return;
   verifyingId.value = p.id;
   try {
-    const updated = await $fetch<{ id: string; verified: boolean }>(`/api/admin/projects/${p.id}/verify`, {
+    const updated = await api<{ id: string; verified: boolean }>(`/pulsify/projects/${p.id}/verify`, {
       method: 'PATCH',
       body: { verified: !p.verified },
     });
@@ -161,7 +164,7 @@ async function openProjects(u: AdminUser) {
   projectsData.value = [];
   projectsLoading.value = true;
   try {
-    projectsData.value = await $fetch<UserProject[]>(`/api/admin/users/${u.id}/projects`);
+    projectsData.value = await api<UserProject[]>('/pulsify/projects', { query: { owner: u.id } });
   } catch {
     toast.error('Failed to load projects');
   } finally {

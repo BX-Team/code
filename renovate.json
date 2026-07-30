@@ -21,14 +21,18 @@
         "vue-router",
         "vue-sonner",
         "@vueuse/core",
-        "nuxt-umami",
         "@lucide/vue",
         "@shikijs/transformers"
       ]
     },
     {
       "groupName": "Vite & plugins",
-      "matchPackageNames": ["vite", "@vitejs/plugin-vue", "@cloudflare/vite-plugin", "@tailwindcss/vite"]
+      "matchPackageNames": [
+        "vite",
+        "@vitejs/plugin-vue",
+        "@cloudflare/vite-plugin",
+        "@tailwindcss/vite"
+      ]
     },
     {
       "groupName": "Tailwind CSS",
@@ -39,18 +43,12 @@
       "matchPackageNames": ["drizzle-orm", "drizzle-kit"]
     },
     {
-      "groupName": "BullMQ & Redis",
-      "matchPackageNames": ["bullmq", "ioredis"]
-    },
-    {
       "groupName": "TypeScript & @types",
-      "matchPackageNames": ["typescript"],
-      "matchPackagePatterns": ["^@types/"]
+      "matchPackageNames": ["typescript", "/^@types//"]
     },
     {
       "groupName": "Cloudflare tooling",
-      "matchPackageNames": ["wrangler"],
-      "matchPackagePatterns": ["^@cloudflare/"]
+      "matchPackageNames": ["wrangler", "/^@cloudflare//"]
     },
     {
       "groupName": "GitHub Actions",
@@ -58,15 +56,19 @@
     },
     {
       "groupName": "CSS class utilities",
-      "matchPackageNames": ["clsx", "tailwind-merge", "class-variance-authority"]
+      "matchPackageNames": [
+        "clsx",
+        "tailwind-merge",
+        "class-variance-authority"
+      ]
     },
     {
       "groupName": "TanStack",
-      "matchPackagePatterns": ["^@tanstack/"]
+      "matchPackageNames": ["/^@tanstack//"]
     },
     {
       "groupName": "Unovis charts",
-      "matchPackagePatterns": ["^@unovis/"]
+      "matchPackageNames": ["/^@unovis//"]
     }
   ]
 }

@@ -17,7 +17,7 @@ function startTimer() {
   timer = setInterval(() => {
     if (!paused.value) {
       const idx = TAB_ORDER.indexOf(activeTab.value);
-      activeTab.value = TAB_ORDER[(idx + 1) % TAB_ORDER.length];
+      activeTab.value = TAB_ORDER[(idx + 1) % TAB_ORDER.length] ?? 'docs';
     }
   }, TAB_MS);
 }

@@ -1,3 +1,5 @@
+import { API_BASE } from '@/lib/api';
+
 export type Project = {
   id: string;
   name: string;
@@ -10,7 +12,9 @@ export type Project = {
 };
 
 export function useProjects() {
-  return useFetch<Project[]>('/api/v3/projects', {
+  return useFetch<Project[]>('/pulsify/projects', {
+    baseURL: API_BASE,
+    credentials: 'include',
     key: 'v3-projects',
     default: () => [],
   });

@@ -1,3 +1,5 @@
+import { API_BASE } from '@/lib/api';
+
 export interface Project {
   id: string;
   name: string;
@@ -65,7 +67,7 @@ export interface ProjectsResponse {
   projects: ProjectWithVersions[];
 }
 
-const ATLAS_API_BASE = 'https://api.bxteam.org/v2';
+const ATLAS_API_BASE = `${API_BASE}/atlas`;
 
 export async function fetchProjects(): Promise<ProjectsResponse> {
   const response = await fetch(`${ATLAS_API_BASE}/projects`);
@@ -169,8 +171,8 @@ export function getAllVersions(versionGroups: Record<string, string[]>): string[
 
 export function getOrderedVersionGroups(versionGroups: Record<string, string[]>): [string, string[]][] {
   return Object.entries(versionGroups).sort((a, b) => {
-    const [aMajor, aMinor] = a[0].split('.').map(p => parseInt(p, 10) || 0);
-    const [bMajor, bMinor] = b[0].split('.').map(p => parseInt(p, 10) || 0);
+    const [aMajor = 0, aMinor = 0] = a[0].split('.').map(p => parseInt(p, 10) || 0);
+    const [bMajor = 0, bMinor = 0] = b[0].split('.').map(p => parseInt(p, 10) || 0);
     if (aMajor !== bMajor) return bMajor - aMajor;
     return bMinor - aMinor;
   });

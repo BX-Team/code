@@ -3,15 +3,14 @@
 Nuxt 4 application serving the main BX Team website. Uses Vue 3, Tailwind CSS v4, and file-based routing.
 
 ## Architecture
-Nuxt 4 with SSR — pages are server-rendered and hydrated on the client. Tailwind CSS for styling, with shadcn-vue for UI components, and Better Auth for authentication. The project follows a modular structure with clear separation of concerns between pages, components, layouts, and server-side logic.
+Nuxt 4, **fully static** — the site is built with `nuxt generate` and deployed as Cloudflare Workers Static Assets (`wrangler.jsonc` + `worker.ts`, which only serves assets and the `200.html` SPA fallback). There is no runtime Nitro server. Content pages (docs, legal, landing) are prerendered; session/data-driven sections (`/dashboard`, `/admin`, `/downloads`, `/login`) are client-rendered (`ssr: false` route rules) and fetch everything from the `azimuth` API Worker at `https://api.bxteam.org` (see `app/lib/api.ts` — credentialed `api()` for `/auth`+`/pulsify`, plain fetch for public `/atlas`). Tailwind CSS for styling, shadcn-vue for UI components, Better Auth (client) for authentication against azimuth.
 
 ## Key Directories
 - **`app/pages/`** — file-based routing
 - **`app/components/`** — website-specific components (shadcn-vue)
 - **`app/middleware/`** — route guards and auth checks
 - **`app/layouts/`** — Nuxt layout components
-- **`app/server/`** — server-side plugins, routes, and utilities
-- **`app/lib/`** — utility functions
+- **`app/lib/`** — utility functions, API client (`api.ts`), auth client (`auth-client.ts`)
 - **`app/assets/`** — static assets like images, fonts, and styles
 
 ## Components

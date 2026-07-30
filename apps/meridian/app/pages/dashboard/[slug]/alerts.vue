@@ -2,6 +2,7 @@
 import { Bell, Plus, Trash2 } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Alerts', titleTemplate: '%s | Pulsify' });
@@ -31,13 +32,12 @@ const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-const requestFetch = useRequestFetch();
 
 const { data, pending, refresh } = await useAsyncData<{ rules: AlertRule[] } | null>(
   `project-alerts-${slug.value}`,
   () =>
     project.value
-      ? requestFetch<{ rules: AlertRule[] }>(`/api/v3/projects/${project.value.id}/alerts`)
+      ? api<{ rules: AlertRule[] }>(`/pulsify/projects/${project.value.id}/alerts`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -63,7 +63,7 @@ async function createRule() {
       body.threshold = form.threshold;
       body.windowMinutes = form.windowMinutes;
     }
-    await $fetch(`/api/v3/projects/${project.value.id}/alerts`, { method: 'POST', body });
+    await api(`/pulsify/projects/${project.value.id}/alerts`, { method: 'POST', body });
     toast.success('Alert rule created');
     form.webhookUrl = '';
     await refresh();
@@ -80,7 +80,7 @@ async function toggleRule(rule: AlertRule) {
   if (!project.value || pendingIds.value.has(rule.id)) return;
   pendingIds.value.add(rule.id);
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}/alerts/${rule.id}`, {
+    await api(`/pulsify/projects/${project.value.id}/alerts/${rule.id}`, {
       method: 'PATCH',
       body: { enabled: !rule.enabled },
     });
@@ -96,7 +96,7 @@ async function removeRule(rule: AlertRule) {
   if (!project.value || pendingIds.value.has(rule.id)) return;
   pendingIds.value.add(rule.id);
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}/alerts/${rule.id}`, { method: 'DELETE' });
+    await api(`/pulsify/projects/${project.value.id}/alerts/${rule.id}`, { method: 'DELETE' });
     toast.success('Alert rule deleted');
     await refresh();
   } catch (e: any) {

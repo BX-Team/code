@@ -2,6 +2,7 @@
 import { Ban, BellOff, Check, MoreHorizontal, RotateCcw } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Errors', titleTemplate: '%s | Pulsify' });
@@ -43,8 +44,6 @@ const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-const requestFetch = useRequestFetch();
-
 const status = ref<Status>('unresolved');
 const sort = ref<Sort>('last_seen');
 
@@ -52,7 +51,7 @@ const { data, pending, refresh } = await useAsyncData<ErrorsResponse | null>(
   `project-errors-page-${slug.value}`,
   () =>
     project.value
-      ? requestFetch<ErrorsResponse>(`/api/v3/projects/${project.value.id}/errors`, {
+      ? api<ErrorsResponse>(`/pulsify/projects/${project.value.id}/errors`, {
           query: { status: status.value, sort: sort.value },
         })
       : Promise.resolve(null),
@@ -81,7 +80,7 @@ const { data: crossData, pending: crossPending } = await useAsyncData<CrossError
   `cross-errors-${slug.value}`,
   () =>
     project.value && project.value.type !== 'server'
-      ? requestFetch<CrossErrorsResponse>(`/api/v3/projects/${project.value.id}/cross-errors`)
+      ? api<CrossErrorsResponse>(`/pulsify/projects/${project.value.id}/cross-errors`)
       : Promise.resolve(null),
   { watch: [project] },
 );
@@ -112,13 +111,41 @@ interface VersionStat {
 const versionStats = ref<Record<string, VersionStat[]>>({});
 const versionsLoading = ref<Set<string>>(new Set());
 
+// Stacktraces are no longer inlined in the errors list — the full payload lives in R2
+// and is fetched lazily per fingerprint the first time a row is expanded.
+const stacktraces = ref<Record<string, string>>({});
+const stackLoading = ref<Set<string>>(new Set());
+
+async function loadStacktrace(key: string, fingerprint: string, cross: boolean) {
+  if (!project.value || key in stacktraces.value || stackLoading.value.has(key)) return;
+  stackLoading.value.add(key);
+  try {
+    const endpoint = cross ? 'cross-errors/payload' : 'errors/payload';
+    const payload = await api<{ stacktrace?: string }>(`/pulsify/projects/${project.value.id}/${endpoint}`, {
+      query: { fingerprint },
+    });
+    stacktraces.value[key] = payload.stacktrace ?? '';
+  } catch {
+    stacktraces.value[key] = '';
+  } finally {
+    stackLoading.value.delete(key);
+  }
+}
+
+function toggleCrossExpand(errId: string) {
+  const key = `x-${errId}`;
+  expanded.value = expanded.value === key ? null : key;
+  if (expanded.value === key) loadStacktrace(key, errId, true);
+}
+
 async function toggleExpand(err: ErrorRow) {
   const next = expanded.value === err.id ? null : err.id;
   expanded.value = next;
+  if (next) loadStacktrace(err.id, err.id, false);
   if (next && project.value && !versionStats.value[err.id] && !versionsLoading.value.has(err.id)) {
     versionsLoading.value.add(err.id);
     try {
-      const res = await $fetch<{ versions: VersionStat[] }>(`/api/v3/projects/${project.value.id}/errors/versions`, {
+      const res = await api<{ versions: VersionStat[] }>(`/pulsify/projects/${project.value.id}/errors/versions`, {
         query: { fingerprint: err.id },
       });
       versionStats.value[err.id] = res.versions;
@@ -147,7 +174,7 @@ async function setStatus(err: ErrorRow, action: IssueAction, event: MouseEvent) 
   if (!project.value || pendingStatus.value.has(err.id)) return;
   pendingStatus.value.add(err.id);
   try {
-    await $fetch(`/api/v3/projects/${project.value.id}/errors/status`, {
+    await api(`/pulsify/projects/${project.value.id}/errors/status`, {
       method: 'POST',
       body: { fingerprint: err.id, action },
     });
@@ -286,8 +313,7 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 									</button>
 								</div>
 							</div>
-							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === err.id }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-							<span v-else class="chevron-placeholder" />
+							<svg class="chevron" :class="{ open: expanded === err.id }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
 						</div>
 						<div v-if="expanded === err.id" class="err-stack">
 							<div v-if="versionsLoading.has(err.id)" class="vb-loading">Loading versions…</div>
@@ -299,7 +325,8 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 									<span class="vb-count">{{ v.count.toLocaleString() }}</span>
 								</div>
 							</div>
-							<pre v-if="err.stacktrace">{{ err.stacktrace }}</pre>
+							<div v-if="stackLoading.has(err.id)" class="vb-loading">Loading stacktrace…</div>
+							<pre v-else-if="stacktraces[err.id]">{{ stacktraces[err.id] }}</pre>
 						</div>
 					</div>
 				</template>
@@ -338,7 +365,7 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 						:key="err.id"
 						class="err-row"
 						:class="{ expanded: expanded === ('x-' + err.id) }"
-						@click="expanded = expanded === ('x-' + err.id) ? null : ('x-' + err.id)"
+						@click="toggleCrossExpand(err.id)"
 					>
 						<div class="err-main cross-row-grid">
 							<span class="lvl" :class="levelClass(err.level)">{{ err.level }}</span>
@@ -348,11 +375,11 @@ const sortOptions: Array<{ value: Sort; label: string }> = [
 							</div>
 							<div class="err-count">{{ err.count.toLocaleString() }}<span class="sub">events</span></div>
 							<div class="err-when">{{ relativeTime(err.lastSeenAt) }}</div>
-							<svg v-if="err.stacktrace" class="chevron" :class="{ open: expanded === ('x-' + err.id) }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-							<span v-else class="chevron-placeholder" />
+							<svg class="chevron" :class="{ open: expanded === ('x-' + err.id) }" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
 						</div>
-						<div v-if="expanded === ('x-' + err.id) && err.stacktrace" class="err-stack">
-							<pre>{{ err.stacktrace }}</pre>
+						<div v-if="expanded === ('x-' + err.id)" class="err-stack">
+							<div v-if="stackLoading.has('x-' + err.id)" class="vb-loading">Loading stacktrace…</div>
+							<pre v-else-if="stacktraces['x-' + err.id]">{{ stacktraces['x-' + err.id] }}</pre>
 						</div>
 					</div>
 				</template>

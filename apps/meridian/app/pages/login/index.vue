@@ -21,9 +21,11 @@ async function sendMagicLink() {
   if (loading.value) return;
   loading.value = true;
   error.value = '';
+  // callbackURL must be absolute: the auth server lives on api.bxteam.org, so a
+  // relative path would resolve against the API origin instead of the site.
   const { error: err } = await authClient.signIn.magicLink({
     email: email.value,
-    callbackURL: '/dashboard',
+    callbackURL: `${window.location.origin}/dashboard`,
   });
   loading.value = false;
   if (err) {
@@ -34,7 +36,7 @@ async function sendMagicLink() {
 }
 
 async function oauthLogin(provider: 'github' | 'discord') {
-  await authClient.signIn.social({ provider, callbackURL: '/dashboard' });
+  await authClient.signIn.social({ provider, callbackURL: `${window.location.origin}/dashboard` });
 }
 </script>
 

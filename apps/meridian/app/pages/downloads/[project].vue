@@ -3,6 +3,7 @@ import { Button } from '@bx-team/ui';
 import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
 import { useRoute } from 'vue-router';
 import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue';
+import { API_BASE } from '@/lib/api';
 import type { Build, Project, VersionWithBuilds } from '@/lib/atlas';
 import { formatFileSize, getAllVersions } from '@/lib/atlas';
 import { GITHUB_URL } from '~/config/links';
@@ -16,7 +17,7 @@ const queryVersion = computed(() => {
 
 const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const projectResp = await $fetch<{ project: Project; version_groups: Record<string, string[]> }>(
-    `/api/v2/projects/${projectId}`,
+    `${API_BASE}/atlas/projects/${projectId}`,
   ).catch(() => null);
 
   if (!projectResp?.project) {
@@ -31,12 +32,12 @@ const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const initialVersion = requestedVersion ?? project.latestVersion ?? '';
 
   const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([
-    $fetch<VersionWithBuilds[]>(`/api/v2/projects/${projectId}/versions`).catch(() => [] as VersionWithBuilds[]),
+    $fetch<VersionWithBuilds[]>(`${API_BASE}/atlas/projects/${projectId}/versions`).catch(() => [] as VersionWithBuilds[]),
     project.latestVersion
-      ? $fetch<Build>(`/api/v2/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(() => null)
+      ? $fetch<Build>(`${API_BASE}/atlas/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(() => null)
       : Promise.resolve(null),
     initialVersion
-      ? $fetch<Build[]>(`/api/v2/projects/${projectId}/versions/${initialVersion}/builds`).catch(() => [] as Build[])
+      ? $fetch<Build[]>(`${API_BASE}/atlas/projects/${projectId}/versions/${initialVersion}/builds`).catch(() => [] as Build[])
       : Promise.resolve([] as Build[]),
   ]);
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue';
 import { ref, watch } from 'vue';
+import { API_BASE } from '@/lib/api';
 import type { Build, VersionWithBuilds } from '@/lib/atlas';
 import AtlasBuildCard from './AtlasBuildCard.vue';
 import VersionSelector from './VersionSelector.vue';
@@ -36,7 +37,7 @@ watch(selectedVersion, async v => {
   loading.value = true;
   error.value = null;
   try {
-    const data = await $fetch<Build[]>(`/api/v2/projects/${props.projectId}/versions/${v}/builds`);
+    const data = await $fetch<Build[]>(`${API_BASE}/atlas/projects/${props.projectId}/versions/${v}/builds`);
     builds.value = data;
   } catch (e: any) {
     error.value = e?.message ?? 'Failed to load builds';
