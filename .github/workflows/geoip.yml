@@ -1,0 +1,53 @@
+name: GeoIP
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: geoip
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the IPinfo Lite database
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+        run: |
+          if [ -z "$IPINFO_TOKEN" ]; then
+            echo "::error::IPINFO_TOKEN is not configured"
+            exit 1
+          fi
+          curl --fail --silent --show-error --location \
+            -o ipinfo_lite.mmdb \
+            "https://ipinfo.io/data/free/ipinfo_lite.mmdb?token=$IPINFO_TOKEN"
+          sha256sum ipinfo_lite.mmdb > SHA256SUMS
+          cat SHA256SUMS
+        shell: bash
+      - name: Reject a file that is not an IPinfo database
+        # A MaxMind file would not fail to open, it would silently resolve every address to
+        # nothing, so the shape is checked before it ever reaches the host.
+        run: |
+          if ! head -c 8192 ipinfo_lite.mmdb | grep -qa 'ipinfo'; then
+            echo "::error::the downloaded file does not look like an IPinfo database"
+            exit 1
+          fi
+        shell: bash
+      - name: Publish the rolling release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: geoip
+          name: GeoIP database
+          body: IPinfo Lite, refreshed daily. Consumed by the host's `bx-geoip-update` timer.
+          prerelease: true
+          files: |
+            ipinfo_lite.mmdb
+            SHA256SUMS
