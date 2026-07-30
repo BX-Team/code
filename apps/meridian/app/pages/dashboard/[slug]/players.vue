@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ProjectTabs from '@/components/dashboard/ProjectTabs.vue';
 import SectionCards from '@/components/dashboard/SectionCards.vue';
+import { api } from '@/lib/api';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
 useHead({ title: 'Players', titleTemplate: '%s | Pulsify' });
@@ -22,10 +23,8 @@ const slug = computed(() => route.params.slug as string);
 const { data: projects } = await useProjects();
 const project = computed(() => (projects.value ?? []).find(p => p.slug === slug.value) ?? null);
 
-const requestFetch = useRequestFetch();
-
 const { data, pending } = await useAsyncData<PlayersResponse | null>(`project-players-page-${slug.value}`, () =>
-  project.value ? requestFetch<PlayersResponse>(`/api/v3/projects/${project.value.id}/players`) : Promise.resolve(null),
+  project.value ? api<PlayersResponse>(`/pulsify/projects/${project.value.id}/players`) : Promise.resolve(null),
 );
 
 const stats = computed(() => [

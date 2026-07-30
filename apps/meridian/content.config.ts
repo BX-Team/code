@@ -4,13 +4,7 @@ export default defineContentConfig({
   collections: {
     docs: defineCollection({
       type: 'page',
-      source: {
-        repository: {
-          url: 'https://github.com/BX-Team/docs',
-          branch: 'master',
-        },
-        include: 'docs/**',
-      },
+      source: 'docs/**/*.md',
       schema: z.object({
         title: z.string(),
         description: z.string().optional(),

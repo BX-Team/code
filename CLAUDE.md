@@ -4,22 +4,22 @@ This is the BX Team monorepo — it contains all BX Team projects, both frontend
 
 ## Architecture
 - **Monorepo tooling:** [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field). Run scripts across packages with `bun run --filter '<pattern>' <script>`.
-- **Frontend:** Vue 3 / Nuxt 4, Tailwind CSS v4
-- **Backend:** Hono (Ingest API), Nuxt Nitro (Downloads API, Auth, Pulsify API), BullMQ worker (cinder), Postgres, Clickhouse, Redis
+- **Frontend:** Vue 3 / Nuxt 4 (fully static via `nuxt generate`), Tailwind CSS v4
+- **Backend:** Everything runs on Cloudflare Workers — Hono APIs (`influx` ingest gateway at ingest.bxteam.org, `azimuth` application API at api.bxteam.org), a Queues consumer (`cinder`), D1 (three databases: `auth-db`, `atlas-db`, `pulsify-db`), Workers Analytics Engine, R2, KV, Durable Objects
 - **Formatting:** [Biome](https://biomejs.dev) is the source of truth — 2-space indent for TS/JS/JSON and standalone CSS. Tabs are used only inside `.vue` `<template>` and `<style>` blocks (Biome doesn't reformat those). Run `bunx biome check .` before committing.
 
 ### Apps (`apps/`)
-| App               | Description                        |
-| ----------------- | -----------------------------------|
-| `cinder`          | BullMQ worker for ingest API       |
-| `influx`          | Ingest API written in Hono         |              
-| `meridian`        | Main BX Team frontend app (Nuxt 4) |
-| `zenith`          | Status monitor (like Better Uptime)|
+| App               | Description                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| `azimuth`         | Application API Worker (Hono): `/auth`, `/atlas`, `/pulsify`             |
+| `cinder`          | Queue consumer Worker for the ingest pipeline (+ cron alerts, session DO) |
+| `influx`          | Ingest API Worker (Hono), producer for the `pulsify-ingest` Queue        |
+| `meridian`        | Main BX Team frontend (Nuxt 4, static, Workers Static Assets)            |
 
 ### Packages (`packages/`)
 | Package           | Description                           |
 | ----------------- | --------------------------------------|
-| `stratus`         | Database schemas (Drizzle ORM)        |
+| `stratus`         | D1 database schemas (Drizzle ORM, sqlite-core) |
 | `types`           | Shared TypeScript types (Zod schemas) |
 | `ui`              | Shared UI components (Vue 3, Tailwind) |
 
@@ -27,14 +27,16 @@ This is the BX Team monorepo — it contains all BX Team projects, both frontend
 Each project may have its own `CLAUDE.md` with detailed instructions:
 
 - [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
-- [`apps/zenith/CLAUDE.md`](apps/zenith/CLAUDE.md) - Status Monitor
 - [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
 
 ## Code Guidelines
 
 ### Comments
-- DO NOT use "heading" comments like: `=== Helper methods ===`.
-- Use doc comments, but avoid inline comments unless ABSOLUTELY necessary for clarity. Code should aim to be self documenting!
+- NO file-header banner comments and NO "heading"/divider comments like `// --- helpers ---` or etc. Group code with functions, not comment art.
+- Avoid inline `//` comments. Add one only when the code is genuinely non-obvious (a real footgun) — e.g. a wire-format quirk, a subtle SQL/migration ordering constraint, a device-limit edge case. Then keep it to a line or two.
+- Doc comments on exported identifiers are expected, but keep them to a single line describing intent. Code should read for itself.
+- Don't narrate the obvious (`// loop over nodes`). If a comment restates the next line, delete it.
+- Keep every comment as short as possible — the fewest words that convey the non-obvious bit. Prefer one line; never write a paragraph where a clause will do.
 
 ## Bash Guidelines
 

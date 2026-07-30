@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LogOut, Save, Trash2 } from '@lucide/vue';
 import { toast } from 'vue-sonner';
+import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' });
@@ -15,7 +16,7 @@ interface BillingResponse {
   usage: { projects: number; eventsToday: number };
 }
 const { data: billing, pending: billingPending } = await useAsyncData<BillingResponse | null>('billing', () =>
-  useRequestFetch()<BillingResponse>('/api/v3/billing').catch(() => null),
+  api<BillingResponse>('/pulsify/billing').catch(() => null),
 );
 
 const { data: session, refresh } = await useSession();

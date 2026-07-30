@@ -5,17 +5,7 @@ import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 
 const appConfig = useAppConfig();
-const bxStatus = useStatusSummary();
-const footerStatusLevel = computed((): 'ok' | 'warn' | 'err' => {
-  if (bxStatus.value === 'degraded') return 'err';
-  if (bxStatus.value === 'maintenance') return 'warn';
-  return 'ok';
-});
-const footerStatusText = computed(() => {
-  if (bxStatus.value === 'degraded') return 'Some systems degraded';
-  if (bxStatus.value === 'maintenance') return 'Maintenance in progress';
-  return 'All systems operational';
-});
+const colo = useColocation();
 
 const { data: session } = await useSession();
 const loggedIn = computed(() => !!session.value?.user);
@@ -56,7 +46,7 @@ const features = [
   {
     icon: Database,
     title: 'Custom metrics',
-    body: 'Numeric values with labels, written straight into ClickHouse. Chart anything you can name.',
+    body: 'Numeric values with labels, streamed into your analytics in real time. Chart anything you can name.',
   },
   {
     icon: Box,
@@ -226,13 +216,10 @@ function projectVersion(href: string): string | undefined {
 			/>
 		</ProjectsGrid>
 
-		<!-- Footer -->
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:status="footerStatusText"
-			:status-level="footerStatusLevel"
-			status-href="https://status.bxteam.org"
+			:location="colo"
 		/>
 	</div>
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  Activity,
   BookOpen,
   Box,
   CornerDownLeft,
@@ -19,6 +18,7 @@ import type { Component } from 'vue';
 import { closeCommandPalette, useCommandPaletteOpen } from '@/composables/useCommandPalette';
 import type { Project } from '@/composables/useProjects';
 import { useSession } from '@/composables/useSession';
+import { api } from '@/lib/api';
 
 type Group = 'nav' | 'projects' | 'docs';
 
@@ -57,7 +57,7 @@ const projectsLoaded = ref(false);
 async function loadProjectsOnce() {
   if (projectsLoaded.value || !loggedIn.value) return;
   try {
-    projects.value = await $fetch<Project[]>('/api/v3/projects');
+    projects.value = await api<Project[]>('/pulsify/projects');
   } catch {
     projects.value = [];
   } finally {
@@ -87,14 +87,6 @@ const navItems = computed<PaletteItem[]>(() => {
     },
     { key: 'nav:roadmap', group: 'nav', title: 'Roadmap', subtitle: '/roadmap', icon: Map, to: '/roadmap' },
     { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
-    {
-      key: 'nav:status',
-      group: 'nav',
-      title: 'Status',
-      subtitle: 'status.bxteam.org',
-      icon: Activity,
-      href: 'https://status.bxteam.org',
-    },
   ];
   return base;
 });
@@ -199,7 +191,7 @@ watch(query, q => {
   docsLoading.value = true;
   debounce = setTimeout(async () => {
     try {
-      docsResults.value = await $fetch<DocSection[]>('/api/docs/search', { query: { q: trimmed } });
+      docsResults.value = await searchDocs(trimmed);
     } catch {
       docsResults.value = [];
     } finally {
