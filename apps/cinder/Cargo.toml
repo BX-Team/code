@@ -10,7 +10,28 @@ license.workspace = true
 name = "cinder"
 path = "src/main.rs"
 
+[build-dependencies]
+chrono = { workspace = true }
+
 [dependencies]
+analytics = { workspace = true }
+chrono = { workspace = true }
+database = { workspace = true }
+futures = { workspace = true }
+geoip = { workspace = true }
+regex-lite = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+storage = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "time"] }
+tracing = { workspace = true }
+types = { workspace = true }
+util = { workspace = true }
+uuid = { workspace = true }
+
 
 [lints]
 workspace = true
