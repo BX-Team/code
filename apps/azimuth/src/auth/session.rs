@@ -45,6 +45,22 @@ impl FromRequestParts<AppState> for Session {
     }
 }
 
+impl axum::extract::OptionalFromRequestParts<AppState> for Session {
+    type Rejection = ApiError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        match <Self as FromRequestParts<AppState>>::from_request_parts(parts, state).await {
+            Ok(session) => Ok(Some(session)),
+            // Not signed in is the normal case for a page load, not a failure.
+            Err(ApiError::Unauthorized(_)) => Ok(None),
+            Err(error) => Err(error),
+        }
+    }
+}
+
 /// A session belonging to an administrator.
 #[derive(Debug, Clone)]
 pub struct AdminSession {
@@ -66,6 +82,11 @@ impl FromRequestParts<AppState> for AdminSession {
             Err(ApiError::Forbidden("Forbidden".into()))
         }
     }
+}
+
+/// The session cookie as sent, without checking whether it still resolves to anything.
+pub fn raw_cookie(parts: &Parts) -> Option<String> {
+    cookie(parts, COOKIE_NAME)
 }
 
 fn cookie(parts: &Parts, name: &str) -> Option<String> {

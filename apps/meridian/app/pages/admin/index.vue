@@ -45,15 +45,9 @@ const {
         query: {
           limit: PAGE_SIZE,
           offset: page.value * PAGE_SIZE,
-          ...(search.value
-            ? { searchValue: search.value, searchField: 'email' as const, searchOperator: 'contains' as const }
-            : {}),
-          ...(filterStatus.value === 'banned'
-            ? { filterField: 'banned', filterValue: true, filterOperator: 'eq' as const }
-            : {}),
-          ...(filterStatus.value === 'active'
-            ? { filterField: 'banned', filterValue: false, filterOperator: 'eq' as const }
-            : {}),
+          ...(search.value ? { searchValue: search.value } : {}),
+          ...(filterStatus.value === 'banned' ? { filterValue: true } : {}),
+          ...(filterStatus.value === 'active' ? { filterValue: false } : {}),
         },
       })
       .then(r => r.data),
