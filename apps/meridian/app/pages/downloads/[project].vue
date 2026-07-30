@@ -32,12 +32,18 @@ const { data } = await useAsyncData(`project:${projectId}`, async () => {
   const initialVersion = requestedVersion ?? project.latestVersion ?? '';
 
   const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([
-    $fetch<VersionWithBuilds[]>(`${API_BASE}/atlas/projects/${projectId}/versions`).catch(() => [] as VersionWithBuilds[]),
+    $fetch<VersionWithBuilds[]>(`${API_BASE}/atlas/projects/${projectId}/versions`).catch(
+      () => [] as VersionWithBuilds[],
+    ),
     project.latestVersion
-      ? $fetch<Build>(`${API_BASE}/atlas/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(() => null)
+      ? $fetch<Build>(`${API_BASE}/atlas/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(
+          () => null,
+        )
       : Promise.resolve(null),
     initialVersion
-      ? $fetch<Build[]>(`${API_BASE}/atlas/projects/${projectId}/versions/${initialVersion}/builds`).catch(() => [] as Build[])
+      ? $fetch<Build[]>(`${API_BASE}/atlas/projects/${projectId}/versions/${initialVersion}/builds`).catch(
+          () => [] as Build[],
+        )
       : Promise.resolve([] as Build[]),
   ]);
 

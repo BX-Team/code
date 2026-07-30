@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pulsify.server_metadata\n             (project_id, last_seen_at, software, mc_version, country_code)\n         VALUES ($1, now(), $2, $3, $4)\n         ON CONFLICT (project_id) DO UPDATE\n             SET last_seen_at = now(),\n                 software = EXCLUDED.software,\n                 mc_version = EXCLUDED.mc_version,\n                 country_code = EXCLUDED.country_code",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2d71dde9e3c23f08c59ceabae6b282bc97d491d1211f4648d9fdb262d45e3303"
+}

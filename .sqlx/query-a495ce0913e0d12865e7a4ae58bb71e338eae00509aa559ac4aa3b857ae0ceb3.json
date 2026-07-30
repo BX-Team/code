@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE pulsify.issues\n                SET status = 'open', resolved_at = NULL, status_version = NULL,\n                    muted_until = NULL, last_seen_at = now(),\n                    last_version = coalesce($3, last_version)\n              WHERE project_id = $1 AND fingerprint = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a495ce0913e0d12865e7a4ae58bb71e338eae00509aa559ac4aa3b857ae0ceb3"
+}

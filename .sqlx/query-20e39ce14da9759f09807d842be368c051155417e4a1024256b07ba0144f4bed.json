@@ -1,0 +1,77 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, version_id, build_number, channel, time\n           FROM atlas.builds\n          WHERE version_id = $1 AND ($2::text IS NULL OR channel = $2)\n          ORDER BY build_number DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.builds",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "version_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.builds",
+            "name": "version_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "build_number",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "atlas.builds",
+            "name": "build_number"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "channel",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "atlas.builds",
+            "name": "channel"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "time",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "atlas.builds",
+            "name": "time"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "20e39ce14da9759f09807d842be368c051155417e4a1024256b07ba0144f4bed"
+}

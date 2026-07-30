@@ -1,0 +1,122 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, project_id, type AS kind, enabled, threshold, window_minutes,\n                  webhook_url, last_fired_at, created_at\n             FROM pulsify.alert_rules\n            WHERE type = 'error_spike'\n              AND enabled\n              AND (last_fired_at IS NULL\n                   OR last_fired_at < now() - make_interval(mins => window_minutes))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "project_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "project_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "threshold",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "threshold"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "window_minutes",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "window_minutes"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "webhook_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "webhook_url"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "last_fired_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "last_fired_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "pulsify.alert_rules",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "3488d10b7588d8f5402b48a8c02cbeb2dd7c9d7371efb027b0ac31ff6b5204c7"
+}

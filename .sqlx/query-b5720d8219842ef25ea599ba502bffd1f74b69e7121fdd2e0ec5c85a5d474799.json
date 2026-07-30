@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO pulsify.ingest_queue (project_id, payload, received_at, ip)\n         SELECT $1, payload, $3, $4 FROM unnest($2::jsonb[]) AS payload",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "JsonbArray",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b5720d8219842ef25ea599ba502bffd1f74b69e7121fdd2e0ec5c85a5d474799"
+}

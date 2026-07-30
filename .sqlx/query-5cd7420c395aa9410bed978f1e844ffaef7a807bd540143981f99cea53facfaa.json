@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT fingerprint FROM pulsify.issues\n          WHERE project_id = ANY($1)\n            AND (status IN ('resolved', 'ignored')\n                 OR (status = 'muted' AND muted_until > now()))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "fingerprint",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "pulsify.issues",
+            "name": "fingerprint"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "5cd7420c395aa9410bed978f1e844ffaef7a807bd540143981f99cea53facfaa"
+}
