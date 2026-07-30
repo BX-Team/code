@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT coalesce(sum(u.count), 0)::bigint\n           FROM pulsify.daily_usage u\n           JOIN pulsify.dsn_tokens t ON t.key = u.token\n           JOIN pulsify.projects p ON p.id = t.project_id\n          WHERE p.owner_id = $1 AND u.day = current_date",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "coalesce",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "55b3d22e10f9889af0540a6a4dc19347edc1b23fc11783878c44c41432ec5a7a"
+}
