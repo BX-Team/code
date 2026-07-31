@@ -185,7 +185,7 @@ jobs:
     needs: [tag]
     # Older glibc than the runtime image carries, so the binary keeps working there. Building on
     # a newer runner would link against symbols distroless/cc-debian12 does not have.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     strategy:
