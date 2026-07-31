@@ -37,10 +37,11 @@ jobs:
       previous: ${{ steps.resolve.outputs.previous }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
+
       - name: Validate the version and find the previous tag
         id: resolve
         env:
@@ -76,36 +77,44 @@ jobs:
           - name: typos
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
+
       - name: Install the Rust toolchain
         if: matrix.name == 'rust'
-        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
           components: rustfmt, clippy
+
       - name: Restore the Cargo cache
         if: matrix.name == 'rust'
-        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        uses: Swatinem/rust-cache@v2
+
       - name: Check formatting
         if: matrix.name == 'rust'
         run: cargo fmt --all --check
+
       - name: Run clippy
         if: matrix.name == 'rust'
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
       - name: Install Bun
         if: matrix.name == 'web'
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
         if: matrix.name == 'web'
         run: bun install --frozen-lockfile
+
       - name: Run Biome
         if: matrix.name == 'web'
         run: bunx biome ci .
+
       - name: Check spelling
         if: matrix.name == 'typos'
-        uses: crate-ci/typos@3bc303c295c081add5df4a4d52a1e117f2fb2dce # master
+        uses: crate-ci/typos@v1
 
   check:
     name: Check
@@ -131,25 +140,32 @@ jobs:
       DATABASE_URL: postgres://bx_team:bx_team@127.0.0.1:5432/bx_team
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
+
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
+
       - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        uses: Swatinem/rust-cache@v2
+
       - name: Type-check the workspace
         run: cargo check --workspace --all-targets --all-features
+
       - name: Verify the lockfile is up to date
         run: cargo check --workspace --locked
+
       - name: Install sqlx-cli
         run: cargo install sqlx-cli --version 0.9.0 --no-default-features --features postgres,rustls --locked
+
       - name: Apply migrations
         env:
           SQLX_OFFLINE: false
         run: cargo sqlx migrate run --source packages/database/migrations
+
       - name: Verify the offline query cache matches the schema
         env:
           SQLX_OFFLINE: false
@@ -176,7 +192,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       clickhouse:
-        image: clickhouse/clickhouse-server:25.8-alpine
+        image: clickhouse/clickhouse-server:25.12-alpine
         ports:
           - 8123:8123
         options: >-
@@ -191,15 +207,18 @@ jobs:
       CLICKHOUSE_TEST_USER: default
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
+
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
+
       - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        uses: Swatinem/rust-cache@v2
+
       - name: Run the test suite
         run: cargo test --workspace --all-features
 
@@ -213,13 +232,15 @@ jobs:
       sha: ${{ steps.push.outputs.sha }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
+
       - name: Set the workspace version
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
@@ -228,6 +249,7 @@ jobs:
           grep -q "^version = \"$VERSION\"$" Cargo.toml
           cargo update --workspace --offline
         shell: bash
+
       - name: Commit the bump and push the tag
         id: push
         env:
@@ -258,25 +280,29 @@ jobs:
         service: [azimuth, influx, cinder]
     steps:
       - name: Check out the tagged commit
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.tag.outputs.sha }}
           persist-credentials: false
+
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
+
       - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.service }}
+
       - name: Build the service binary
         # Set on the service build only: stamping it globally would invalidate the cached
         # dependency crates on every commit.
         run: BX_GIT_HASH=$(git rev-parse --short HEAD) cargo build --profile release-service --locked -p ${{ matrix.service }}
         shell: bash
+
       - name: Upload the binary
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v7
         with:
           name: binary-${{ matrix.service }}
           path: target/release-service/${{ matrix.service }}
@@ -296,27 +322,32 @@ jobs:
         service: [azimuth, influx, cinder]
     steps:
       - name: Check out the tagged commit
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.tag.outputs.sha }}
           persist-credentials: false
+
       - name: Download the binary
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        uses: actions/download-artifact@v8
         with:
           name: binary-${{ matrix.service }}
           path: apps/${{ matrix.service }}/staging
+
       - name: Make the binary executable
         run: chmod +x apps/${{ matrix.service }}/staging/${{ matrix.service }}
+
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@v4
+
       - name: Sign in to the registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push the image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@v7
         with:
           context: apps/${{ matrix.service }}
           push: true
@@ -335,13 +366,14 @@ jobs:
       body: ${{ steps.build.outputs.changelog }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
+
       - name: Build the changelog
         id: build
-        uses: mikepenz/release-changelog-builder-action@c9dc8369bccbc41e0ac887f8fd674f5925d315f7 # v5
+        uses: mikepenz/release-changelog-builder-action@v6
         with:
           configuration: .github/changelog_configuration.json
           mode: COMMIT
@@ -358,7 +390,7 @@ jobs:
       contents: write
     steps:
       - name: Publish the release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: ${{ needs.prepare.outputs.tag }}

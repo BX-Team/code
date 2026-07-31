@@ -1,4 +1,4 @@
-name: GeoIP
+name: Update GeoIP database
 
 on:
   schedule:
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   refresh:
-    name: Refresh
+    name: Refresh GeoIP database
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -32,17 +32,17 @@ jobs:
           sha256sum ipinfo_lite.mmdb > SHA256SUMS
           cat SHA256SUMS
         shell: bash
+
       - name: Reject a file that is not an IPinfo database
-        # A MaxMind file would not fail to open, it would silently resolve every address to
-        # nothing, so the shape is checked before it ever reaches the host.
         run: |
           if ! head -c 8192 ipinfo_lite.mmdb | grep -qa 'ipinfo'; then
             echo "::error::the downloaded file does not look like an IPinfo database"
             exit 1
           fi
         shell: bash
+
       - name: Publish the rolling release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: geoip
           name: GeoIP database

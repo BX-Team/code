@@ -24,12 +24,13 @@ jobs:
       workflows: ${{ steps.filter.outputs.workflows }}
     steps:
       - name: Check out the repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
+
       - name: Detect which parts of the repository changed
         id: filter
-        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             rust:
