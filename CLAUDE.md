@@ -2,8 +2,6 @@
 
 This is the BX Team monorepo — it contains all BX Team projects, both frontend and backend. When entering a project, either to edit or analyse, you should read it's CLAUDE.md.
 
-`ARCHITECTURE.md` at the repo root is the authoritative specification: data model, wire format, endpoint inventory, business invariants and the phased rewrite plan. Read the relevant section before changing backend behaviour.
-
 ## Architecture
 - **Backend:** Rust, one Cargo workspace (`Cargo.toml` with `members`). Three services on a single NixOS VPS behind nginx: `azimuth` (application API, api.bxteam.org), `influx` (ingest gateway, ingest.bxteam.org), `cinder` (queue consumer + scheduler). Storage: one PostgreSQL database `bx_team` with schemas `auth`/`atlas`/`pulsify`, ClickHouse for analytics, R2 (S3 API) for artifacts and error payloads.
 - **Frontend:** Vue 3 / Nuxt 4 (fully static via `nuxt generate`), Tailwind CSS v4, deployed to Cloudflare Workers Static Assets. Managed with [bun workspaces](https://bun.sh/docs/pm/workspaces) — only `apps/meridian` and `packages/ui` are bun workspaces.

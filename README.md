@@ -13,8 +13,6 @@ The BX Team web platform: the public site, the downloads API and Pulsify — obs
 | `packages/{types,database,analytics,storage,mail,geoip,util}` | Shared Rust crates |
 | `packages/ui` | Shared Vue 3 design system |
 
-`ARCHITECTURE.md` describes the whole platform — data model, wire format, endpoint inventory and the rewrite plan.
-
 ## Getting started
 
 Backend. It needs a PostgreSQL, a ClickHouse and an S3-compatible endpoint reachable through
