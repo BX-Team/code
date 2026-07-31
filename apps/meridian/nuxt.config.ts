@@ -100,6 +100,8 @@ export default defineNuxtConfig({
     '/docs/api/**': { ssr: false },
   },
 
+  sourcemap: { server: false },
+
   nitro: {
     preset: 'static',
   },
