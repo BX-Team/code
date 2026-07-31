@@ -1,4 +1,4 @@
-name: Update GeoIP database
+name: GeoIP Database Refresh
 
 on:
   schedule:
@@ -13,12 +13,16 @@ concurrency:
 
 jobs:
   refresh:
-    name: Refresh GeoIP database
+    name: Refresh database
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Download the IPinfo Lite database
+      - name: Read the upstream checksum
+        id: upstream
         env:
           IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
         run: |
@@ -26,22 +30,50 @@ jobs:
             echo "::error::IPINFO_TOKEN is not configured"
             exit 1
           fi
-          curl --fail --silent --show-error --location \
-            -o ipinfo_lite.mmdb \
-            "https://ipinfo.io/data/free/ipinfo_lite.mmdb?token=$IPINFO_TOKEN"
-          sha256sum ipinfo_lite.mmdb > SHA256SUMS
-          cat SHA256SUMS
+          sha256=$(curl --fail --silent --show-error --location \
+            "https://ipinfo.io/data/ipinfo_lite.mmdb/checksums?token=$IPINFO_TOKEN" \
+            | jq -er '.checksums.sha256')
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "upstream sha256 is $sha256"
         shell: bash
 
-      - name: Reject a file that is not an IPinfo database
+      - name: Compare it with the published database
+        id: published
+        env:
+          UPSTREAM: ${{ steps.upstream.outputs.sha256 }}
         run: |
-          if ! head -c 8192 ipinfo_lite.mmdb | grep -qa 'ipinfo'; then
-            echo "::error::the downloaded file does not look like an IPinfo database"
-            exit 1
+          gh release download geoip --pattern SHA256SUMS --output published.txt || true
+          current=$(awk '{ print $1 }' published.txt 2>/dev/null || true)
+          if [ "$current" = "$UPSTREAM" ]; then
+            echo "up-to-date=true" >> "$GITHUB_OUTPUT"
+            echo "the published database already matches, nothing to do"
+          else
+            echo "up-to-date=false" >> "$GITHUB_OUTPUT"
+            echo "the published database is ${current:-missing}, refreshing"
           fi
         shell: bash
 
+      - name: Download the IPinfo Lite database
+        if: steps.published.outputs.up-to-date == 'false'
+        env:
+          IPINFO_TOKEN: ${{ secrets.IPINFO_TOKEN }}
+        run: |
+          curl --fail --silent --show-error --location \
+            -o ipinfo_lite.mmdb \
+            "https://ipinfo.io/data/ipinfo_lite.mmdb?token=$IPINFO_TOKEN"
+        shell: bash
+
+      - name: Verify the download against the checksum
+        if: steps.published.outputs.up-to-date == 'false'
+        env:
+          UPSTREAM: ${{ steps.upstream.outputs.sha256 }}
+        run: |
+          printf '%s  ipinfo_lite.mmdb\n' "$UPSTREAM" > SHA256SUMS
+          sha256sum --check --strict SHA256SUMS
+        shell: bash
+
       - name: Publish the rolling release
+        if: steps.published.outputs.up-to-date == 'false'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: geoip

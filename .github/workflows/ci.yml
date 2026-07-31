@@ -1,14 +1,15 @@
-name: PR Checks
+name: Test and Build
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review]
+  push:
+    branches: [master]
+  workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   CARGO_INCREMENTAL: 0
@@ -16,82 +17,6 @@ env:
   SQLX_OFFLINE: true
 
 jobs:
-  labels:
-    name: Label the pull request
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Label the touched areas
-        uses: actions/labeler@v7
-        with:
-          sync-labels: true
-
-      - name: Label the kind of change
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.pull_request.number }}
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          type=$(printf '%s' "$TITLE" | sed -nE 's/^([a-z]+)(\([^)]*\))?!?:.*/\1/p')
-          scope=$(printf '%s' "$TITLE" | sed -nE 's/^[a-z]+\(([^)]*)\)!?:.*/\1/p')
-          case "$type" in
-            feat) label='🔧 enchantment' ;;
-            fix) label='🐛 bug' ;;
-            docs) label='📝 documentation' ;;
-            perf) label='⚡ performance' ;;
-            refactor) label='🧹 refactor' ;;
-            *) label='' ;;
-          esac
-          case "$scope" in
-            deps) label='🔄 dependencies' ;;
-            security) label='🔒 security' ;;
-          esac
-          if [ -z "$label" ]; then
-            echo "no label matches the title: $TITLE"
-            exit 0
-          fi
-          gh pr edit "$NUMBER" --add-label "$label"
-        shell: bash
-
-  commits:
-    name: Commit titles
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Verify the titles are Conventional Commits
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style)(\([[:alnum:]_.-]+\))?!?: .+'
-          status=0
-          while IFS= read -r title; do
-            case "$title" in
-              "Merge "*) continue ;;
-            esac
-            if ! printf '%s' "$title" | grep -Eq "$pattern"; then
-              echo "::error::commit title is not a Conventional Commit: $title"
-              status=1
-            fi
-          done < <(git log --format=%s "$BASE_SHA..$HEAD_SHA")
-          exit $status
-        shell: bash
-
   format:
     name: Formatting and spelling
     runs-on: ubuntu-latest
@@ -169,14 +94,13 @@ jobs:
         run: bun run build:meridian
 
   summary:
-    name: Report the check result
+    name: Report the build result
     if: always()
-    needs: [commits, format, rust, web]
+    needs: [format, rust, web]
     runs-on: ubuntu-latest
     steps:
       - name: Publish the result to the run summary
         env:
-          COMMITS: ${{ needs.commits.result }}
           FORMAT: ${{ needs.format.result }}
           RUST: ${{ needs.rust.result }}
           WEB: ${{ needs.web.result }}
@@ -190,11 +114,10 @@ jobs:
             esac
           }
           {
-            echo '## Checks'
+            echo "## Build of \`${GITHUB_SHA:0:7}\`"
             echo
             echo '| Stage | Result |'
             echo '| --- | --- |'
-            echo "| Commit titles | $(icon "$COMMITS") \`$COMMITS\` |"
             echo "| Formatting and spelling | $(icon "$FORMAT") \`$FORMAT\` |"
             echo "| Rust workspace | $(icon "$RUST") \`$RUST\` |"
             echo "| Web app | $(icon "$WEB") \`$WEB\` |"
