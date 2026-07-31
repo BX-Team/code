@@ -52,7 +52,7 @@ impl Version {
     }
 }
 
-/// True when `a` is strictly newer than `b`; unparseable input compares as not newer.
+/// True when `a` is strictly newer than `b`; unparsable input compares as not newer.
 pub fn is_newer(a: &str, b: &str) -> bool {
     match (Version::parse(a), Version::parse(b)) {
         (Some(a), Some(b)) => a > b,
@@ -113,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn unparseable_input_is_never_newer() {
+    fn unparsable_input_is_never_newer() {
         assert!(!is_newer("dev", "1.21.4"));
         assert!(!is_newer("1.21.4", "dev"));
         assert!(!is_newer("dev", "dev"));
@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn unparseable_keys_land_in_their_own_group() {
+    fn unparsable_keys_land_in_their_own_group() {
         let groups = group_versions(["1.21.4", "snapshot"]);
         assert_eq!(groups["0.0"], ["snapshot"]);
     }
