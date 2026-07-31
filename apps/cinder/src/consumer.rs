@@ -73,7 +73,7 @@ async fn apply(
     let event = match serde_json::from_value::<IngestEvent>(message.payload.clone()) {
         Ok(event) => event,
         Err(error) => {
-            // An unparseable event is dead-lettered rather than dropped: bad payloads have to
+            // An unparsable event is dead-lettered rather than dropped: bad payloads have to
             // stay visible, otherwise a broken SDK release looks like silence.
             let reason = format!("invalid event: {error}");
             tracing::warn!(project_id = %message.project_id, reason, "dead-lettering event");

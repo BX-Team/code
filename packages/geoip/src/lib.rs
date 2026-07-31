@@ -41,7 +41,7 @@ impl Geoip {
         Ok(Self { reader })
     }
 
-    /// ISO country code, or an empty string when unknown, private or unparseable.
+    /// ISO country code, or an empty string when unknown, private or unparsable.
     ///
     /// Lookups never fail the caller: an unknown country is worth less than a dropped event.
     pub fn country(&self, ip: &str) -> String {
