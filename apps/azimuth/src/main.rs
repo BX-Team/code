@@ -27,6 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(bind = %config.bind, "listening");
 
     let state = AppState::new(db, analytics, storage, mailer, card, config);
+    util::systemd::notify_ready();
+
     axum::serve(listener, router(state))
         .with_graceful_shutdown(util::shutdown::signal())
         .await?;
