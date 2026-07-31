@@ -83,7 +83,7 @@ jobs:
         if: matrix.name == 'rust'
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
           components: rustfmt, clippy
       - name: Restore the Cargo cache
         if: matrix.name == 'rust'
@@ -137,7 +137,7 @@ jobs:
       - name: Install the Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
       - name: Restore the Cargo cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       - name: Type-check the workspace
@@ -176,7 +176,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       clickhouse:
-        image: clickhouse/clickhouse-server:25.8-alpine
+        image: clickhouse/clickhouse-server:25.12-alpine
         ports:
           - 8123:8123
         options: >-
@@ -197,7 +197,7 @@ jobs:
       - name: Install the Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
       - name: Restore the Cargo cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       - name: Run the test suite
@@ -219,7 +219,7 @@ jobs:
       - name: Install the Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
       - name: Set the workspace version
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
@@ -265,7 +265,7 @@ jobs:
       - name: Install the Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: '1.97.0'
+          toolchain: '1.97.1'
       - name: Restore the Cargo cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
