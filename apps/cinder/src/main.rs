@@ -21,6 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let storage = Storage::new(&config.storage);
     let state = AppState::new(db, analytics, storage, config);
+    util::systemd::notify_ready();
 
     tokio::spawn(scheduler::run(state.clone()));
     tokio::select! {
