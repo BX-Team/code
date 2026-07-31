@@ -316,7 +316,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push the image
-        id: push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: apps/${{ matrix.service }}
@@ -325,52 +324,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.service }}:${{ needs.prepare.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.service }}:latest
           provenance: false
-      - name: Record the digest
-        env:
-          DIGEST: ${{ steps.push.outputs.digest }}
-        run: |
-          mkdir -p digests
-          printf '%s' "$DIGEST" > "digests/${{ matrix.service }}"
-        shell: bash
-      - name: Upload the digest
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: digest-${{ matrix.service }}
-          path: digests/${{ matrix.service }}
-          if-no-files-found: error
-          retention-days: 1
-
-  manifest:
-    name: Manifest
-    needs: [prepare, tag, image]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Download the digests
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          pattern: digest-*
-          path: digests
-          merge-multiple: true
-      - name: Assemble deploy.json
-        env:
-          VERSION: ${{ needs.prepare.outputs.version }}
-          REVISION: ${{ needs.tag.outputs.sha }}
-        run: |
-          images=$(for service in azimuth influx cinder; do
-            printf '"%s":{"image":"%s/%s/%s","digest":"%s"},' \
-              "$service" "$REGISTRY" "$OWNER" "$service" "$(cat "digests/$service")"
-          done | sed 's/,$//')
-          printf '{"version":"%s","revision":"%s","images":{%s}}' "$VERSION" "$REVISION" "$images" > deploy.json
-          cat deploy.json
-        shell: bash
-      - name: Upload deploy.json
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: deploy
-          path: deploy.json
-          if-no-files-found: error
 
   changelog:
     name: Changelog
@@ -399,15 +352,11 @@ jobs:
 
   publish:
     name: Publish
-    needs: [prepare, tag, manifest, changelog]
+    needs: [prepare, tag, image, changelog]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download deploy.json
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
-        with:
-          name: deploy
       - name: Publish the release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
@@ -415,12 +364,11 @@ jobs:
           name: ${{ needs.prepare.outputs.tag }}
           body: ${{ needs.changelog.outputs.body }}
           draft: ${{ inputs.draft }}
-          files: deploy.json
 
   summary:
     name: Summary
     if: always()
-    needs: [prepare, lint, check, test, tag, build, image, manifest, changelog, publish]
+    needs: [prepare, lint, check, test, tag, build, image, changelog, publish]
     runs-on: ubuntu-latest
     steps:
       - name: Report the outcome
@@ -435,7 +383,7 @@ jobs:
           {
             echo "## $TAG released"
             echo
-            echo 'Copy the attached `deploy.json` into `/etc/nixos/bxteam/versions.json`'
-            echo 'and run `nixos-rebuild switch`.'
+            echo 'The host picks the images up within 15 minutes via `podman-auto-update.timer`.'
+            echo 'To roll it out now: `systemctl start podman-auto-update`.'
           } >> "$GITHUB_STEP_SUMMARY"
         shell: bash
