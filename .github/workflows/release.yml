@@ -1,4 +1,4 @@
-name: Release
+name: Release Services
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ env:
 
 jobs:
   prepare:
-    name: Prepare
+    name: Resolve the version
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,19 +62,11 @@ jobs:
           } >> "$GITHUB_OUTPUT"
         shell: bash
 
-  lint:
-    name: Lint (${{ matrix.name }})
-    needs: [prepare]
+  format:
+    name: Formatting and spelling
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: rust
-          - name: web
-          - name: typos
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -82,62 +74,30 @@ jobs:
           persist-credentials: false
 
       - name: Install the Rust toolchain
-        if: matrix.name == 'rust'
-        uses: dtolnay/rust-toolchain@master
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: '1.97.1'
-          components: rustfmt, clippy
+          components: rustfmt
 
-      - name: Restore the Cargo cache
-        if: matrix.name == 'rust'
-        uses: Swatinem/rust-cache@v2
-
-      - name: Check formatting
-        if: matrix.name == 'rust'
+      - name: Check Rust formatting
         run: cargo fmt --all --check
 
-      - name: Run clippy
-        if: matrix.name == 'rust'
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-
       - name: Install Bun
-        if: matrix.name == 'web'
         uses: oven-sh/setup-bun@v2
 
-      - name: Install dependencies
-        if: matrix.name == 'web'
+      - name: Install the web dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run Biome
-        if: matrix.name == 'web'
+      - name: Check formatting and lints with Biome
         run: bunx biome ci .
 
       - name: Check spelling
-        if: matrix.name == 'typos'
         uses: crate-ci/typos@v1
 
-  check:
-    name: Check
-    needs: [prepare]
+  rust:
+    name: Rust workspace
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: bx_team
-          POSTGRES_PASSWORD: bx_team
-          POSTGRES_DB: bx_team
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U bx_team"
-          --health-interval 3s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://bx_team:bx_team@127.0.0.1:5432/bx_team
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -145,86 +105,42 @@ jobs:
           persist-credentials: false
 
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: '1.97.1'
+          components: clippy
 
-      - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@v2
+      - name: Lint with clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
-      - name: Type-check the workspace
-        run: cargo check --workspace --all-targets --all-features
-
-      - name: Verify the lockfile is up to date
-        run: cargo check --workspace --locked
-
-      - name: Install sqlx-cli
-        run: cargo install sqlx-cli --version 0.9.0 --no-default-features --features postgres,rustls --locked
-
-      - name: Apply migrations
-        env:
-          SQLX_OFFLINE: false
-        run: cargo sqlx migrate run --source packages/database/migrations
-
-      - name: Verify the offline query cache matches the schema
-        env:
-          SQLX_OFFLINE: false
-        run: cargo sqlx prepare --workspace --check -- --all-targets
-
-  test:
-    name: Test
-    needs: [prepare]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: bx_team
-          POSTGRES_PASSWORD: bx_team
-          POSTGRES_DB: bx_team
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U bx_team"
-          --health-interval 3s
-          --health-timeout 5s
-          --health-retries 10
-      clickhouse:
-        image: clickhouse/clickhouse-server:25.12-alpine
-        ports:
-          - 8123:8123
-        options: >-
-          --health-cmd "wget -qO- http://127.0.0.1:8123/ping"
-          --health-interval 3s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://bx_team:bx_team@127.0.0.1:5432/bx_team
-      CLICKHOUSE_TEST_URL: http://127.0.0.1:8123
-      CLICKHOUSE_TEST_DATABASE: bx_team
-      CLICKHOUSE_TEST_USER: default
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: '1.97.1'
-
-      - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@v2
+      - name: Build the workspace
+        run: cargo build --workspace --all-features --locked
 
       - name: Run the test suite
-        run: cargo test --workspace --all-features
+        run: cargo test --workspace --all-features --locked
+
+  web:
+    name: Web app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install the web dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build the static site
+        run: bun run build:meridian
 
   tag:
-    name: Tag
-    needs: [prepare, lint, check, test]
+    name: Bump the version and tag
+    needs: [prepare, format, rust, web]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -237,9 +153,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: '1.97.1'
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Set the workspace version
         env:
@@ -268,7 +182,7 @@ jobs:
 
   build:
     name: Build ${{ matrix.service }}
-    needs: [prepare, tag]
+    needs: [tag]
     # Older glibc than the runtime image carries, so the binary keeps working there. Building on
     # a newer runner would link against symbols distroless/cc-debian12 does not have.
     runs-on: ubuntu-22.04
@@ -286,14 +200,9 @@ jobs:
           persist-credentials: false
 
       - name: Install the Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: '1.97.1'
-
-      - name: Restore the Cargo cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.service }}
+          cache-key: ${{ matrix.service }}
 
       - name: Build the service binary
         # Set on the service build only: stamping it globally would invalidate the cached
@@ -310,7 +219,7 @@ jobs:
           retention-days: 1
 
   image:
-    name: Image ${{ matrix.service }}
+    name: Push the ${{ matrix.service }} image
     needs: [prepare, tag, build]
     runs-on: ubuntu-latest
     permissions:
@@ -356,14 +265,12 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.service }}:latest
           provenance: false
 
-  changelog:
-    name: Changelog
-    needs: [prepare, tag]
+  publish:
+    name: Publish the release
+    needs: [prepare, tag, image]
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-    outputs:
-      body: ${{ steps.build.outputs.changelog }}
+      contents: write
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7
@@ -372,7 +279,7 @@ jobs:
           persist-credentials: false
 
       - name: Build the changelog
-        id: build
+        id: changelog
         uses: mikepenz/release-changelog-builder-action@v6
         with:
           configuration: .github/changelog_configuration.json
@@ -382,28 +289,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish:
-    name: Publish
-    needs: [prepare, tag, image, changelog]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Publish the release
+      - name: Publish the GitHub release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: ${{ needs.prepare.outputs.tag }}
-          body: ${{ needs.changelog.outputs.body }}
+          body: ${{ steps.changelog.outputs.changelog }}
           draft: ${{ inputs.draft }}
 
   summary:
-    name: Summary
+    name: Report the release result
     if: always()
-    needs: [prepare, lint, check, test, tag, build, image, changelog, publish]
+    needs: [prepare, format, rust, web, tag, build, image, publish]
     runs-on: ubuntu-latest
     steps:
-      - name: Report the outcome
+      - name: Publish the result to the run summary
         env:
           RESULTS: ${{ toJSON(needs.*.result) }}
           TAG: ${{ needs.prepare.outputs.tag }}
@@ -414,6 +314,12 @@ jobs:
           fi
           {
             echo "## $TAG released"
+            echo
+            echo '| Image | Tags |'
+            echo '| --- | --- |'
+            for service in azimuth influx cinder; do
+              echo "| \`ghcr.io/bx-team/$service\` | \`${TAG#v}\`, \`latest\` |"
+            done
             echo
             echo 'The host picks the images up within 15 minutes via `podman-auto-update.timer`.'
             echo 'To roll it out now: `systemctl start podman-auto-update`.'

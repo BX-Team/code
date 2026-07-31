@@ -1,0 +1,43 @@
+'🦀 backend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'apps/azimuth/**'
+          - 'apps/cinder/**'
+          - 'apps/influx/**'
+          - 'packages/analytics/**'
+          - 'packages/database/**'
+          - 'packages/geoip/**'
+          - 'packages/mail/**'
+          - 'packages/storage/**'
+          - 'packages/types/**'
+          - 'packages/util/**'
+          - 'Cargo.toml'
+          - 'Cargo.lock'
+          - 'clippy.toml'
+          - 'rustfmt.toml'
+          - 'rust-toolchain.toml'
+
+'🖥️ frontend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'apps/meridian/**'
+          - 'packages/ui/**'
+          - 'package.json'
+          - 'bun.lock'
+          - 'biome.json'
+
+'🗃️ database':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packages/database/migrations/**'
+          - '.sqlx/**'
+
+'⚙️ ci':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'renovate.json'
+
+'📄 README':
+  - changed-files:
+      - any-glob-to-any-file: 'README.md'
