@@ -8,7 +8,7 @@ use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
-use types::build_info::{BuildInfo, ServiceCard, service_card};
+use types::build_info::{BuildInfo, ServiceCard, git_hash, service_card};
 use utoipa::OpenApi;
 
 pub mod auth;
@@ -22,16 +22,16 @@ pub use env::Config;
 pub use state::AppState;
 
 pub const BUILD_INFO: BuildInfo = BuildInfo {
-    git_hash: match option_env!("BX_GIT_HASH") {
-        Some(hash) => hash,
-        None => "unknown",
-    },
+    git_hash: git_hash(option_env!("BX_GIT_HASH")),
     comp_date: env!("BX_COMP_DATE"),
     profile: env!("BX_PROFILE"),
 };
 
 pub fn card() -> ServiceCard {
-    service_card("azimuth", BUILD_INFO)
+    service_card(
+        "azimuth",
+        BUILD_INFO,
+    )
 }
 
 pub fn router(state: AppState) -> Router {

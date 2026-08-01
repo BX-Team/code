@@ -204,9 +204,9 @@ jobs:
           cache-key: ${{ matrix.service }}
 
       - name: Build the service binary
-        # Set on the service build only: stamping it globally would invalidate the cached
-        # dependency crates on every commit.
-        run: BX_GIT_HASH=$(git rev-parse --short HEAD) cargo build --profile release-service --locked -p ${{ matrix.service }}
+        env:
+          SHA: ${{ needs.tag.outputs.sha }}
+        run: BX_GIT_HASH=${SHA:0:7} cargo build --profile release-service --locked -p ${{ matrix.service }}
         shell: bash
 
       - name: Upload the binary

@@ -1,4 +1,4 @@
-use types::build_info::{BuildInfo, ServiceCard, service_card};
+use types::build_info::{BuildInfo, ServiceCard, git_hash, service_card};
 
 pub mod alerts;
 pub mod consumer;
@@ -11,16 +11,16 @@ pub use env::Config;
 pub use state::AppState;
 
 pub const BUILD_INFO: BuildInfo = BuildInfo {
-    git_hash: match option_env!("BX_GIT_HASH") {
-        Some(hash) => hash,
-        None => "unknown",
-    },
+    git_hash: git_hash(option_env!("BX_GIT_HASH")),
     comp_date: env!("BX_COMP_DATE"),
     profile: env!("BX_PROFILE"),
 };
 
 pub fn card() -> ServiceCard {
-    service_card("cinder", BUILD_INFO)
+    service_card(
+        "cinder",
+        BUILD_INFO,
+    )
 }
 
 #[derive(Debug, thiserror::Error)]

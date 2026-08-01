@@ -297,7 +297,7 @@ async fn the_service_card_reports_its_version() {
 
     assert_eq!(response.status(), StatusCode::OK);
     let card = json_of(response).await;
-    assert_eq!(card["name"], "bx-team-influx");
+    assert_eq!(card["name"], "influx");
     assert_eq!(card["version"], env!("CARGO_PKG_VERSION"));
     assert!(card["build_info"]["git_hash"].is_string());
 }

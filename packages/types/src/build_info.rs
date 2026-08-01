@@ -12,10 +12,9 @@ pub struct BuildInfo {
 /// The `GET /` card every HTTP service answers with.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
 pub struct ServiceCard {
-    pub name: String,
+    pub name: &'static str,
     pub version: &'static str,
     pub documentation: &'static str,
-    pub about: &'static str,
     pub build_info: BuildInfo,
 }
 
@@ -30,13 +29,20 @@ impl ServiceCard {
 }
 
 /// Builds the service card; the version is the workspace version, shared by all three services.
-pub fn service_card(name: &str, build_info: BuildInfo) -> ServiceCard {
+pub fn service_card(name: &'static str, build_info: BuildInfo) -> ServiceCard {
     ServiceCard {
-        name: format!("bx-team-{name}"),
+        name,
         version: env!("CARGO_PKG_VERSION"),
         documentation: "https://bxteam.org/docs/api",
-        about: "Welcome traveler!",
         build_info,
+    }
+}
+
+/// Reads the commit stamped by `build.rs`; an unstamped build reports `unknown`.
+pub const fn git_hash(stamped: Option<&'static str>) -> &'static str {
+    match stamped {
+        Some(hash) if !hash.is_empty() => hash,
+        _ => "unknown",
     }
 }
 
@@ -51,10 +57,20 @@ mod tests {
     };
 
     #[test]
-    fn card_is_namespaced_and_versioned() {
+    fn card_is_named_and_versioned() {
         let card = service_card("azimuth", BUILD);
-        assert_eq!(card.name, "bx-team-azimuth");
+        assert_eq!(card.name, "azimuth");
         assert_eq!(card.version, env!("CARGO_PKG_VERSION"));
-        assert_eq!(card.banner("Azimuth"), "Azimuth (v0.1.0/366f528)");
+        assert_eq!(
+            card.banner("Azimuth"),
+            format!("Azimuth (v{}/366f528)", env!("CARGO_PKG_VERSION"))
+        );
+    }
+
+    #[test]
+    fn an_unstamped_build_reports_an_unknown_commit() {
+        assert_eq!(git_hash(Some("366f528")), "366f528");
+        assert_eq!(git_hash(Some("")), "unknown");
+        assert_eq!(git_hash(None), "unknown");
     }
 }
