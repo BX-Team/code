@@ -23,10 +23,7 @@ pub const BUILD_INFO: BuildInfo = BuildInfo {
 };
 
 pub fn card() -> ServiceCard {
-    service_card(
-        "influx",
-        BUILD_INFO,
-    )
+    service_card("influx", BUILD_INFO)
 }
 
 pub fn router(state: AppState) -> Router {

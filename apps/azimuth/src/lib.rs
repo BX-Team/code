@@ -28,10 +28,7 @@ pub const BUILD_INFO: BuildInfo = BuildInfo {
 };
 
 pub fn card() -> ServiceCard {
-    service_card(
-        "azimuth",
-        BUILD_INFO,
-    )
+    service_card("azimuth", BUILD_INFO)
 }
 
 pub fn router(state: AppState) -> Router {

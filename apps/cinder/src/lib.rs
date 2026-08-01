@@ -17,10 +17,7 @@ pub const BUILD_INFO: BuildInfo = BuildInfo {
 };
 
 pub fn card() -> ServiceCard {
-    service_card(
-        "cinder",
-        BUILD_INFO,
-    )
+    service_card("cinder", BUILD_INFO)
 }
 
 #[derive(Debug, thiserror::Error)]
