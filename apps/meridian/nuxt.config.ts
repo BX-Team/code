@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineNuxtConfig({
@@ -12,7 +13,10 @@ export default defineNuxtConfig({
 
   scalar: {
     darkMode: true,
+    forceDarkModeState: 'dark',
+    hideDarkModeToggle: true,
     hideClientButton: true,
+    customCss: readFileSync(new URL('./app/assets/css/scalar.css', import.meta.url), 'utf8'),
     pathRouting: { basePath: '/docs/api' },
     url: `${process.env.VITE_API_BASE || 'https://api.bxteam.org'}/openapi.json`,
   },
