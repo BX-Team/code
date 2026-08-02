@@ -16,6 +16,7 @@ use crate::state::AppState;
 const MAX_LIMIT: i64 = 200;
 const MAX_SUBJECT: usize = 200;
 const MAX_BODY: usize = 20_000;
+const BAN_EXPIRY_FORMAT: &str = "%-d %B %Y, %H:%M UTC";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -91,16 +92,25 @@ pub async fn ban(
         return Err(ApiError::BadRequest("You cannot ban yourself".into()));
     }
 
+    let user = auth::user(&state.db, id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound("User not found".into()))?;
+
     let expires = body
         .ban_expires_in
         .filter(|seconds| *seconds > 0)
         .map(|seconds| Utc::now() + Duration::seconds(seconds));
 
     let reason = trimmed(body.ban_reason.as_deref());
+    auth::set_ban(&state.db, id, true, reason, expires).await?;
 
-    if !auth::set_ban(&state.db, id, true, reason, expires).await? {
-        return Err(ApiError::NotFound("User not found".into()));
-    }
+    let until = expires.map(|at| at.format(BAN_EXPIRY_FORMAT).to_string());
+    notify(
+        state
+            .mailer
+            .send_ban_notice(&user.email, &user.name, reason, until.as_deref())
+            .await,
+    );
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -132,9 +142,17 @@ pub async fn remove(
         return Err(ApiError::BadRequest("You cannot delete yourself".into()));
     }
 
-    if !auth::delete_user(&state.db, id).await? {
-        return Err(ApiError::NotFound("User not found".into()));
-    }
+    let user = auth::user(&state.db, id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound("User not found".into()))?;
+
+    auth::delete_user(&state.db, id).await?;
+    notify(
+        state
+            .mailer
+            .send_account_deleted(&user.email, &user.name)
+            .await,
+    );
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -210,4 +228,12 @@ pub async fn send_mail(
 
 fn trimmed(value: Option<&str>) -> Option<&str> {
     value.map(str::trim).filter(|value| !value.is_empty())
+}
+
+/// The moderation action has already landed by the time its notice goes out, so an undeliverable
+/// mailbox must not turn a completed ban or deletion into a failed request.
+fn notify(result: Result<(), mail::Error>) {
+    if let Err(error) = result {
+        tracing::warn!(%error, "could not notify the user about a moderation action");
+    }
 }
