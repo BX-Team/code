@@ -85,7 +85,6 @@ const navItems = computed<PaletteItem[]>(() => {
       icon: Download,
       to: '/downloads',
     },
-    { key: 'nav:roadmap', group: 'nav', title: 'Roadmap', subtitle: '/roadmap', icon: MapIcon, to: '/roadmap' },
     { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
   ];
   return base;

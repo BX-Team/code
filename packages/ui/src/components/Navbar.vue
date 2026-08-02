@@ -25,7 +25,6 @@ const props = withDefaults(
       { id: 'downloads', label: 'Downloads', href: '/downloads' },
       { id: 'documentation', label: 'Documentation', href: '/docs' },
       { id: 'team', label: 'Team', href: '/team' },
-      { id: 'roadmap', label: 'Roadmap', href: '/roadmap' },
     ],
     brandHref: '/',
     loginHref: '/login',

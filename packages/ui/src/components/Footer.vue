@@ -39,7 +39,6 @@ const effectiveColumns = computed<FooterColumn[]>(
       {
         title: 'Community',
         links: [
-          { label: 'Roadmap', href: '/roadmap' },
           { label: 'Discord', href: props.discordHref },
           { label: 'GitHub', href: props.githubHref },
         ],

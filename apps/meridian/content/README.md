@@ -1,6 +1,6 @@
 # Meridian Content
 
-Source content for the [BX Team website](https://bxteam.org) — documentation, legal pages, and product roadmaps. Pages are written in Markdown with [MDC](https://content.nuxt.com/docs/files/markdown) (Markdown Components) and rendered by the `meridian` Nuxt 4 app via [Nuxt Content](https://content.nuxt.com).
+Source content for the [BX Team website](https://bxteam.org) — documentation and legal pages. Pages are written in Markdown with [MDC](https://content.nuxt.com/docs/files/markdown) (Markdown Components) and rendered by the `meridian` Nuxt 4 app via [Nuxt Content](https://content.nuxt.com).
 
 ## Collections
 
@@ -10,7 +10,6 @@ Content is split into three collections, declared in [`apps/meridian/content.con
 |------------|------------------|--------------------|
 | `docs`     | `docs/**/*.md`   | `/docs/…`          |
 | `legal`    | `legal/**/*.md`  | `/legal/…`         |
-| `roadmap`  | `roadmap/*.md`   | `/roadmap` cards   |
 
 ## Structure
 
@@ -26,8 +25,6 @@ docs/
 legal/
 ├── privacy-policy.md
 └── terms-of-use.md
-roadmap/
-└── pulsify.md
 ```
 
 Under `docs/`, folders and files are ordered by their numeric prefix (`01.`, `02.`, …). The prefix is stripped from URLs — `01.getting-started/installation.md` becomes `/docs/divinemc/getting-started/installation`.
@@ -57,26 +54,7 @@ lastUpdated: 2026-07-09      # ISO date shown on the page
 ---
 ```
 
-**`roadmap`** — data-driven; renders as roadmap cards rather than a prose page:
-
-```yaml
----
-title: Pulsify
-slug: pulsify
-icon: Activity               # Lucide icon
-accent: "#6366f1"            # optional accent colour
-order: 1                     # sort order among roadmaps
-blurb: Server analytics, reimagined
-items:
-  - id: ingest
-    title: Ingest gateway
-    status: shipped          # planned | progress | review | shipped
-    progress: 100            # optional, 0–100
-    description: Optional details
----
-```
-
-Doc/roadmap icons come from [Lucide](https://lucide.dev/icons/). Use the PascalCase name as-is (e.g. `Keyboard`, `GitBranch`, `MonitorCog`) — values are case-sensitive.
+Docs icons come from [Lucide](https://lucide.dev/icons/). Use the PascalCase name as-is (e.g. `Keyboard`, `GitBranch`, `MonitorCog`) — values are case-sensitive.
 
 Icons are bundled explicitly, so a new one also has to be imported and added to `iconMap` in `app/layouts/docs.vue`; otherwise the sidebar silently falls back to the generic `FileText` icon (dev builds log a warning).
 
