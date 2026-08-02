@@ -59,27 +59,28 @@ impl Mailer {
     }
 
     async fn deliver(&self, to: &str, subject: &str, body: Body) -> Result<(), Error> {
-        let builder = Message::builder()
-            .from(
-                self.from
-                    .parse()
-                    .map_err(|error| Error::Address(self.from.clone(), error))?,
-            )
-            .to(to
-                .parse()
-                .map_err(|error| Error::Address(to.to_owned(), error))?)
-            .subject(subject);
-
-        let message = match body {
-            Body::Text(text) => builder.header(header::ContentType::TEXT_PLAIN).body(text)?,
-            Body::Multipart(parts) => builder
-                .header(header::ContentType::TEXT_HTML)
-                .multipart(parts)?,
-        };
-
-        self.transport.send(message).await?;
+        self.transport
+            .send(compose(&self.from, to, subject, body)?)
+            .await?;
         Ok(())
     }
+}
+
+fn compose(from: &str, to: &str, subject: &str, body: Body) -> Result<Message, Error> {
+    let builder = Message::builder()
+        .from(
+            from.parse()
+                .map_err(|error| Error::Address(from.to_owned(), error))?,
+        )
+        .to(to
+            .parse()
+            .map_err(|error| Error::Address(to.to_owned(), error))?)
+        .subject(subject);
+
+    Ok(match body {
+        Body::Text(text) => builder.header(header::ContentType::TEXT_PLAIN).body(text)?,
+        Body::Multipart(parts) => builder.multipart(parts)?,
+    })
 }
 
 enum Body {
@@ -90,5 +91,37 @@ enum Body {
 impl From<MultiPart> for Body {
     fn from(parts: MultiPart) -> Self {
         Self::Multipart(parts)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn headers_of(body: Body) -> String {
+        let message = compose(
+            "BX Team <no-reply@bxteam.org>",
+            "user@example.com",
+            "Test",
+            body,
+        )
+        .unwrap();
+        let formatted = String::from_utf8(message.formatted()).unwrap();
+
+        formatted.split("\r\n\r\n").next().unwrap().to_owned()
+    }
+
+    #[test]
+    fn a_message_declares_its_type_exactly_once() {
+        let multipart = headers_of(
+            MultiPart::alternative_plain_html(String::from("text"), String::from("<p>html</p>"))
+                .into(),
+        );
+        assert_eq!(multipart.matches("Content-Type:").count(), 1, "{multipart}");
+        assert!(multipart.contains("multipart/alternative"), "{multipart}");
+
+        let plain = headers_of(Body::Text("text".into()));
+        assert_eq!(plain.matches("Content-Type:").count(), 1, "{plain}");
+        assert!(plain.contains("text/plain"), "{plain}");
     }
 }
