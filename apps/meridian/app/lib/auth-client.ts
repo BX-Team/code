@@ -20,6 +20,15 @@ export interface AdminUserList {
   total: number;
 }
 
+export interface AdminMail {
+  template: 'announcement' | 'plain';
+  subject: string;
+  heading?: string;
+  body: string;
+  actionLabel?: string;
+  actionUrl?: string;
+}
+
 interface Result<T> {
   data: T | null;
   error: { message: string } | null;
@@ -98,5 +107,8 @@ export const authClient = {
     unbanUser: ({ userId }: { userId: string }) => call<null>(`/admin/users/${userId}/unban`, { method: 'POST' }),
 
     removeUser: ({ userId }: { userId: string }) => call<null>(`/admin/users/${userId}`, { method: 'DELETE' }),
+
+    sendMail: ({ userId, ...body }: { userId: string } & AdminMail) =>
+      call<null>(`/admin/users/${userId}/mail`, { method: 'POST', body }),
   },
 };

@@ -1,3 +1,4 @@
+use crate::layout::{button, escape, shell};
 use crate::{Error, Mailer};
 
 pub const SUBJECT: &str = "Sign in to BX Team";
@@ -21,49 +22,20 @@ fn text(link: &str, to: &str) -> String {
 }
 
 fn html(link: &str, to: &str) -> String {
-    let link = escape(link);
-    let to = escape(to);
+    let content = format!(
+        r#"<p style="margin:0 0 24px;font-size:14px;line-height:22px;color:#9AA7B4;">This link works once and expires in 15 minutes.</p>
+{}
+<p style="margin:0 0 6px;font-size:12px;line-height:20px;color:#66727E;">If the button does not work, paste this into your browser:</p>
+<p style="margin:0 0 20px;font-size:12px;line-height:20px;color:#22B8C4;word-break:break-all;">{}</p>"#,
+        button(link, "Sign in"),
+        escape(link)
+    );
 
-    format!(
-        r#"<!doctype html>
-<html><body style="margin:0;padding:0;background:#0B0F13;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B0F13;padding:40px 16px;">
-<tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#11171D;border:1px solid #1E262E;border-radius:14px;">
-<tr><td style="padding:32px 32px 8px;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;">
-<h1 style="margin:0 0 8px;font-size:20px;line-height:28px;color:#E8EEF4;font-weight:600;">Sign in to BX Team</h1>
-<p style="margin:0 0 24px;font-size:14px;line-height:22px;color:#9AA7B4;">
-This link works once and expires in 15 minutes.
-</p>
-</td></tr>
-<tr><td align="center" style="padding:0 32px 28px;">
-<a href="{link}" style="display:inline-block;padding:12px 28px;border-radius:10px;background:linear-gradient(90deg,#22B8C4,#2CC0A0);color:#06121A;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;text-decoration:none;">Sign in</a>
-</td></tr>
-<tr><td style="padding:0 32px 28px;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;">
-<p style="margin:0 0 6px;font-size:12px;line-height:20px;color:#66727E;">
-If the button does not work, paste this into your browser:
-</p>
-<p style="margin:0;font-size:12px;line-height:20px;color:#22B8C4;word-break:break-all;">{link}</p>
-</td></tr>
-<tr><td style="padding:16px 32px 28px;border-top:1px solid #1E262E;font-family:Inter,Segoe UI,Helvetica,Arial,sans-serif;">
-<p style="margin:0;font-size:12px;line-height:20px;color:#66727E;">
-Sent to {to}. If you did not ask to sign in, you can ignore this message.
-</p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body></html>"#
+    shell(
+        SUBJECT,
+        &content,
+        &format!("Sent to {to}. If you did not ask to sign in, you can ignore this message."),
     )
-}
-
-fn escape(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#39;")
 }
 
 #[cfg(test)]

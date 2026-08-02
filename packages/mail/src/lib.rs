@@ -2,7 +2,13 @@ use lettre::message::{MultiPart, header};
 use lettre::transport::smtp::AsyncSmtpTransport;
 use lettre::{AsyncTransport, Message, Tokio1Executor};
 
+mod layout;
+
+pub mod announcement;
 pub mod magic_link;
+pub mod moderation;
+
+pub use announcement::{Action, Announcement};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -39,7 +45,21 @@ impl Mailer {
         text: String,
         html: String,
     ) -> Result<(), Error> {
-        let message = Message::builder()
+        self.deliver(
+            to,
+            subject,
+            MultiPart::alternative_plain_html(text, html).into(),
+        )
+        .await
+    }
+
+    /// Sends the body exactly as written, with no markup around it.
+    pub async fn send_text(&self, to: &str, subject: &str, text: String) -> Result<(), Error> {
+        self.deliver(to, subject, Body::Text(text)).await
+    }
+
+    async fn deliver(&self, to: &str, subject: &str, body: Body) -> Result<(), Error> {
+        let builder = Message::builder()
             .from(
                 self.from
                     .parse()
@@ -48,11 +68,27 @@ impl Mailer {
             .to(to
                 .parse()
                 .map_err(|error| Error::Address(to.to_owned(), error))?)
-            .subject(subject)
-            .header(header::ContentType::TEXT_HTML)
-            .multipart(MultiPart::alternative_plain_html(text, html))?;
+            .subject(subject);
+
+        let message = match body {
+            Body::Text(text) => builder.header(header::ContentType::TEXT_PLAIN).body(text)?,
+            Body::Multipart(parts) => builder
+                .header(header::ContentType::TEXT_HTML)
+                .multipart(parts)?,
+        };
 
         self.transport.send(message).await?;
         Ok(())
+    }
+}
+
+enum Body {
+    Text(String),
+    Multipart(MultiPart),
+}
+
+impl From<MultiPart> for Body {
+    fn from(parts: MultiPart) -> Self {
+        Self::Multipart(parts)
     }
 }

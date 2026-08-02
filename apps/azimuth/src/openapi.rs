@@ -67,6 +67,7 @@ use crate::routes::{atlas, auth, internal, pulsify};
         auth::admin::ban,
         auth::admin::unban,
         auth::admin::remove,
+        auth::admin::send_mail,
     ),
     tags(
         (name = "atlas", description = "Project, version and build metadata"),

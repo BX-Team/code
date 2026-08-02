@@ -3,6 +3,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use chrono::{Duration, Utc};
 use database::models::auth;
+use mail::{Action, Announcement};
 use serde::{Deserialize, Serialize};
 use util::{ApiError, ApiResult};
 use utoipa::ToSchema;
@@ -13,6 +14,8 @@ use crate::auth::session::AdminSession;
 use crate::state::AppState;
 
 const MAX_LIMIT: i64 = 200;
+const MAX_SUBJECT: usize = 200;
+const MAX_BODY: usize = 20_000;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +39,24 @@ pub struct BanUser {
     pub ban_expires_in: Option<i64>,
 }
 
+#[derive(Debug, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SendMail {
+    pub template: Template,
+    pub subject: String,
+    pub heading: Option<String>,
+    pub body: String,
+    pub action_label: Option<String>,
+    pub action_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum Template {
+    Announcement,
+    Plain,
+}
+
 #[utoipa::path(get, path = "/auth/admin/users", tag = "auth",
     responses((status = 200, body = UserList), (status = 403)))]
 pub async fn list_users(
@@ -45,11 +66,7 @@ pub async fn list_users(
 ) -> ApiResult<Json<UserList>> {
     let limit = query.limit.unwrap_or(20).clamp(1, MAX_LIMIT);
     let offset = query.offset.unwrap_or(0).max(0);
-    let search = query
-        .search_value
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty());
+    let search = trimmed(query.search_value.as_deref());
 
     let users = auth::list_users(&state.db, search, query.filter_value, limit, offset).await?;
     let total = auth::count_users(&state.db, search, query.filter_value).await?;
@@ -79,11 +96,7 @@ pub async fn ban(
         .filter(|seconds| *seconds > 0)
         .map(|seconds| Utc::now() + Duration::seconds(seconds));
 
-    let reason = body
-        .ban_reason
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty());
+    let reason = trimmed(body.ban_reason.as_deref());
 
     if !auth::set_ban(&state.db, id, true, reason, expires).await? {
         return Err(ApiError::NotFound("User not found".into()));
@@ -124,4 +137,77 @@ pub async fn remove(
     }
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[utoipa::path(post, path = "/auth/admin/users/{id}/mail", tag = "auth",
+    params(("id" = Uuid, Path, description = "User id")),
+    request_body = SendMail,
+    responses((status = 204), (status = 400), (status = 403), (status = 404), (status = 503)))]
+pub async fn send_mail(
+    State(state): State<AppState>,
+    _admin: AdminSession,
+    Path(id): Path<Uuid>,
+    Json(body): Json<SendMail>,
+) -> ApiResult<StatusCode> {
+    let user = auth::user(&state.db, id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound("User not found".into()))?;
+
+    let subject = trimmed(Some(&body.subject))
+        .ok_or_else(|| ApiError::BadRequest("Subject is required".into()))?;
+    let message = trimmed(Some(&body.body))
+        .ok_or_else(|| ApiError::BadRequest("Message is required".into()))?;
+
+    if subject.chars().count() > MAX_SUBJECT || message.chars().count() > MAX_BODY {
+        return Err(ApiError::BadRequest("Message is too long".into()));
+    }
+
+    let sent = match body.template {
+        Template::Plain => {
+            state
+                .mailer
+                .send_text(&user.email, subject, message.to_owned())
+                .await
+        }
+        Template::Announcement => {
+            let action = match (
+                trimmed(body.action_label.as_deref()),
+                trimmed(body.action_url.as_deref()),
+            ) {
+                (Some(label), Some(href)) => {
+                    if !href.starts_with("https://") && !href.starts_with("http://") {
+                        return Err(ApiError::BadRequest(
+                            "Action link must be an http(s) URL".into(),
+                        ));
+                    }
+                    Some(Action { label, href })
+                }
+                _ => None,
+            };
+
+            state
+                .mailer
+                .send_announcement(
+                    &user.email,
+                    &Announcement {
+                        subject,
+                        heading: trimmed(body.heading.as_deref()).unwrap_or(subject),
+                        body: message,
+                        action,
+                    },
+                )
+                .await
+        }
+    };
+
+    sent.map_err(|error| {
+        tracing::error!(%error, "could not send admin mail");
+        ApiError::ServiceUnavailable("Could not send the email".into())
+    })?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+fn trimmed(value: Option<&str>) -> Option<&str> {
+    value.map(str::trim).filter(|value| !value.is_empty())
 }

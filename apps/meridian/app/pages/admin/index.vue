@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { BadgeCheck, Ban, CheckCircle, FolderOpen, Search, Shield, Trash2, Users, X } from '@lucide/vue';
+import { BadgeCheck, Ban, CheckCircle, FolderOpen, Mail, Search, Shield, Trash2, Users, X } from '@lucide/vue';
 import { toast } from 'vue-sonner';
 import { api } from '@/lib/api';
-import { authClient } from '@/lib/auth-client';
+import { type AdminMail, authClient } from '@/lib/auth-client';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 useHead({ title: 'Admin Panel', titleTemplate: '%s | Pulsify' });
@@ -153,6 +153,56 @@ async function confirmDelete() {
   }
 }
 
+const mailTarget = ref<AdminUser | null>(null);
+const mailTemplate = ref<AdminMail['template']>('announcement');
+const mailSubject = ref('');
+const mailHeading = ref('');
+const mailBody = ref('');
+const mailActionLabel = ref('');
+const mailActionUrl = ref('');
+const mailLoading = ref(false);
+
+function openMail(u: AdminUser) {
+  mailTemplate.value = 'announcement';
+  mailSubject.value = '';
+  mailHeading.value = '';
+  mailBody.value = '';
+  mailActionLabel.value = '';
+  mailActionUrl.value = '';
+  mailTarget.value = u;
+}
+
+async function submitMail() {
+  if (!mailTarget.value || mailLoading.value) return;
+  if (!mailSubject.value.trim() || !mailBody.value.trim()) {
+    toast.error('Subject and message are required');
+    return;
+  }
+
+  mailLoading.value = true;
+  try {
+    const { error } = await authClient.admin.sendMail({
+      userId: mailTarget.value.id,
+      template: mailTemplate.value,
+      subject: mailSubject.value.trim(),
+      body: mailBody.value.trim(),
+      ...(mailTemplate.value === 'announcement' && mailHeading.value.trim()
+        ? { heading: mailHeading.value.trim() }
+        : {}),
+      ...(mailTemplate.value === 'announcement' && mailActionLabel.value.trim() && mailActionUrl.value.trim()
+        ? { actionLabel: mailActionLabel.value.trim(), actionUrl: mailActionUrl.value.trim() }
+        : {}),
+    });
+    if (error) throw error;
+    toast.success(`Email sent to ${mailTarget.value.email}`);
+    mailTarget.value = null;
+  } catch (err: any) {
+    toast.error(err?.message ?? 'Failed to send the email');
+  } finally {
+    mailLoading.value = false;
+  }
+}
+
 async function openProjects(u: AdminUser) {
   projectsTarget.value = u;
   projectsData.value = [];
@@ -291,6 +341,9 @@ function initials(name: string) {
               <td class="td-date">{{ formatDate(u.createdAt) }}</td>
               <td class="td-actions">
                 <div class="action-group">
+                  <button class="act-btn act-mail" title="Send email" @click="openMail(u)">
+                    <Mail :size="13" :stroke-width="1.8" />
+                  </button>
                   <button v-if="u.banned" class="act-btn act-unban" title="Unban user" @click="unban(u)">
                     <CheckCircle :size="13" :stroke-width="1.8" />
                   </button>
@@ -340,6 +393,73 @@ function initials(name: string) {
             <button class="btn-danger" :disabled="banLoading" @click="submitBan">
               <Ban :size="13" :stroke-width="2" />
               {{ banLoading ? 'Banning…' : 'Ban user' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="modal">
+      <div v-if="mailTarget" class="modal-overlay" @click.self="mailTarget = null">
+        <div class="modal modal-wide">
+          <div class="modal-head">
+            <div class="modal-icon mail-icon">
+              <Mail :size="16" :stroke-width="1.8" />
+            </div>
+            <div>
+              <div class="modal-title">Send email</div>
+              <div class="modal-sub">{{ mailTarget.name }} · {{ mailTarget.email }}</div>
+            </div>
+            <button class="modal-close" @click="mailTarget = null">
+              <X :size="14" :stroke-width="2" />
+            </button>
+          </div>
+          <div class="modal-body mail-body">
+            <div class="filter-tabs mail-tabs">
+              <button class="ftab" :class="{ active: mailTemplate === 'announcement' }" @click="mailTemplate = 'announcement'">
+                Official template
+              </button>
+              <button class="ftab" :class="{ active: mailTemplate === 'plain' }" @click="mailTemplate = 'plain'">
+                Plain text
+              </button>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Subject</label>
+              <input v-model="mailSubject" class="field-input" placeholder="Re: your report about DivineMC" type="text" />
+            </div>
+
+            <div v-if="mailTemplate === 'announcement'" class="field">
+              <label class="field-label">Heading <span class="field-opt">(defaults to the subject)</span></label>
+              <input v-model="mailHeading" class="field-input" placeholder="About your report" type="text" />
+            </div>
+
+            <div class="field">
+              <label class="field-label">Message</label>
+              <textarea
+                v-model="mailBody"
+                class="field-input field-textarea"
+                rows="8"
+                placeholder="Write the message. Leave a blank line between paragraphs."
+              />
+            </div>
+
+            <div v-if="mailTemplate === 'announcement'" class="field-row">
+              <div class="field">
+                <label class="field-label">Button label <span class="field-opt">(optional)</span></label>
+                <input v-model="mailActionLabel" class="field-input" placeholder="Open the dashboard" type="text" />
+              </div>
+              <div class="field">
+                <label class="field-label">Button link <span class="field-opt">(optional)</span></label>
+                <input v-model="mailActionUrl" class="field-input" placeholder="https://bxteam.org/dashboard" type="url" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-foot">
+            <button class="btn-ghost" @click="mailTarget = null">Cancel</button>
+            <button class="btn-accent" :disabled="mailLoading" @click="submitMail">
+              <Mail :size="13" :stroke-width="2" />
+              {{ mailLoading ? 'Sending…' : 'Send email' }}
             </button>
           </div>
         </div>
@@ -641,6 +761,7 @@ function initials(name: string) {
   transition: all .15s;
 }
 .act-btn:hover { background: rgba(255,255,255,.05); border-color: var(--line); color: var(--fg-hi); }
+.act-mail:hover { color: var(--brand); border-color: color-mix(in oklab, var(--brand) 40%, transparent); background: var(--brand-soft); }
 .act-ban:hover { color: var(--warn); border-color: color-mix(in oklab, var(--warn) 40%, transparent); background: color-mix(in oklab, var(--warn) 10%, transparent); }
 .act-unban:hover { color: var(--ok); border-color: color-mix(in oklab, var(--ok) 40%, transparent); background: color-mix(in oklab, var(--ok) 10%, transparent); }
 .act-delete:hover { color: var(--err); border-color: color-mix(in oklab, var(--err) 40%, transparent); background: color-mix(in oklab, var(--err) 10%, transparent); }
@@ -725,6 +846,7 @@ function initials(name: string) {
 .ban-icon { background: color-mix(in oklab, var(--warn) 15%, transparent); color: var(--warn); border: 1px solid color-mix(in oklab, var(--warn) 30%, transparent); }
 .delete-icon { background: color-mix(in oklab, var(--err) 15%, transparent); color: var(--err); border: 1px solid color-mix(in oklab, var(--err) 30%, transparent); }
 .proj-icon { background: var(--brand-soft); color: var(--brand); border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent); }
+.mail-icon { background: var(--brand-soft); color: var(--brand); border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent); }
 
 .modal-title { font: 600 14.5px var(--font-sans); color: var(--fg-hi); margin-bottom: 2px; }
 .modal-sub { font: 400 12px var(--font-mono); color: var(--mute); }
@@ -758,6 +880,34 @@ function initials(name: string) {
 }
 .field-input::placeholder { color: var(--mute); }
 .field-input:focus { border-color: var(--line-2); }
+
+.field-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font: 400 13.5px/1.55 var(--font-sans);
+}
+
+.mail-body { display: flex; flex-direction: column; gap: 14px; }
+.mail-tabs { align-self: flex-start; }
+.field { display: flex; flex-direction: column; }
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; min-width: 0; }
+
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font: 500 13px var(--font-sans);
+  color: var(--bg-0);
+  background: var(--brand);
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-accent:hover:not(:disabled) { box-shadow: var(--shadow-glow); }
+.btn-accent:disabled { opacity: .5; cursor: not-allowed; }
 
 .modal-warn {
   margin: 0;
@@ -852,5 +1002,8 @@ function initials(name: string) {
   .stat-row { flex-direction: column; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .search-wrap { max-width: none; }
+  .field-row { flex-direction: column; }
+  .mail-tabs { align-self: stretch; }
+  .mail-tabs .ftab { flex: 1; }
 }
 </style>

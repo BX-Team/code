@@ -210,6 +210,10 @@ pub fn router(state: AppState) -> Router {
         .route("/admin/users/{id}", delete(routes::auth::admin::remove))
         .route("/admin/users/{id}/ban", post(routes::auth::admin::ban))
         .route("/admin/users/{id}/unban", post(routes::auth::admin::unban))
+        .route(
+            "/admin/users/{id}/mail",
+            post(routes::auth::admin::send_mail),
+        )
         .layer(session_cors);
 
     let public = Router::new()
