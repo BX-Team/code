@@ -48,3 +48,23 @@ impl Modify for SecretScheme {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_beta_groups_stay_out_of_the_published_document() {
+        let document = serde_json::to_string(&ApiDoc::openapi()).unwrap();
+
+        for path in ApiDoc::openapi().paths.paths.keys() {
+            assert!(
+                path.starts_with("/atlas") || path == "/" || path == "/health",
+                "{path} is published"
+            );
+        }
+
+        assert!(!document.contains("/pulsify"));
+        assert!(!document.contains("\"tokens\""));
+    }
+}

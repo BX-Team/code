@@ -35,26 +35,22 @@ impl Mailer {
 }
 
 fn ban_body(name: &str, reason: Option<&str>, until: Option<&str>) -> String {
-    let mut body = format!(
+    let reason = match reason {
+        Some(reason) => format!("\n\nReason: {reason}"),
+        None => String::new(),
+    };
+
+    let until = match until {
+        Some(until) => format!("\n\nThe suspension lifts on {until}."),
+        None => "\n\nThe suspension does not expire on its own.".to_owned(),
+    };
+
+    format!(
         "Hi {name},\n\nYour BX Team account has been suspended. You can no longer sign in or \
-         access your projects while the suspension is in place."
-    );
-
-    if let Some(reason) = reason {
-        body.push_str(&format!("\n\nReason: {reason}"));
-    }
-
-    match until {
-        Some(until) => body.push_str(&format!("\n\nThe suspension lifts on {until}.")),
-        None => body.push_str("\n\nThe suspension does not expire on its own."),
-    }
-
-    body.push_str(
-        "\n\nIf you believe this is a mistake, reach out to the BX Team through our community \
-         channels and we will take another look.",
-    );
-
-    body
+         access your projects while the suspension is in place.{reason}{until}\n\n\
+         If you believe this is a mistake, reach out to the BX Team through our community \
+         channels and we will take another look."
+    )
 }
 
 fn deleted_body(name: &str) -> String {

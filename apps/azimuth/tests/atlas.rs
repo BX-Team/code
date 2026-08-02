@@ -384,3 +384,23 @@ async fn the_browser_can_read_atlas_without_credentials() {
         Some("*")
     );
 }
+
+#[tokio::test]
+async fn a_trailing_slash_reaches_the_same_handler() {
+    let Some(fixture) = fixture().await else {
+        return;
+    };
+    seed(&fixture).await;
+
+    let path = format!("/atlas/projects/{}/versions/1.21.4", fixture.key);
+    let (status, _, body) = get(&fixture.app, &path).await;
+    let (trailing_status, _, trailing_body) = get(&fixture.app, &format!("{path}/")).await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(trailing_status, StatusCode::OK);
+    assert_eq!(body, trailing_body);
+
+    // Trimming must leave the root alone rather than turning it into an empty path.
+    let (root, _, _) = get(&fixture.app, "/").await;
+    assert_eq!(root, StatusCode::OK);
+}

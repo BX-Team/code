@@ -763,3 +763,62 @@ async fn an_expired_session_no_longer_resolves() {
     let (status, _, _) = call(&fixture.app, request("GET", "/auth/me", Some(&token), None)).await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }
+
+#[tokio::test]
+async fn admin_mail_is_validated_before_it_reaches_the_relay() {
+    let Some(fixture) = fixture().await else {
+        return;
+    };
+
+    for body in [
+        json!({ "template": "plain", "subject": "  ", "body": "hello" }),
+        json!({ "template": "plain", "subject": "Hello", "body": "" }),
+        json!({
+            "template": "announcement",
+            "subject": "Hello",
+            "body": "hello",
+            "actionLabel": "Open",
+            "actionUrl": "javascript:alert(1)"
+        }),
+    ] {
+        let (status, _, _) = call(
+            &fixture.app,
+            request(
+                "POST",
+                &format!("/auth/admin/users/{}/mail", fixture.user_id),
+                Some(&fixture.admin_token),
+                Some(body.clone()),
+            ),
+        )
+        .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{body} was accepted");
+    }
+
+    let (status, _, _) = call(
+        &fixture.app,
+        request(
+            "POST",
+            &format!("/auth/admin/users/{}/mail", Uuid::new_v4()),
+            Some(&fixture.admin_token),
+            Some(json!({ "template": "plain", "subject": "Hello", "body": "hello" })),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    let (status, _, _) = call(
+        &fixture.app,
+        request(
+            "POST",
+            &format!("/auth/admin/users/{}/mail", fixture.user_id),
+            Some(&fixture.token),
+            Some(json!({ "template": "plain", "subject": "Hello", "body": "hello" })),
+        ),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "a plain user must not send mail"
+    );
+}

@@ -29,14 +29,16 @@ impl Mailer {
 }
 
 fn text(message: &Announcement<'_>, to: &str) -> String {
-    let mut out = format!("{}\n\n{}\n", message.heading, message.body.trim());
+    let action = match &message.action {
+        Some(action) => format!("\n{}: {}\n", action.label, action.href),
+        None => String::new(),
+    };
 
-    if let Some(action) = &message.action {
-        out.push_str(&format!("\n{}: {}\n", action.label, action.href));
-    }
-
-    out.push_str(&format!("\nSent to {to} by the BX Team.\n"));
-    out
+    format!(
+        "{}\n\n{}\n{action}\nSent to {to} by the BX Team.\n",
+        message.heading,
+        message.body.trim()
+    )
 }
 
 fn html(message: &Announcement<'_>, to: &str) -> String {
