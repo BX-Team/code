@@ -5,6 +5,7 @@ use axum::http::{HeaderValue, Method, StatusCode, header};
 use axum::routing::{delete, get, patch, post};
 use axum::{Json, Router};
 use tower_http::cors::{AllowOrigin, Any, CorsLayer};
+use tower_http::normalize_path::NormalizePath;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
@@ -31,7 +32,13 @@ pub fn card() -> ServiceCard {
     service_card("azimuth", BUILD_INFO)
 }
 
+/// Trailing slashes are trimmed before matching, and that has to happen ahead of routing — hence
+/// the finished router being served as a fallback rather than layered onto.
 pub fn router(state: AppState) -> Router {
+    Router::new().fallback_service(NormalizePath::trim_trailing_slash(routes(state)))
+}
+
+fn routes(state: AppState) -> Router {
     let max_upload = state.config.max_upload_bytes;
 
     // Public reads, no credentials: the downloads page fetches these from the browser.

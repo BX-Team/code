@@ -30,7 +30,14 @@ sha2 = { workspace = true }
 storage = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal"] }
-tower-http = { workspace = true, features = ["cors", "limit", "set-header", "timeout", "trace"] }
+tower-http = { workspace = true, features = [
+  "cors",
+  "limit",
+  "normalize-path",
+  "set-header",
+  "timeout",
+  "trace",
+] }
 tracing = { workspace = true }
 types = { workspace = true }
 url = { workspace = true }
