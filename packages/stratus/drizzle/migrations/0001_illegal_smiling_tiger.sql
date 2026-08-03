@@ -1,1 +1,0 @@
-DROP TABLE "pulsify_errors" CASCADE;

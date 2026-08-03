@@ -19,9 +19,7 @@
         "@nuxt/content",
         "@nuxt/fonts",
         "vue-router",
-        "vue-sonner",
         "@vueuse/core",
-        "nuxt-umami",
         "@lucide/vue",
         "@shikijs/transformers"
       ]
@@ -39,34 +37,16 @@
       "matchPackageNames": ["drizzle-orm", "drizzle-kit"]
     },
     {
-      "groupName": "BullMQ & Redis",
-      "matchPackageNames": ["bullmq", "ioredis"]
-    },
-    {
       "groupName": "TypeScript & @types",
-      "matchPackageNames": ["typescript"],
-      "matchPackagePatterns": ["^@types/"]
+      "matchPackageNames": ["typescript", "/^@types//"]
     },
     {
       "groupName": "Cloudflare tooling",
-      "matchPackageNames": ["wrangler"],
-      "matchPackagePatterns": ["^@cloudflare/"]
+      "matchPackageNames": ["wrangler", "/^@cloudflare//"]
     },
     {
-      "groupName": "GitHub Actions",
-      "matchManagers": ["github-actions"]
-    },
-    {
-      "groupName": "CSS class utilities",
-      "matchPackageNames": ["clsx", "tailwind-merge", "class-variance-authority"]
-    },
-    {
-      "groupName": "TanStack",
-      "matchPackagePatterns": ["^@tanstack/"]
-    },
-    {
-      "groupName": "Unovis charts",
-      "matchPackagePatterns": ["^@unovis/"]
+      "groupName": "Scalar",
+      "matchPackageNames": ["/^@scalar//"]
     }
   ]
 }

@@ -87,7 +87,7 @@ props: {
 ```
 
 ### `Navbar`
-Floating glass pill nav. Slot `#right` overrides the Discord + Login section.
+Floating glass pill nav. Slot `#right` overrides the Discord CTA.
 ```ts
 interface NavLink { id: string; label: string; href?: string }
 
@@ -95,10 +95,10 @@ props: {
   active?: string
   links?: NavLink[]
   brandHref?: string
-  loginHref?: string
   discordHref?: string
+  searchEnabled?: boolean
 }
-emits: { navigate: [id: string] }
+emits: { navigate: [id: string]; search: [] }
 ```
 
 ### `Hero`
@@ -121,7 +121,7 @@ interface FooterColumn { heading: string; links: FooterLink[] }
 props: {
   columns?: FooterColumn[]
   blurb?: string
-  status?: string
+  location?: string | null  // edge location label, e.g. "Warsaw, PL (WAW)"
   githubHref?: string
   discordHref?: string
 }

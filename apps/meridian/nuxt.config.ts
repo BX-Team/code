@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineNuxtConfig({
@@ -8,7 +9,17 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/content', '@nuxt/fonts', 'nuxt-umami'],
+  modules: ['@nuxt/content', '@nuxt/fonts', '@scalar/nuxt'],
+
+  scalar: {
+    darkMode: true,
+    forceDarkModeState: 'dark',
+    hideDarkModeToggle: true,
+    hideClientButton: true,
+    customCss: readFileSync(new URL('./app/assets/css/scalar.css', import.meta.url), 'utf8'),
+    pathRouting: { basePath: '/docs/api' },
+    url: `${process.env.VITE_API_BASE || 'https://api.bxteam.org'}/openapi.json`,
+  },
 
   fonts: {
     families: [
@@ -22,7 +33,7 @@ export default defineNuxtConfig({
     ],
   },
 
-  css: ['~/assets/css/tailwind.css', 'vue-sonner/style.css'],
+  css: ['~/assets/css/tailwind.css'],
 
   build: {
     transpile: ['@bx-team/ui'],
@@ -79,25 +90,21 @@ export default defineNuxtConfig({
         },
         {
           name: 'keywords',
-          content: 'Pulsify, BX Team, Minecraft, observability, analytics, plugins, mods, error tracking',
+          content: 'BX Team, Minecraft, server software, plugins, mods, downloads, documentation',
         },
       ],
     },
   },
 
-  umami: {
-    id: 'f58cff07-e60d-4407-ade0-655a5f57aaf3',
-    host: 'https://analytics.bxteam.org',
-    autoTrack: true,
+  routeRules: {
+    '/downloads/**': { ssr: false },
+    '/docs/api/**': { ssr: false },
   },
 
-  runtimeConfig: {
-    apiSecretKey: '',
-    r2PublicUrl: '',
-    r2AccessKeyId: '',
-    r2SecretAccessKey: '',
-    r2Endpoint: '',
-    r2Bucket: '',
+  sourcemap: { server: false },
+
+  nitro: {
+    preset: 'static',
   },
 
   compatibilityDate: '2026-01-01',

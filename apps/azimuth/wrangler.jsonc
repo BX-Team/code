@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "azimuth",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "api.bxteam.org", "custom_domain": true }],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "R2_PUBLIC_URL": "https://files.bxteam.org"
+  },
+  "secrets": {
+    "required": ["API_SECRET_KEY"]
+  },
+  "d1_databases": [
+    {
+      "binding": "ATLAS_DB",
+      "database_name": "atlas-db",
+      "database_id": "f10f7ede-1373-403a-8149-62b6772532ba",
+      "migrations_dir": "../../packages/stratus/drizzle/d1/atlas"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ATLAS_BUCKET",
+      "bucket_name": "builds"
+    }
+  ]
+}

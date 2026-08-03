@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meridian",
+  "main": "./worker.ts",
+  "compatibility_date": "2026-03-12",
+  "workers_dev": false,
+  "routes": [{ "pattern": "bxteam.org", "custom_domain": true }],
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": ".output/public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}

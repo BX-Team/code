@@ -1,26 +1,9 @@
 <script setup lang="ts">
-import {
-  Activity,
-  BookOpen,
-  Box,
-  CornerDownLeft,
-  Download,
-  FileText,
-  Home,
-  LayoutDashboard,
-  LogIn,
-  Map,
-  Package,
-  Search,
-  Server,
-  Users,
-} from '@lucide/vue';
+import { BookOpen, CornerDownLeft, Download, FileText, Home, Search, Users } from '@lucide/vue';
 import type { Component } from 'vue';
 import { closeCommandPalette, useCommandPaletteOpen } from '@/composables/useCommandPalette';
-import type { Project } from '@/composables/useProjects';
-import { useSession } from '@/composables/useSession';
 
-type Group = 'nav' | 'projects' | 'docs';
+type Group = 'nav' | 'docs';
 
 interface PaletteItem {
   key: string;
@@ -48,76 +31,12 @@ const selectedIdx = ref(0);
 const inputRef = ref<HTMLInputElement | null>(null);
 const listRef = ref<HTMLDivElement | null>(null);
 
-const { data: session } = useSession();
-const loggedIn = computed(() => !!session.value?.user);
-
-const projects = ref<Project[]>([]);
-const projectsLoaded = ref(false);
-
-async function loadProjectsOnce() {
-  if (projectsLoaded.value || !loggedIn.value) return;
-  try {
-    projects.value = await $fetch<Project[]>('/api/v3/projects');
-  } catch {
-    projects.value = [];
-  } finally {
-    projectsLoaded.value = true;
-  }
-}
-
-const navItems = computed<PaletteItem[]>(() => {
-  const base: PaletteItem[] = [
-    { key: 'nav:home', group: 'nav', title: 'Home', subtitle: '/', icon: Home, to: '/' },
-    {
-      key: 'nav:dashboard',
-      group: 'nav',
-      title: loggedIn.value ? 'Pulsify dashboard' : 'Sign in to Pulsify',
-      subtitle: loggedIn.value ? '/dashboard' : '/login',
-      icon: loggedIn.value ? LayoutDashboard : LogIn,
-      to: loggedIn.value ? '/dashboard' : '/login',
-    },
-    { key: 'nav:docs', group: 'nav', title: 'Documentation', subtitle: '/docs', icon: BookOpen, to: '/docs' },
-    {
-      key: 'nav:downloads',
-      group: 'nav',
-      title: 'Downloads',
-      subtitle: '/downloads',
-      icon: Download,
-      to: '/downloads',
-    },
-    { key: 'nav:roadmap', group: 'nav', title: 'Roadmap', subtitle: '/roadmap', icon: Map, to: '/roadmap' },
-    { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
-    {
-      key: 'nav:status',
-      group: 'nav',
-      title: 'Status',
-      subtitle: 'status.bxteam.org',
-      icon: Activity,
-      href: 'https://status.bxteam.org',
-    },
-  ];
-  return base;
-});
-
-const projectIcons: Record<string, Component> = {
-  server: Server,
-  plugin: Box,
-  mod: Package,
-};
-
-const projectItems = computed<PaletteItem[]>(() => {
-  if (!loggedIn.value) return [];
-  const list = projects.value;
-  return list.map(p => ({
-    key: `project:${p.id}`,
-    group: 'projects' as Group,
-    title: p.name,
-    subtitle: p.description || `${p.type} · ${p.slug}`,
-    icon: projectIcons[p.type] ?? LayoutDashboard,
-    hint: p.errors > 0 ? `${p.errors} errors` : undefined,
-    to: `/dashboard/${p.slug}`,
-  }));
-});
+const navItems: PaletteItem[] = [
+  { key: 'nav:home', group: 'nav', title: 'Home', subtitle: '/', icon: Home, to: '/' },
+  { key: 'nav:docs', group: 'nav', title: 'Documentation', subtitle: '/docs', icon: BookOpen, to: '/docs' },
+  { key: 'nav:downloads', group: 'nav', title: 'Downloads', subtitle: '/downloads', icon: Download, to: '/downloads' },
+  { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
+];
 
 const docsItems = computed<PaletteItem[]>(() =>
   docsResults.value.map(r => ({
@@ -136,13 +55,11 @@ function matchesQuery(item: PaletteItem, q: string): boolean {
   return item.title.toLowerCase().includes(needle) || (item.subtitle?.toLowerCase().includes(needle) ?? false);
 }
 
-const filteredNav = computed(() => navItems.value.filter(i => matchesQuery(i, query.value.trim())));
-const filteredProjects = computed(() => projectItems.value.filter(i => matchesQuery(i, query.value.trim())));
+const filteredNav = computed(() => navItems.filter(i => matchesQuery(i, query.value.trim())));
 
 const groups = computed(() => {
   const out: { id: Group; label: string; items: PaletteItem[] }[] = [];
   if (filteredNav.value.length) out.push({ id: 'nav', label: 'Navigation', items: filteredNav.value });
-  if (filteredProjects.value.length) out.push({ id: 'projects', label: 'My projects', items: filteredProjects.value });
   if (docsItems.value.length) out.push({ id: 'docs', label: 'Documentation', items: docsItems.value });
   return out;
 });
@@ -199,7 +116,7 @@ watch(query, q => {
   docsLoading.value = true;
   debounce = setTimeout(async () => {
     try {
-      docsResults.value = await $fetch<DocSection[]>('/api/docs/search', { query: { q: trimmed } });
+      docsResults.value = await searchDocs(trimmed);
     } catch {
       docsResults.value = [];
     } finally {
@@ -213,7 +130,6 @@ watch(open, isOpen => {
     query.value = '';
     docsResults.value = [];
     selectedIdx.value = 0;
-    loadProjectsOnce();
     nextTick(() => inputRef.value?.focus());
   }
 });
@@ -272,7 +188,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 							v-model="query"
 							class="cmdk-input"
 							type="text"
-							placeholder="Search docs, navigate, jump to a project…"
+							placeholder="Search docs or jump to a page…"
 							autocomplete="off"
 							spellcheck="false"
 						/>

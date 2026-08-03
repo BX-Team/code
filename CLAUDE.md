@@ -1,33 +1,31 @@
 # BX Team Monorepo
 
-This is the BX Team monorepo — it contains all BX Team projects, both frontend and backend. When entering a project, either to edit or analyse, you should read it's CLAUDE.md.
+This is the BX Team monorepo — it contains the BX Team web platform, frontend and backend. When entering a project, either to edit or analyse, you should read it's CLAUDE.md.
 
 ## Architecture
 - **Monorepo tooling:** [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field). Run scripts across packages with `bun run --filter '<pattern>' <script>`.
-- **Frontend:** Vue 3 / Nuxt 4, Tailwind CSS v4
-- **Backend:** Hono (Ingest API), Nuxt Nitro (Downloads API, Auth, Pulsify API), BullMQ worker (cinder), Postgres, Clickhouse, Redis
+- **Everything runs on Cloudflare Workers.** `meridian` is a fully static `nuxt generate` build served as Workers Static Assets; `azimuth` is a Hono Worker backed by one D1 database (`atlas-db`) and one R2 bucket (`builds`). There is no runtime Nitro server, no VPS and no Docker.
+- **Deployment:** Cloudflare builds and deploys both Workers straight from the repository. There are no CI workflows in this repo.
 - **Formatting:** [Biome](https://biomejs.dev) is the source of truth — 2-space indent for TS/JS/JSON and standalone CSS. Tabs are used only inside `.vue` `<template>` and `<style>` blocks (Biome doesn't reformat those). Run `bunx biome check .` before committing.
 
 ### Apps (`apps/`)
-| App               | Description                        |
-| ----------------- | -----------------------------------|
-| `cinder`          | BullMQ worker for ingest API       |
-| `influx`          | Ingest API written in Hono         |              
-| `meridian`        | Main BX Team frontend app (Nuxt 4) |
-| `zenith`          | Status monitor (like Better Uptime)|
+| App               | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `azimuth`         | Public API (Hono): the `/atlas` downloads group     |
+| `meridian`        | Main BX Team frontend app (Nuxt 4, static)          |
 
 ### Packages (`packages/`)
-| Package           | Description                           |
-| ----------------- | --------------------------------------|
-| `stratus`         | Database schemas (Drizzle ORM)        |
-| `types`           | Shared TypeScript types (Zod schemas) |
-| `ui`              | Shared UI components (Vue 3, Tailwind) |
+| Package           | Description                                |
+| ----------------- | ------------------------------------------ |
+| `stratus`         | D1 schemas and migrations (Drizzle ORM)    |
+| `types`           | Shared Zod schemas for the Atlas wire format |
+| `ui`              | Shared UI components (Vue 3, Tailwind)     |
 
 ## Project-Specific Instructions
 Each project may have its own `CLAUDE.md` with detailed instructions:
 
+- [`apps/azimuth/CLAUDE.md`](apps/azimuth/CLAUDE.md) - Public API Worker
 - [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
-- [`apps/zenith/CLAUDE.md`](apps/zenith/CLAUDE.md) - Status Monitor
 - [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
 
 ## Code Guidelines

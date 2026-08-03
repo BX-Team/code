@@ -16,17 +16,12 @@ const props = withDefaults(
   defineProps<{
     columns?: FooterColumn[];
     blurb?: string;
-    status?: string;
-    statusHref?: string;
-    statusLevel?: 'ok' | 'warn' | 'err';
     githubHref?: string;
     discordHref?: string;
   }>(),
   {
     blurb:
       'BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players.',
-    status: 'All systems normal',
-    statusLevel: 'ok',
   },
 );
 
@@ -39,22 +34,13 @@ const effectiveColumns = computed<FooterColumn[]>(
           { label: 'Documentation', href: '/docs' },
           { label: 'Downloads', href: '/downloads' },
           { label: 'Our team', href: '/team' },
-          { label: 'Status', href: 'https://status.bxteam.org' },
         ],
       },
       {
         title: 'Community',
         links: [
-          { label: 'Roadmap', href: '/roadmap' },
           { label: 'Discord', href: props.discordHref },
           { label: 'GitHub', href: props.githubHref },
-        ],
-      },
-      {
-        title: 'Legal',
-        links: [
-          { label: 'Terms of use', href: '/legal/terms-of-use' },
-          { label: 'Privacy policy', href: '/legal/privacy-policy' },
         ],
       },
     ],
@@ -112,16 +98,6 @@ const effectiveColumns = computed<FooterColumn[]>(
 			</div>
 
 			<div class="bx-footer__bottom">
-				<component
-					:is="statusHref ? 'a' : 'span'"
-					:href="statusHref"
-					:target="statusHref ? '_blank' : undefined"
-					:rel="statusHref ? 'noopener noreferrer' : undefined"
-					class="bx-footer__status"
-				>
-					<span class="bx-footer__status-dot" :class="statusLevel" />
-					{{ status }}
-				</component>
 				<div class="bx-footer__bottom-right">
 					<p class="bx-footer__copy">© 2026 BX Team. Not affiliated with Mojang Studios or Microsoft.</p>
 				</div>
@@ -226,44 +202,9 @@ const effectiveColumns = computed<FooterColumn[]>(
 .bx-footer__bottom {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-end;
 	padding-top: 24px;
 	border-top: 1px solid var(--line);
-}
-
-.bx-footer__status {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	font: 500 12.5px var(--font-sans);
-	color: var(--dim);
-}
-
-.bx-footer__status-dot {
-	width: 7px;
-	height: 7px;
-	border-radius: 50%;
-	background: var(--ok);
-	box-shadow: 0 0 8px var(--ok);
-}
-
-.bx-footer__status-dot.warn {
-	background: var(--warn);
-	box-shadow: 0 0 8px var(--warn);
-}
-
-.bx-footer__status-dot.err {
-	background: var(--err);
-	box-shadow: 0 0 8px var(--err);
-}
-
-.bx-footer__status[href] {
-	text-decoration: none;
-	transition: color 0.15s;
-}
-
-.bx-footer__status[href]:hover {
-	color: var(--fg-hi);
 }
 
 .bx-footer__bottom-right {

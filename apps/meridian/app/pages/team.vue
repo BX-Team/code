@@ -42,7 +42,7 @@ const sections: TeamSection[] = [
   },
 ];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'Pulsify', 'run-server-plugin', 'docs'];
+const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'docs'];
 
 const { data: contributors } = await useAsyncData<GithubContributor[]>(
   'team:contributors',

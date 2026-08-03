@@ -13,10 +13,7 @@ const props = withDefaults(
     active?: string;
     links?: NavLink[];
     brandHref?: string;
-    loginHref?: string;
-    dashboardHref?: string;
     discordHref?: string;
-    loggedIn?: boolean;
     searchEnabled?: boolean;
   }>(),
   {
@@ -25,13 +22,9 @@ const props = withDefaults(
       { id: 'downloads', label: 'Downloads', href: '/downloads' },
       { id: 'documentation', label: 'Documentation', href: '/docs' },
       { id: 'team', label: 'Team', href: '/team' },
-      { id: 'roadmap', label: 'Roadmap', href: '/roadmap' },
     ],
     brandHref: '/',
-    loginHref: '/login',
-    dashboardHref: '/dashboard',
     discordHref: 'https://discord.gg/qNyybSSPm5',
-    loggedIn: false,
     searchEnabled: false,
   },
 );
@@ -88,11 +81,9 @@ const mobileOpen = ref(false);
 			<div class="bx-bar__right-wrap">
 				<slot name="right">
 					<div class="bx-bar__right">
-						<a :href="discordHref" class="bx-bar__ghost" target="_blank" rel="noopener">
+						<a :href="discordHref" class="bx-bar__cta" target="_blank" rel="noopener">
 							Discord
 						</a>
-						<a v-if="loggedIn" :href="dashboardHref" class="bx-bar__login">Dashboard</a>
-						<a v-else :href="loginHref" class="bx-bar__login">Login</a>
 					</div>
 				</slot>
 			</div>
@@ -156,11 +147,9 @@ const mobileOpen = ref(false);
 			</nav>
 
 			<div class="bx-drawer__footer">
-				<a :href="discordHref" class="bx-drawer__footer-ghost" target="_blank" rel="noopener" @click="mobileOpen = false">
+				<a :href="discordHref" class="bx-drawer__footer-cta" target="_blank" rel="noopener" @click="mobileOpen = false">
 					Discord
 				</a>
-				<a v-if="loggedIn" :href="dashboardHref" class="bx-drawer__footer-login" @click="mobileOpen = false">Dashboard</a>
-				<a v-else :href="loginHref" class="bx-drawer__footer-login" @click="mobileOpen = false">Login</a>
 			</div>
 		</div>
 	</Transition>
@@ -285,20 +274,7 @@ const mobileOpen = ref(false);
 	border-left: 1px solid var(--line);
 }
 
-.bx-bar__ghost {
-	padding: 7px 12px;
-	color: var(--dim);
-	font: 500 13px var(--font-sans);
-	border-radius: var(--r-full);
-	text-decoration: none;
-	transition: color 0.15s;
-}
-
-.bx-bar__ghost:hover {
-	color: var(--fg-hi);
-}
-
-.bx-bar__login {
+.bx-bar__cta {
 	padding: 7px 14px;
 	font: 500 13px var(--font-sans);
 	color: var(--bg-0);
@@ -308,7 +284,7 @@ const mobileOpen = ref(false);
 	transition: box-shadow 0.15s;
 }
 
-.bx-bar__login:hover {
+.bx-bar__cta:hover {
 	box-shadow: var(--shadow-glow);
 }
 
@@ -477,22 +453,7 @@ const mobileOpen = ref(false);
 	border-top: 1px solid var(--line);
 }
 
-.bx-drawer__footer-ghost {
-	padding: 12px 14px;
-	color: var(--dim);
-	font: 500 14px var(--font-sans);
-	border: 1px solid var(--line);
-	border-radius: var(--r-md);
-	text-decoration: none;
-	text-align: center;
-	transition: color 0.15s, border-color 0.15s;
-}
-.bx-drawer__footer-ghost:hover {
-	color: var(--fg-hi);
-	border-color: var(--line-2);
-}
-
-.bx-drawer__footer-login {
+.bx-drawer__footer-cta {
 	padding: 12px 14px;
 	font: 500 14px var(--font-sans);
 	color: var(--bg-0);
@@ -502,7 +463,7 @@ const mobileOpen = ref(false);
 	text-align: center;
 	transition: box-shadow 0.15s;
 }
-.bx-drawer__footer-login:hover {
+.bx-drawer__footer-cta:hover {
 	box-shadow: var(--shadow-glow);
 }
 

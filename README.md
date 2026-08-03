@@ -2,7 +2,7 @@
 
 # BX Team Monorepo
 
-Welcome! If you've stumbled upon this repository, you've found the source behind the **BX Team** ecosystem — the website, the status page, and **Pulsify**, our observability stack for Minecraft servers and plugins.
+Welcome! If you've stumbled upon this repository, you've found the source behind the **BX Team** web platform — our website, documentation, and the downloads API behind every build we publish.
 
 [![Commit activity](https://img.shields.io/github/commit-activity/m/BX-Team/code?style=for-the-badge&color=06b6d4)](https://github.com/BX-Team/code/pulse)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-06b6d4?style=for-the-badge)](LICENSE)
@@ -18,26 +18,24 @@ If you're not a developer and just want to use our tools, head to [bxteam.org](h
 
 ## What's inside
 
-This is a [Bun workspaces](https://bun.sh/docs/pm/workspaces) monorepo. Everything is TypeScript.
+This is a [Bun workspaces](https://bun.sh/docs/pm/workspaces) monorepo. Everything is TypeScript, and the entire backend runs on [Cloudflare Workers](https://developers.cloudflare.com/workers).
 
 ### Apps (`apps/`)
 
-| App        | Description                                                        | Stack                          |
-| ---------- | ------------------------------------------------------------------ | ------------------------------ |
-| `meridian` | Main website, docs, downloads, and the Pulsify dashboard           | Nuxt 4, Vue 3, Tailwind v4     |
-| `influx`   | Ingest gateway — validates auth, queues incoming events            | Hono, BullMQ, Redis            |
-| `cinder`   | Background worker — consumes the ingest queue, evaluates alerts    | BullMQ, ClickHouse, Postgres   |
-| `zenith`   | Status page (uptime monitor), deployed to the edge                | Cloudflare Workers, Vue 3      |
+| App        | Description                                                                 | Stack                              |
+| ---------- | -------------------------------------------------------------------------- | ---------------------------------- |
+| `meridian` | Main website, docs and downloads — fully static                             | Nuxt 4, Vue 3, Tailwind v4         |
+| `azimuth`  | Public API — the `/atlas` downloads route group                             | Hono, Cloudflare Workers, D1, R2   |
 
 ### Packages (`packages/`)
 
 | Package   | Description                                              |
 | --------- | -------------------------------------------------------- |
-| `stratus` | Database schemas and the Drizzle client (Postgres)       |
-| `types`   | Shared Zod schemas, types, and data-scrubbing helpers    |
+| `stratus` | D1 (SQLite) schemas and migrations via Drizzle ORM       |
+| `types`   | Shared Zod schemas for the Atlas wire format             |
 | `ui`      | Shared Vue 3 component library and design tokens          |
 
-Data lands in Postgres (relational state) and ClickHouse (high-volume time-series events); Redis backs the queue and rate limiting.
+Backend state lives entirely on Cloudflare: the `atlas-db` [D1](https://developers.cloudflare.com/d1/) database for project, version and build metadata, and the `builds` [R2](https://developers.cloudflare.com/r2/) bucket for the artifacts themselves. `meridian` is generated with `nuxt generate` and served as Workers Static Assets — there is no runtime Nitro server.
 
 ## Development
 
@@ -51,12 +49,11 @@ Then run any app through the workspace scripts:
 
 ```bash
 bun dev              # everything in parallel
-bun dev:meridian     # just the website + dashboard
-bun dev:influx       # just the ingest gateway
-bun dev:cinder       # just the worker
+bun dev:meridian     # just the static frontend
+bun dev:azimuth      # just the API
 ```
 
-Each app reads its own `.env` — copy the `.env.example` next to it as a starting point. Per-app setup notes live in each project's `CLAUDE.md`.
+`azimuth` runs on `wrangler dev` and reads secrets from a local `.dev.vars` — copy `.dev.vars.example` as a starting point. D1 schemas and migrations live in `packages/stratus`; `apps/azimuth/wrangler.jsonc` points its `ATLAS_DB` binding at `packages/stratus/drizzle/d1/atlas`. Both apps are built and deployed by Cloudflare directly from this repository. Per-app setup notes live in each project's `CLAUDE.md`.
 
 ## Contributing
 

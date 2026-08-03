@@ -1,33 +1,13 @@
 <script setup lang="ts">
 import { Footer, Navbar } from '@bx-team/ui';
-import { computed } from 'vue';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
-
-const status = useStatusSummary();
-const appConfig = useAppConfig();
-
-const { data: session } = await useSession();
-const loggedIn = computed(() => !!session.value?.user);
-
-const statusLevel = computed((): 'ok' | 'warn' | 'err' => {
-  if (status.value === 'degraded') return 'err';
-  if (status.value === 'maintenance') return 'warn';
-  return 'ok';
-});
-
-const statusText = computed(() => {
-  if (status.value === 'degraded') return 'Some systems degraded';
-  if (status.value === 'maintenance') return 'Maintenance in progress';
-  return 'All systems operational';
-});
 </script>
 
 <template>
 	<div class="shell">
 		<Navbar
 			:discord-href="DISCORD_URL"
-			:logged-in="loggedIn"
 			search-enabled
 			@search="openCommandPalette()"
 		/>
@@ -35,9 +15,6 @@ const statusText = computed(() => {
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:status="statusText"
-			:status-level="statusLevel"
-			status-href="https://status.bxteam.org"
 		/>
 	</div>
 </template>

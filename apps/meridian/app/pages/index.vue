@@ -1,31 +1,15 @@
 <script setup lang="ts">
 import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, ProjectsGrid } from '@bx-team/ui';
-import { Activity, AlertCircle, Box, Database, Users, Zap } from '@lucide/vue';
+import { BookOpen, Box, Download, Package, Users, Zap } from '@lucide/vue';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
-
-const appConfig = useAppConfig();
-const bxStatus = useStatusSummary();
-const footerStatusLevel = computed((): 'ok' | 'warn' | 'err' => {
-  if (bxStatus.value === 'degraded') return 'err';
-  if (bxStatus.value === 'maintenance') return 'warn';
-  return 'ok';
-});
-const footerStatusText = computed(() => {
-  if (bxStatus.value === 'degraded') return 'Some systems degraded';
-  if (bxStatus.value === 'maintenance') return 'Maintenance in progress';
-  return 'All systems operational';
-});
-
-const { data: session } = await useSession();
-const loggedIn = computed(() => !!session.value?.user);
 
 useHead({
   title: 'BX Team',
   titleTemplate: null,
 });
 
-const heroWords = ['Observability', 'Performance', 'Server plugins', 'Runtime deps'];
+const heroWords = ['Server software', 'Performance', 'Server plugins', 'Runtime deps'];
 const heroWordIdx = ref(0);
 const heroWord = computed(() => heroWords[heroWordIdx.value]);
 
@@ -39,34 +23,34 @@ onUnmounted(() => clearInterval(wordTimer));
 
 const features = [
   {
-    icon: Activity,
-    title: 'Heartbeats',
-    body: 'TPS, MSPT, memory, version, software — pushed every five minutes from the SDK.',
+    icon: Zap,
+    title: 'Server software',
+    body: 'DivineMC is a Purpur fork built around flexibility and raw throughput, tracked against every Minecraft release.',
+  },
+  {
+    icon: Package,
+    title: 'Runtime dependencies',
+    body: 'Quark resolves and loads plugin dependencies at runtime, so shading a library into every jar stops being the answer.',
   },
   {
     icon: Users,
-    title: 'Player events',
-    body: 'Joins, quits, sessions, geography. IPs hash on the SDK side and never leave the server.',
+    title: 'Plugins that ship',
+    body: 'Small, focused plugins like NDailyRewards — maintained, documented, and used on real servers.',
   },
   {
-    icon: AlertCircle,
-    title: 'Error tracker',
-    body: 'Stacktraces grouped by hash. First / last seen, count, level — a Sentry-shaped view for plugins.',
+    icon: Download,
+    title: 'Versioned downloads',
+    body: 'Every build is published through the Atlas API with its channel, commit log, size and SHA-256 checksum.',
   },
   {
-    icon: Database,
-    title: 'Custom metrics',
-    body: 'Numeric values with labels, written straight into ClickHouse. Chart anything you can name.',
+    icon: BookOpen,
+    title: 'Documentation',
+    body: 'Getting started, configuration references and guides for each project, searchable from anywhere with ⌘K.',
   },
   {
     icon: Box,
-    title: 'Multi-token DSN',
-    body: 'Issue, label, and revoke ingest tokens per environment. No shared API keys.',
-  },
-  {
-    icon: Zap,
-    title: '202 Accepted, always',
-    body: 'Ingest is fire-and-forget. The gateway validates auth, drops the batch onto the queue, returns immediately.',
+    title: 'Open source',
+    body: 'Everything we build is developed in the open on GitHub — issues, pull requests and releases included.',
   },
 ];
 
@@ -77,7 +61,7 @@ const projects = [
       'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization',
     tag: 'Server software',
     archived: false,
-    gameVersions: '1.19.2 – 26.1.2',
+    gameVersions: '1.20 – 26.2',
     href: 'https://github.com/BX-Team/DivineMC',
   },
   {
@@ -96,13 +80,6 @@ const projects = [
     href: 'https://github.com/BX-Team/NDailyRewards',
   },
   {
-    name: 'Nyx',
-    description: 'Modern, lightweight desktop GUI for the Mihomo proxy core',
-    tag: 'Desktop app',
-    archived: false,
-    href: 'https://github.com/BX-Team/Nyx',
-  },
-  {
     name: 'run-server-plugin',
     description: 'Gradle plugin for running Minecraft server instances in your IDE',
     tag: 'Gradle plugin',
@@ -110,11 +87,18 @@ const projects = [
     href: 'https://github.com/BX-Team/run-server-plugin',
   },
   {
-    name: 'RealWorldSync',
-    description: 'Synchronizes time and weather from the real world to the game',
-    tag: 'Plugin',
-    archived: true,
-    href: 'https://github.com/BX-Team/RealWorldSync',
+    name: 'Nyx',
+    description: 'Modern, lightweight desktop GUI for the Mihomo proxy core',
+    tag: 'Desktop app',
+    archived: false,
+    href: 'https://github.com/BX-Team/Nyx',
+  },
+  {
+    name: 'Nexon',
+    description: 'Multi-protocol VPN control-plane for Xray nodes - CLI + TUI, no web panel',
+    tag: 'VPN Manager',
+    archived: false,
+    href: 'https://github.com/BX-Team/Nexon',
   },
 ];
 
@@ -159,14 +143,13 @@ function projectVersion(href: string): string | undefined {
 		<!-- Floating pill navbar -->
 		<Navbar
 			:discord-href="DISCORD_URL"
-			:logged-in="loggedIn"
 			search-enabled
 			@search="openCommandPalette()"
 		/>
 
 		<!-- Hero -->
 		<Hero
-			kicker="Pulsify · Open Beta starting soon"
+			kicker=""
 			lede="BX Team is an open source community building tools and software that empower Minecraft server owners, developers, and players."
 			no-atmosphere
 		>
@@ -179,19 +162,16 @@ function projectVersion(href: string): string | undefined {
 				for Minecraft.
 			</template>
 			<template #cta>
-				<Button variant="primary" href="/docs" @click="umTrackEvent('cta_click', { action: 'explore_docs' })">Explore docs</Button>
-				<!-- <Button variant="secondary" href="/dashboard" @click="umTrackEvent('cta_click', { action: 'try_pulsify' })">Try Pulsify</Button> -->
+				<Button variant="primary" href="/docs">Explore docs</Button>
+				<Button variant="secondary" href="/downloads">Downloads</Button>
 			</template>
 		</Hero>
 
-		<!-- Interactive preview window -->
-		<AppHeroPreview />
-
 		<!-- Feature grid -->
 		<FeatureGrid
-			eyebrow="What is Pulsify?"
-			heading="Observability built for the game loop."
-			lede="Pulsify sits between your server and a low-latency ingest pipeline. Drop in the Java SDK, expose a DSN, and the dashboard fills in."
+			eyebrow="What we build"
+			heading="Tools for the people who run the servers."
+			lede="Server software, libraries and plugins, each with its own documentation and a downloads API that never hands you an unchecksummed jar."
 		>
 			<FeatureCard
 				v-for="f in features"
@@ -204,9 +184,6 @@ function projectVersion(href: string): string | undefined {
 				</template>
 			</FeatureCard>
 		</FeatureGrid>
-
-		<!-- Code showcase -->
-		<AppCodeShowcase />
 
 		<!-- Projects grid -->
 		<ProjectsGrid
@@ -226,13 +203,9 @@ function projectVersion(href: string): string | undefined {
 			/>
 		</ProjectsGrid>
 
-		<!-- Footer -->
 		<Footer
 			:github-href="GITHUB_URL"
 			:discord-href="DISCORD_URL"
-			:status="footerStatusText"
-			:status-level="footerStatusLevel"
-			status-href="https://status.bxteam.org"
 		/>
 	</div>
 </template>

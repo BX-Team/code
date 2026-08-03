@@ -12,6 +12,7 @@ import {
   Database,
   DollarSign,
   Download,
+  EyeOff,
   Files,
   FileText,
   FolderDot,
@@ -27,6 +28,7 @@ import {
   Package,
   Pencil,
   Presentation,
+  Radar,
   Repeat,
   Replace,
   Search,
@@ -34,6 +36,8 @@ import {
   SquareCode,
   SquareTerminal,
   Table,
+  Torus,
+  Waypoints,
   Wrench,
   X,
 } from '@lucide/vue';
@@ -68,6 +72,7 @@ const iconMap: Record<string, Component> = {
   Database,
   DollarSign,
   Download,
+  EyeOff,
   Files,
   FileText,
   FolderDot,
@@ -81,12 +86,15 @@ const iconMap: Record<string, Component> = {
   MonitorCog,
   Package,
   Presentation,
+  Radar,
   Repeat,
   Replace,
   Shield,
   SquareCode,
   SquareTerminal,
   Table,
+  Torus,
+  Waypoints,
   Wrench,
   Atom,
 };
@@ -114,7 +122,11 @@ const projects: Project[] = [
 
 function getIcon(name?: string): Component {
   if (!name) return FileText;
-  return iconMap[name] ?? FileText;
+  const icon = iconMap[name];
+  if (!icon && import.meta.dev) {
+    console.warn(`[docs] icon "${name}" is not registered in iconMap (app/layouts/docs.vue), falling back to FileText`);
+  }
+  return icon ?? FileText;
 }
 
 const { data: navigation } = await useAsyncData(
@@ -158,7 +170,7 @@ const currentProjectId = computed(() => {
   const seg = route.path.split('/')[2];
   return projects.find(p => p.id === seg) ? seg : null;
 });
-const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) || projects[0]);
+const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) ?? projects[0]!);
 
 const projectEntry = computed(() => {
   if (!navigation.value || !currentProjectId.value) return null;
@@ -217,15 +229,16 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-function scrollToSection(id: string) {
+function scrollToSection(id: string): boolean {
   const target = document.getElementById(id);
-  if (!target) return;
+  if (!target) return false;
   if (contentRef.value) {
     contentRef.value.scrollTo({ top: target.offsetTop - 40, behavior: 'smooth' });
   } else {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   history.replaceState(null, '', `#${id}`);
+  return true;
 }
 
 function handleContentClick(e: MouseEvent) {
@@ -292,7 +305,7 @@ watch(searchQuery, q => {
   searchLoading.value = true;
   searchDebounce = setTimeout(async () => {
     try {
-      searchResults.value = await $fetch('/api/docs/search', { query: { q } });
+      searchResults.value = await searchDocs(q);
     } catch {
       searchResults.value = [];
     } finally {
@@ -360,7 +373,6 @@ onUnmounted(() => {
 				<NuxtLink to="/docs" :class="{ active: route.path.startsWith('/docs') }">Documentation</NuxtLink>
 				<NuxtLink to="/downloads">Downloads</NuxtLink>
 				<NuxtLink to="/team">Team</NuxtLink>
-				<NuxtLink to="https://status.bxteam.org">Status</NuxtLink>
 			</nav>
 
 			<div class="right">
@@ -372,10 +384,10 @@ onUnmounted(() => {
 						<kbd class="kbd">K</kbd>
 					</span>
 				</button>
-				<a class="icon-btn" href="https://github.com/bx-team" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub" @click="umTrackEvent('github_click', { location: 'docs_header' })">
+				<a class="icon-btn" href="https://github.com/bx-team" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub">
 					<span class="raw-icon" v-html="githubSvgRaw" />
 				</a>
-				<a class="icon-btn" :href="DISCORD_URL" target="_blank" rel="noopener" title="Discord" aria-label="Discord" @click="umTrackEvent('discord_click', { location: 'docs_header' })">
+				<a class="icon-btn" :href="DISCORD_URL" target="_blank" rel="noopener" title="Discord" aria-label="Discord">
 					<span class="raw-icon" v-html="discordSvgRaw" />
 				</a>
 			</div>

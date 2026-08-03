@@ -1,4 +1,5 @@
-export function parseClickhouseDate(value: string): Date {
+/** Parses the 'YYYY-MM-DD HH:MM:SS' UTC strings the Analytics Engine SQL API returns. */
+export function parseAnalyticsDate(value: string): Date {
   if (!value) return new Date(NaN);
   if (value.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(value)) return new Date(value);
   const iso = value.includes('T') ? value : value.replace(' ', 'T');
@@ -6,7 +7,7 @@ export function parseClickhouseDate(value: string): Date {
 }
 
 export function relativeTime(value: string): string {
-  const diff = Date.now() - parseClickhouseDate(value).getTime();
+  const diff = Date.now() - parseAnalyticsDate(value).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'just now';
   if (m < 60) return `${m}m ago`;
@@ -16,5 +17,5 @@ export function relativeTime(value: string): string {
 }
 
 export function formatAbsolute(value: string): string {
-  return parseClickhouseDate(value).toLocaleString();
+  return parseAnalyticsDate(value).toLocaleString();
 }

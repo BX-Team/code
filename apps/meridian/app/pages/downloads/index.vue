@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
 import { ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
+import { API_BASE } from '@/lib/api';
 import type { Build, ProjectGroup, ProjectsResponse } from '@/lib/atlas';
 import { formatFileSize, getChannelColor } from '@/lib/atlas';
 import { GITHUB_URL } from '~/config/links';
@@ -8,12 +9,12 @@ import { GITHUB_URL } from '~/config/links';
 const { data: projects } = await useAsyncData<ProjectGroup[]>(
   'downloads:projects',
   async () => {
-    const { projects: list } = await $fetch<ProjectsResponse>('/api/v2/projects');
+    const { projects: list } = await $fetch<ProjectsResponse>(`${API_BASE}/atlas/projects`);
     return Promise.all(
       list.map(async pg => {
         if (!pg.project.latestVersion) return pg;
         const latestBuild = await $fetch<Build>(
-          `/api/v2/projects/${pg.project.id}/versions/${pg.project.latestVersion}/builds/latest`,
+          `${API_BASE}/atlas/projects/${pg.project.id}/versions/${pg.project.latestVersion}/builds/latest`,
         ).catch(() => undefined);
         return { ...pg, latestBuild };
       }),
@@ -91,7 +92,7 @@ useHead({
           </div>
 
           <footer class="proj-foot">
-            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" @click="umTrackEvent('download', { project: p.project.name, build: p.latestBuild.id, channel: p.latestBuild.channel })">
+            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
               Download Latest
             </Button>
