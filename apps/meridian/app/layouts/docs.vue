@@ -136,7 +136,8 @@ const { data: navigation } = await useAsyncData(
 );
 
 const toc = useState<TocLink[]>('docs:toc', () => []);
-const hideSidebar = computed(() => route.path === '/docs' || route.path === '/docs/');
+const routePath = computed(() => stripTrailingSlash(route.path));
+const hideSidebar = computed(() => routePath.value === '/docs');
 const docStem = useState<string>('docs:stem', () => '');
 const docTitle = useState<string>('docs:title', () => '');
 
@@ -167,7 +168,7 @@ const tocRef = ref<HTMLElement | null>(null);
 const activeTocId = ref('');
 
 const currentProjectId = computed(() => {
-  const seg = route.path.split('/')[2];
+  const seg = routePath.value.split('/')[2];
   return projects.find(p => p.id === seg) ? seg : null;
 });
 const currentProject = computed(() => projects.find(p => p.id === currentProjectId.value) ?? projects[0]!);
@@ -213,7 +214,7 @@ const navBlocks = computed(() => {
 });
 
 function isExactActive(path: string) {
-  return route.path === path;
+  return routePath.value === path;
 }
 
 function closeSwitcher(e: Event) {

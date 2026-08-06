@@ -9,12 +9,13 @@ interface TocLink {
 definePageMeta({ layout: 'docs' });
 
 const route = useRoute();
+const docPath = computed(() => stripTrailingSlash(route.path));
 const toc = useState<TocLink[]>('docs:toc', () => []);
 
 const { data: page } = await useAsyncData(
-  `docs-page:${route.path}`,
-  () => queryCollection('docs').path(route.path).first(),
-  { watch: [() => route.path] },
+  `docs-page:${docPath.value}`,
+  () => queryCollection('docs').path(docPath.value).first(),
+  { watch: [docPath] },
 );
 
 const docStem = useState<string>('docs:stem', () => '');
@@ -29,9 +30,9 @@ watch(
 );
 
 const { data: surr } = await useAsyncData(
-  `docs-surr:${route.path}`,
-  () => queryCollectionItemSurroundings('docs', route.path, { fields: ['title', 'path'] }),
-  { watch: [() => route.path] },
+  `docs-surr:${docPath.value}`,
+  () => queryCollectionItemSurroundings('docs', docPath.value, { fields: ['title', 'path'] }),
+  { watch: [docPath] },
 );
 
 const { data: navigation } = await useAsyncData(
@@ -68,9 +69,9 @@ const prev = computed(() => surr.value?.[0] ?? null);
 const next = computed(() => surr.value?.[1] ?? null);
 
 const breadcrumbs = computed(() => {
-  const parts = route.path.replace('/docs/', '').split('/');
+  const parts = docPath.value.replace('/docs/', '').split('/');
   return parts.map((part, i) => {
-    const path = '/docs/' + parts.slice(0, i + 1).join('/');
+    const path = `/docs/${parts.slice(0, i + 1).join('/')}`;
     return {
       label: part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
       path,
