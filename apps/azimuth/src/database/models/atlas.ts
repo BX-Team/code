@@ -117,11 +117,6 @@ export async function buildDetails(db: AtlasDb, buildIds: number[]) {
   return { commitsByBuild, downloadsByBuild };
 }
 
-export async function nextBuildNumber(db: AtlasDb, versionId: number) {
-  const last = await findLatestBuild(db, versionId);
-  return last ? last.buildNumber + 1 : 1;
-}
-
 export async function createBuild(db: AtlasDb, versionId: number, buildNumber: number, channel: Channel) {
   const [created] = await db.insert(builds).values({ versionId, buildNumber, channel, time: new Date() }).returning();
   return created;

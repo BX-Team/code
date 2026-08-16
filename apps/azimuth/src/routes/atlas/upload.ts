@@ -6,9 +6,10 @@ import {
   type Channel,
   createBuild,
   deleteBuild,
-  nextBuildNumber,
+  findLatestBuild,
 } from '../../database/models/atlas';
 import { badRequest, internal } from '../../util/error';
+import { publishEvent } from '../../util/events';
 import { requireApiSecret } from '../../util/secret';
 import { type AtlasEnv, requireProject, requireVersion } from './context';
 
@@ -58,7 +59,8 @@ upload.post('/projects/:project/versions/:version/builds/upload', requireApiSecr
   const project = await requireProject(db, projectKey);
   const version = await requireVersion(db, project.id, projectKey, versionKey);
 
-  const buildNumber = metadata.buildNumber || (await nextBuildNumber(db, version.id));
+  const previousBuild = await findLatestBuild(db, version.id);
+  const buildNumber = metadata.buildNumber || (previousBuild ? previousBuild.buildNumber + 1 : 1);
   const fileBytes = new Uint8Array(await filePart.arrayBuffer());
   const fileName = filePart.name || 'upload.jar';
   const filePath = `${projectKey}/versions/${versionKey}/${buildNumber}/${fileName}`;
@@ -73,17 +75,41 @@ upload.post('/projects/:project/versions/:version/builds/upload', requireApiSecr
   const created = await createBuild(db, version.id, buildNumber, channel);
   if (!created) throw internal('Failed to insert build');
 
+  const commits = metadata.commits ?? [];
+
   try {
     await attachBuildArtifacts(
       db,
       created.id,
       { name: 'application', fileName, filePath, size: fileBytes.length, sha256: await sha256Hex(fileBytes) },
-      metadata.commits ?? [],
+      commits,
     );
   } catch (error) {
     await deleteBuild(db, created.id);
     throw error;
   }
+
+  const published = {
+    project: { key: projectKey, name: project.name },
+    version: versionKey,
+    build: buildNumber,
+    channel,
+    commits,
+    download: { fileName, size: fileBytes.length, url: `${c.env.R2_PUBLIC_URL}/${filePath}` },
+  };
+
+  publishEvent(
+    c.env.ATLAS_EVENTS,
+    c.executionCtx,
+    previousBuild
+      ? { type: 'build.published', ...published }
+      : {
+          type: 'version.released',
+          ...published,
+          supportStatus: version.supportStatus,
+          javaMinVersion: version.javaMinVersion,
+        },
+  );
 
   return c.json({
     message: 'Build uploaded successfully',

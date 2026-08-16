@@ -28,5 +28,13 @@
       "binding": "ATLAS_BUCKET",
       "bucket_name": "builds"
     }
-  ]
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "ATLAS_EVENTS",
+        "queue": "atlas-events"
+      }
+    ]
+  }
 }

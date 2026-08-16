@@ -3,7 +3,8 @@
   "type": "module",
   "license": "AGPL-3.0-only",
   "exports": {
-    "./schema/atlas": "./src/schemas/atlas.ts"
+    "./schema/atlas": "./src/schemas/atlas.ts",
+    "./schema/events": "./src/schemas/events.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

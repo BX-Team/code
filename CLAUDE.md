@@ -4,27 +4,30 @@ This is the BX Team monorepo — it contains the BX Team web platform, frontend 
 
 ## Architecture
 - **Monorepo tooling:** [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field). Run scripts across packages with `bun run --filter '<pattern>' <script>`.
-- **Everything runs on Cloudflare Workers.** `meridian` is a fully static `nuxt generate` build served as Workers Static Assets; `azimuth` is a Hono Worker backed by one D1 database (`atlas-db`) and one R2 bucket (`builds`). There is no runtime Nitro server, no VPS and no Docker.
-- **Deployment:** Cloudflare builds and deploys both Workers straight from the repository. There are no CI workflows in this repo.
+- **Everything runs on Cloudflare Workers.** `meridian` is a fully static `nuxt generate` build served as Workers Static Assets; `azimuth` is a Hono Worker backed by one D1 database (`atlas-db`) and one R2 bucket (`builds`); `beacon` is a Hono Worker with no storage of its own. There is no runtime Nitro server, no VPS and no Docker.
+- **Announcements:** azimuth produces onto the `atlas-events` queue and beacon consumes it. The queue is the only coupling between them — azimuth knows nothing about Discord.
+- **Deployment:** Cloudflare builds and deploys the Workers straight from the repository. There are no CI workflows in this repo.
 - **Formatting:** [Biome](https://biomejs.dev) is the source of truth — 2-space indent for TS/JS/JSON and standalone CSS. Tabs are used only inside `.vue` `<template>` and `<style>` blocks (Biome doesn't reformat those). Run `bunx biome check .` before committing.
 
 ### Apps (`apps/`)
 | App               | Description                                        |
 | ----------------- | -------------------------------------------------- |
 | `azimuth`         | Public API (Hono): the `/atlas` downloads group     |
+| `beacon`          | Discord bot (Hono): GitHub and Atlas announcements  |
 | `meridian`        | Main BX Team frontend app (Nuxt 4, static)          |
 
 ### Packages (`packages/`)
 | Package           | Description                                |
 | ----------------- | ------------------------------------------ |
 | `stratus`         | D1 schemas and migrations (Drizzle ORM)    |
-| `types`           | Shared Zod schemas for the Atlas wire format |
+| `types`           | Shared Zod schemas for the Atlas wire format and the `atlas-events` queue |
 | `ui`              | Shared UI components (Vue 3, Tailwind)     |
 
 ## Project-Specific Instructions
 Each project may have its own `CLAUDE.md` with detailed instructions:
 
 - [`apps/azimuth/CLAUDE.md`](apps/azimuth/CLAUDE.md) - Public API Worker
+- [`apps/beacon/CLAUDE.md`](apps/beacon/CLAUDE.md) - Discord bot Worker
 - [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
 - [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
 

@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "beacon",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "beacon.bxteam.org", "custom_domain": true }],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "DISCORD_APPLICATION_ID": "1014467419181436928",
+    "GUILD_ID": "931595732752953375"
+  },
+  "secrets": {
+    "required": ["DISCORD_BOT_TOKEN", "DISCORD_PUBLIC_KEY", "GITHUB_WEBHOOK_SECRET"]
+  },
+  "queues": {
+    "consumers": [
+      {
+        "queue": "atlas-events",
+        "max_batch_size": 10,
+        "max_batch_timeout": 10,
+        "max_retries": 3
+      }
+    ]
+  }
+}
