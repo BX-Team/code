@@ -1,52 +1,131 @@
-# BX Team Monorepo
+# code
 
-This is the BX Team monorepo — it contains the BX Team web platform, frontend and backend. When entering a project, either to edit or analyse, you should read it's CLAUDE.md.
+The BX Team web platform in one repository: the `bxteam.org` site and its documentation,
+the public downloads API, and the Discord bot that announces releases. TypeScript
+throughout, a bun workspaces monorepo, and every deployable is a Cloudflare Worker —
+there is no VPS, no Docker and no runtime Nitro server.
 
 ## Architecture
-- **Monorepo tooling:** [bun workspaces](https://bun.sh/docs/pm/workspaces) (`package.json` with `workspaces` field). Run scripts across packages with `bun run --filter '<pattern>' <script>`.
-- **Everything runs on Cloudflare Workers.** `meridian` is a fully static `nuxt generate` build served as Workers Static Assets; `azimuth` is a Hono Worker backed by one D1 database (`atlas-db`) and one R2 bucket (`builds`); `beacon` is a Hono Worker with no storage of its own. There is no runtime Nitro server, no VPS and no Docker.
-- **Announcements:** azimuth produces onto the `atlas-events` queue and beacon consumes it. The queue is the only coupling between them — azimuth knows nothing about Discord.
-- **Deployment:** Cloudflare builds and deploys the Workers straight from the repository. There are no CI workflows in this repo.
-- **Formatting:** [Biome](https://biomejs.dev) is the source of truth — 2-space indent for TS/JS/JSON and standalone CSS. Tabs are used only inside `.vue` `<template>` and `<style>` blocks (Biome doesn't reformat those). Run `bunx biome check .` before committing.
 
-### Apps (`apps/`)
-| App               | Description                                        |
-| ----------------- | -------------------------------------------------- |
-| `azimuth`         | Public API (Hono): the `/atlas` downloads group     |
-| `beacon`          | Discord bot (Hono): GitHub and Atlas announcements  |
-| `meridian`        | Main BX Team frontend app (Nuxt 4, static)          |
+Three Workers, each on its own custom domain, and none of them calls another over an
+internal boundary. `meridian` is a `nuxt generate` build served as Workers Static Assets;
+its data-driven `/downloads` section is client-rendered and talks to `azimuth` over the
+public API like any other consumer. `azimuth` owns all persistent state — the `atlas-db`
+D1 database and the `builds` R2 bucket — and is the only place that writes it. `beacon`
+has no storage at all: it learns that something was published from the `atlas-events`
+queue, which `azimuth` produces onto and `beacon` consumes. That queue is the only
+coupling between the two, and it is one-way: `azimuth` knows nothing about Discord.
 
-### Packages (`packages/`)
-| Package           | Description                                |
-| ----------------- | ------------------------------------------ |
-| `stratus`         | D1 schemas and migrations (Drizzle ORM)    |
-| `types`           | Shared Zod schemas for the Atlas wire format and the `atlas-events` queue |
-| `ui`              | Shared UI components (Vue 3, Tailwind)     |
+The packages are consumed from source inside the workspace and are never published.
 
-## Project-Specific Instructions
-Each project may have its own `CLAUDE.md` with detailed instructions:
+| Package | Responsibility |
+| ------- | -------------- |
+| `apps/meridian` | The website and documentation. Nuxt 4, Vue 3, Tailwind v4, fully static. |
+| `apps/azimuth` | The public API on `api.bxteam.org`. Hono; the `/atlas` downloads group over D1 and R2. |
+| `apps/beacon` | The Discord bot on `beacon.bxteam.org`. Hono; GitHub webhooks, slash commands, the `atlas-events` consumer. |
+| `packages/stratus` | D1 schemas and migrations (Drizzle ORM). |
+| `packages/types` | Shared Zod schemas for the Atlas wire format and the queue payloads. |
+| `packages/ui` | Shared Vue 3 components and design tokens. |
 
-- [`apps/azimuth/CLAUDE.md`](apps/azimuth/CLAUDE.md) - Public API Worker
-- [`apps/beacon/CLAUDE.md`](apps/beacon/CLAUDE.md) - Discord bot Worker
-- [`apps/meridian/CLAUDE.md`](apps/meridian/CLAUDE.md) - Frontend Website
-- [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) - Shared UI components
+Each has its own `CLAUDE.md` — [`apps/azimuth`](apps/azimuth/CLAUDE.md),
+[`apps/beacon`](apps/beacon/CLAUDE.md), [`apps/meridian`](apps/meridian/CLAUDE.md),
+[`packages/ui`](packages/ui/CLAUDE.md). Read the one you are about to edit; they hold the
+rules that actually bite.
+
+### Decisions that are settled
+
+- **Everything runs on Cloudflare Workers.** No VPS, no Docker, no runtime Nitro server,
+  no long-lived process. Anything needing a socket held open — a Discord gateway
+  connection, a websocket, a background worker — is out of scope by construction.
+- **Cloudflare builds and deploys from the repository.** There are deliberately no CI
+  workflows here: every pull request gets a preview deployment and its build is the
+  required check, so a workflow running the same install and build would only be a slower
+  duplicate.
+- **`azimuth` owns the data, the queue is the coupling.** Do not add a second writer to
+  `atlas-db`, and do not give `beacon` storage. If `beacon` needs to know something, it
+  arrives as a queue event or it comes from a public read.
+- **Atlas versions are inserted by hand** as a D1 row from the Cloudflare dashboard, so
+  `POST /projects/:project/versions/create` never actually runs. Anything that should
+  happen "when a version appears" hangs off the first build in
+  `apps/azimuth/src/routes/atlas/upload.ts` — that is why announcements go out on
+  `version.released`.
+- **Biome is the formatter and the linter.** Not ESLint, not Prettier, and not both.
+
+## Commands
+
+```bash
+bun install                     # once, from the repository root
+bun dev                         # every app in parallel
+bun dev:meridian                # the site; the user starts this themselves
+bun dev:azimuth                 # the API, on wrangler dev
+bun dev:beacon                  # the bot, on wrangler dev
+bun run build                   # build every app
+bunx biome check .              # formatting and lint
+bun run --filter '*' typecheck  # tsc / nuxt typecheck per app
+```
+
+Cloudflare runs the build of each app on every pull request and that is the only
+automated check. Nothing runs Biome or `typecheck` for you — run both before committing,
+because a formatting-only follow-up commit is noise and a type error only shows up as a
+failed Cloudflare build minutes later.
 
 ## Code Guidelines
 
 ### Comments
-- DO NOT use "heading" comments like: `=== Helper methods ===`.
-- Use doc comments, but avoid inline comments unless ABSOLUTELY necessary for clarity. Code should aim to be self documenting!
+
+- NO file-header banners and NO divider comments (`// --- helpers ---`). Group code with
+  functions, not comment art.
+- Add an inline comment only where the code is genuinely non-obvious — a real footgun, a
+  wire-format quirk, a reason a thing is done backwards. Then keep it to a line or two.
+- Don't narrate the obvious. If a comment restates the next line, delete it.
+- Doc comments on public items are fine and should say *why*, in one or two sentences.
+
+### Style
+
+- Biome is the source of truth — never hand-format against it. Two-space indent for
+  TS/JS/JSON and standalone CSS; tabs appear only inside `.vue` `<template>` and `<style>`
+  blocks, because Biome does not reformat those.
+- Match the surrounding code: follow the idiom already in the file you are editing.
+- A component reusable outside one app belongs in `@bx-team/ui`, not in
+  `apps/meridian/app/components/`.
+- Anything crossing the wire — request bodies, query strings, queue payloads — is parsed
+  through a Zod schema in `@bx-team/types`, never read off an untyped object.
+- In `azimuth`, one error type and one error shape for the whole API (`util/error.ts`);
+  handlers `throw`, they never hand-roll `try`/`catch` plus `c.json({ ok: false })`.
+
+### Language of user-facing strings
+
+English, everywhere — the site, the documentation pages, API error messages and Discord
+embeds alike. There is no i18n layer and no locale files; a Russian string in a component
+ships as-is to every reader.
+
+### Content and platform gotchas
+
+- **MDC block syntax only** in documentation pages: `::component` … `::`. The HTML-like
+  `<Component />` form can swallow the content that follows it.
+- **A docs icon has to be registered.** Frontmatter `icon:` takes a PascalCase
+  [Lucide](https://lucide.dev/icons/) name, but icons are bundled explicitly — a new one
+  must also be imported into `iconMap` in `app/layouts/docs.vue` or the sidebar silently
+  falls back to `FileText`.
+- **Numeric prefixes order the docs tree** (`01.getting-started/`) and are stripped from
+  the URL. Renaming a file changes its URL; nothing redirects the old one.
+- **D1 has no interactive transactions.** `db.batch()` is the atomic unit; anything wider
+  needs an explicit compensating delete.
+- **The Cache API is a no-op on `*.workers.dev`.** Edge-cache behaviour only shows up on
+  the custom domain, so a "caching does not work" report from a preview URL is expected.
+- **Discord interactions must be answered within 3 seconds**, and nothing here defers —
+  a deferred reply would need the Worker to outlive its response.
+
+### Testing
+
+There are no test suites in this repository, and adding a framework is a decision to make
+deliberately rather than in passing. What stands in for them: `bunx biome check .`, the
+per-app `typecheck`, and walking the change through on the pull request's Cloudflare
+preview deployment. Say in the pull request what you actually exercised.
 
 ## Bash Guidelines
 
-### Output handling
-- DO NOT pipe output through `head`, `tail`, `less`, or `more`
-- NEVER use `| head -n X` or `| tail -n X` to truncate output
-- IMPORTANT: Run commands directly without pipes when possible
-- IMPORTANT: If you need to limit output, use command-specific flags (e.g. `git log -n 10` instead of `git log | head -10`)
-- ALWAYS read the full output — never pipe through filters
-
-### General
-- Do not create new non-source code files (e.g. Bash scripts, SQL scripts) unless explicitly prompted to
-- For Frontend, when doing lint checks, always use Biome (e.g. `biome check .`) instead of ESLint or other linters
-- When provided problems, do not say "I didn't introduce these problems" (shifting the blame/effort) - just fix them.
+- Don't pipe output through `head`/`tail`/`less` to truncate — use tool-native flags
+  (`git log -n 10`, `bun run --filter @bx-team/azimuth typecheck`). Read the full output.
+- Don't create scratch files (scripts, notes) unless asked.
+- When given failures, just fix them — don't argue about who introduced them.
