@@ -82,7 +82,7 @@ async function copy() {
 <style scoped>
 .code-block {
 	position: relative;
-	background: var(--bg-0, oklch(0.10 0.005 240));
+	background: var(--bg-deep);
 	border: 1px solid var(--line);
 	border-radius: 10px;
 	margin: 22px 0;

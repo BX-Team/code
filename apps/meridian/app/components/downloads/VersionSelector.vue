@@ -105,12 +105,12 @@ function pick(v: string) {
 .vs-head label { font-size: 13px; font-weight: 500; color: var(--dim); }
 
 .toggle-exp {
-	color: oklch(0.78 0.13 200);
-	background: oklch(0.6 0.13 200 / .1);
-	border: 1px solid oklch(0.6 0.13 200 / .2);
+	color: var(--ch-experimental);
+	background: color-mix(in oklab, var(--ch-experimental) 10%, transparent);
+	border: 1px solid color-mix(in oklab, var(--ch-experimental) 20%, transparent);
 }
-.toggle-exp:hover { background: oklch(0.6 0.13 200 / .18); }
-.toggle-exp.on { background: oklch(0.6 0.13 200 / .22); border-color: oklch(0.6 0.13 200 / .35); }
+.toggle-exp:hover { background: color-mix(in oklab, var(--ch-experimental) 18%, transparent); }
+.toggle-exp.on { background: color-mix(in oklab, var(--ch-experimental) 22%, transparent); border-color: color-mix(in oklab, var(--ch-experimental) 35%, transparent); }
 
 .vs-dropdown {
 	position: relative;
@@ -131,7 +131,10 @@ function pick(v: string) {
 	transition: border-color .15s, background .15s;
 	font-family: inherit;
 }
-.trigger:hover,
+.trigger:hover {
+	border-color: var(--dim);
+	background: var(--bg-3);
+}
 .trigger.open {
 	border-color: var(--brand);
 	background: var(--bg-3);
@@ -178,7 +181,7 @@ function pick(v: string) {
 	transition: background .12s, color .12s;
 }
 .menu-item:hover { background: var(--bg-2); color: var(--fg-hi); }
-.menu-item.selected { color: var(--fg-hi); background: oklch(0.2 0.01 240); }
+.menu-item.selected { color: var(--fg-hi); background: var(--hover-2); }
 
 .check { font-size: 12px; color: var(--brand); }
 
@@ -192,7 +195,7 @@ function pick(v: string) {
 	font-size: 11px;
 	font-weight: 500;
 }
-.badge-exp  { background: oklch(0.6 0.13 200 / .12); color: oklch(0.78 0.13 200); border-color: oklch(0.6 0.13 200 / .25); }
-.badge-warn { background: oklch(0.62 0.14 75 / .12);  color: oklch(0.82 0.14 75);  border-color: oklch(0.62 0.14 75 / .25); }
-.badge-err  { background: oklch(0.65 0.21 25 / .12);  color: oklch(0.78 0.21 25);  border-color: oklch(0.65 0.21 25 / .25); }
+.badge-exp  { background: color-mix(in oklab, var(--ch-experimental) 12%, transparent); color: var(--ch-experimental); border-color: color-mix(in oklab, var(--ch-experimental) 25%, transparent); }
+.badge-warn { background: color-mix(in oklab, var(--warn) 12%, transparent);  color: var(--warn);  border-color: color-mix(in oklab, var(--warn) 25%, transparent); }
+.badge-err  { background: color-mix(in oklab, var(--err) 12%, transparent);  color: var(--err);  border-color: color-mix(in oklab, var(--err) 25%, transparent); }
 </style>

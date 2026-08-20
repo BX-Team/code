@@ -218,7 +218,7 @@ const breadcrumbs = computed(() => {
 	border-radius: 4px;
 }
 .doc-body :deep(pre) {
-	background: oklch(0.10 0.005 240);
+	background: var(--bg-deep);
 	border: 1px solid var(--line);
 	border-radius: 10px;
 	padding: 16px 18px;
@@ -229,7 +229,7 @@ const breadcrumbs = computed(() => {
 }
 /* Shiki transformer annotations */
 .doc-body :deep(pre .line.diff.add) {
-	background: color-mix(in oklab, oklch(0.65 0.2 145) 15%, transparent);
+	background: color-mix(in oklab, var(--ok) 15%, transparent);
 }
 .doc-body :deep(pre .line.diff.remove) {
 	background: color-mix(in oklab, var(--err) 15%, transparent);

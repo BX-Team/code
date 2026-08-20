@@ -219,7 +219,7 @@ const mobileOpen = ref(false);
 .bx-bar__link:hover,
 .bx-bar__link--active {
 	color: var(--fg-hi);
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--hover);
 }
 
 .bx-bar__right {
@@ -281,11 +281,11 @@ const mobileOpen = ref(false);
 	background: var(--fg-hi);
 	border-radius: var(--r-full);
 	text-decoration: none;
-	transition: box-shadow 0.15s;
+	transition: background 0.15s;
 }
 
 .bx-bar__cta:hover {
-	box-shadow: var(--shadow-glow);
+	background: var(--fg);
 }
 
 /* Hamburger – hidden on desktop */
@@ -405,7 +405,7 @@ const mobileOpen = ref(false);
 .bx-drawer__link:hover,
 .bx-drawer__link--active {
 	color: var(--fg-hi);
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--hover);
 }
 
 .bx-drawer__search {
@@ -461,10 +461,10 @@ const mobileOpen = ref(false);
 	border-radius: var(--r-md);
 	text-decoration: none;
 	text-align: center;
-	transition: box-shadow 0.15s;
+	transition: background 0.15s;
 }
 .bx-drawer__footer-cta:hover {
-	box-shadow: var(--shadow-glow);
+	background: var(--fg);
 }
 
 /* Drawer transitions */

@@ -177,7 +177,7 @@ useHead({
   border: 1px solid var(--line);
   border-radius: 14px;
   overflow: hidden;
-  background: oklch(0.16 0.006 240 / .55);
+  background: color-mix(in oklab, var(--bg-1) 55%, transparent);
   backdrop-filter: blur(8px);
   transition: border-color .15s;
 }
@@ -203,7 +203,7 @@ useHead({
 }
 @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 .stat {
-  background: oklch(0.20 0.007 240 / .55);
+  background: color-mix(in oklab, var(--bg-2) 55%, transparent);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 10px 12px;
@@ -235,10 +235,10 @@ useHead({
   font-size: 11px;
   font-weight: 600;
 }
-.channel-stable { background: oklch(0.6 0.13 158 / .15); color: oklch(0.78 0.13 158); border-color: oklch(0.6 0.13 158 / .3); }
-.channel-beta { background: oklch(0.6 0.13 200 / .15); color: oklch(0.78 0.13 200); border-color: oklch(0.6 0.13 200 / .3); }
-.channel-alpha { background: oklch(0.62 0.14 75 / .15); color: oklch(0.82 0.14 75); border-color: oklch(0.62 0.14 75 / .3); }
-.channel-experimental { background: oklch(0.6 0.13 295 / .15); color: oklch(0.78 0.13 295); border-color: oklch(0.6 0.13 295 / .3); }
+.channel-stable { background: color-mix(in oklab, var(--ch-stable) 15%, transparent); color: var(--ch-stable); border-color: color-mix(in oklab, var(--ch-stable) 30%, transparent); }
+.channel-beta { background: color-mix(in oklab, var(--ch-beta) 15%, transparent); color: var(--ch-beta); border-color: color-mix(in oklab, var(--ch-beta) 30%, transparent); }
+.channel-alpha { background: color-mix(in oklab, var(--ch-alpha) 15%, transparent); color: var(--ch-alpha); border-color: color-mix(in oklab, var(--ch-alpha) 30%, transparent); }
+.channel-experimental { background: color-mix(in oklab, var(--ch-experimental) 15%, transparent); color: var(--ch-experimental); border-color: color-mix(in oklab, var(--ch-experimental) 30%, transparent); }
 .channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
 
 .empty {
@@ -246,7 +246,7 @@ useHead({
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 64px 24px;
-  background: oklch(0.16 0.006 240 / .5);
+  background: color-mix(in oklab, var(--bg-1) 50%, transparent);
   text-align: center;
   color: var(--mute);
 }

@@ -1,41 +1,58 @@
 /* ===========================================================
-   BX Team / Pulsify — Design Tokens
-   Dark-first: cyan→green brand on near-black slate canvas.
+   BX Team — Design Tokens
+   Dark-first: cyan→green brand on a warm basalt canvas.
+   The ground is deliberately warm (hue 70) so the cool brand
+   reads as the only cold thing on screen — cyan is already at
+   the sRGB chroma ceiling and cannot be pushed further.
    Inter UI · JetBrains Mono code. (imported by frontend with @nuxt/fonts)
    =========================================================== */
 
 :root {
-  /* ── Surfaces ── */
-  --bg-0: oklch(0.13 0.005 240);
-  --bg-1: oklch(0.16 0.006 240);
-  --bg-2: oklch(0.19 0.007 240);
-  --bg-3: oklch(0.22 0.008 240);
+  /* ── Surfaces (warm basalt ladder) ── */
+  --bg-0: #12100d; /* page */
+  --bg-1: #171512; /* card / nav */
+  --bg-2: #1c1916; /* hover surface */
+  --bg-3: #201e1b; /* input fill */
+  --bg-deep: #0c0a07; /* code panels, recessed wells */
 
   /* ── Borders ── */
-  --line: oklch(0.28 0.01 240);
-  --line-2: oklch(0.36 0.012 240);
+  --line: #25211e;
+  --line-2: #33302c;
 
   /* ── Text ladder ── */
-  --mute: oklch(0.55 0.01 240);
-  --dim: oklch(0.72 0.008 240);
-  --fg: oklch(0.94 0.004 80);
-  --fg-hi: oklch(0.99 0.002 80);
+  --mute: #847f7a;
+  --dim: #b3afaa;
+  --fg: #e9e6e2;
+  --fg-hi: #f9f6f3;
 
   /* ── Brand: cyan (primary) ── */
-  --brand: oklch(0.72 0.13 200);
-  --brand-soft: oklch(0.72 0.13 200 / 0.18);
-  --brand-glow: oklch(0.72 0.13 200 / 0.55);
+  --brand: oklch(0.82 0.135 195);
+  --brand-soft: oklch(0.82 0.135 195 / 0.2);
+  --brand-glow: oklch(0.82 0.135 195 / 0.5);
 
   /* ── Brand: green (secondary) ── */
-  --brand-2: oklch(0.72 0.13 158);
-  --brand-soft-2: oklch(0.72 0.13 158 / 0.18);
-  --brand-glow-2: oklch(0.72 0.13 158 / 0.55);
+  --brand-2: oklch(0.8 0.15 155);
+  --brand-soft-2: oklch(0.8 0.15 155 / 0.2);
+  --brand-glow-2: oklch(0.8 0.15 155 / 0.5);
+
+  /* ── Interactive fills (brand-tinted, never flat white) ── */
+  --hover: color-mix(in oklab, var(--brand) 8%, transparent);
+  --hover-2: color-mix(in oklab, var(--brand) 14%, transparent);
 
   /* ── Status ── */
-  --ok: oklch(0.72 0.13 158);
-  --warn: oklch(0.78 0.16 75);
-  --err: oklch(0.65 0.21 25);
-  --info: oklch(0.72 0.13 200);
+  --ok: oklch(0.78 0.15 145);
+  --warn: oklch(0.83 0.14 80);
+  --err: oklch(0.7 0.17 27);
+  --info: oklch(0.82 0.135 195);
+
+  /* ── Release channels ──
+     Kept separate from the brand on purpose: a channel chip encodes state,
+     so it must not read as the mark. --ok is a yellower green than --brand-2
+     for exactly that reason. */
+  --ch-stable: var(--ok);
+  --ch-beta: var(--info);
+  --ch-alpha: var(--warn);
+  --ch-experimental: oklch(0.75 0.14 300);
 
   /* ── Radii ── */
   --r-xs: 4px;
@@ -60,9 +77,9 @@
   --s-24: 96px;
 
   /* ── Shadows ── */
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 60px -20px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 50px -22px rgba(0, 0, 0, 0.45);
   --shadow-pop:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 40px 100px -30px rgba(0, 0, 0, 0.7), 0 0 80px -20px var(--brand-soft);
+    0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 40px 90px -34px rgba(0, 0, 0, 0.55), 0 0 80px -22px var(--brand-soft);
   --shadow-glow: 0 0 0 3px var(--brand-soft);
 
   /* ── Typography ── */

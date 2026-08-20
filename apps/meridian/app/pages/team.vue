@@ -221,14 +221,14 @@ useHead({
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: oklch(0.16 0.006 240 / .6);
+  background: color-mix(in oklab, var(--bg-1) 60%, transparent);
   text-decoration: none;
   color: inherit;
   transition: border-color .15s, background .15s, transform .15s;
 }
 a.member-card:hover {
   border-color: var(--line-2);
-  background: oklch(0.18 0.006 240 / .8);
+  background: color-mix(in oklab, var(--bg-2) 80%, transparent);
   transform: translateY(-1px);
 }
 .member-card h3 {

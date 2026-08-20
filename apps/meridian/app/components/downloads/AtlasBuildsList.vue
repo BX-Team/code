@@ -133,19 +133,19 @@ function onToggle(v: boolean) {
 .banner-icon { flex-shrink: 0; margin-top: 1px; }
 
 .banner-info {
-	background: oklch(0.6 0.13 200 / .1);
-	border-color: oklch(0.6 0.13 200 / .25);
-	color: oklch(0.78 0.13 200);
+	background: color-mix(in oklab, var(--info) 10%, transparent);
+	border-color: color-mix(in oklab, var(--info) 25%, transparent);
+	color: var(--info);
 }
 .banner-warn {
-	background: oklch(0.62 0.14 75 / .1);
-	border-color: oklch(0.62 0.14 75 / .25);
-	color: oklch(0.82 0.14 75);
+	background: color-mix(in oklab, var(--warn) 10%, transparent);
+	border-color: color-mix(in oklab, var(--warn) 25%, transparent);
+	color: var(--warn);
 }
 .banner-err {
-	background: oklch(0.65 0.21 25 / .1);
-	border-color: oklch(0.65 0.21 25 / .25);
-	color: oklch(0.78 0.21 25);
+	background: color-mix(in oklab, var(--err) 10%, transparent);
+	border-color: color-mix(in oklab, var(--err) 25%, transparent);
+	color: var(--err);
 }
 
 .state {

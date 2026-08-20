@@ -49,7 +49,7 @@ defineProps<{
 	color: var(--bg-0);
 }
 .bx-btn--primary:hover {
-	box-shadow: var(--shadow-glow);
+	background: var(--fg);
 }
 
 .bx-btn--accent {
@@ -67,7 +67,7 @@ defineProps<{
 }
 .bx-btn--secondary:hover {
 	color: var(--fg-hi);
-	border-color: var(--brand);
+	border-color: var(--dim);
 }
 
 .bx-btn--ghost {
@@ -77,7 +77,7 @@ defineProps<{
 }
 .bx-btn--ghost:hover {
 	color: var(--fg-hi);
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--hover);
 }
 .bx-btn--ghost.bx-btn--sm { padding: 5px 10px; }
 </style>

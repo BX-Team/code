@@ -208,7 +208,7 @@ const docsUrl = computed(() => `/docs/${projectId}`);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 32px;
-  background: linear-gradient(180deg, oklch(0.16 0.006 240 / .65), oklch(0.14 0.006 240 / .55));
+  background: linear-gradient(180deg, color-mix(in oklab, var(--bg-1) 65%, transparent), color-mix(in oklab, var(--bg-0) 55%, transparent));
   backdrop-filter: blur(10px);
   margin-bottom: 32px;
 }
@@ -231,7 +231,7 @@ const docsUrl = computed(() => `/docs/${projectId}`);
 }
 @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 .stat {
-  background: oklch(0.20 0.007 240 / .55);
+  background: color-mix(in oklab, var(--bg-2) 55%, transparent);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px 14px;
@@ -243,7 +243,7 @@ const docsUrl = computed(() => `/docs/${projectId}`);
 .cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .info-side {
-  background: oklch(0.13 0.006 240 / .6);
+  background: color-mix(in oklab, var(--bg-0) 60%, transparent);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 18px;
@@ -270,7 +270,7 @@ const docsUrl = computed(() => `/docs/${projectId}`);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 22px;
-  background: oklch(0.16 0.006 240 / .5);
+  background: color-mix(in oklab, var(--bg-1) 50%, transparent);
 }
 .btn-icon {
   filter: brightness(0) invert(1);

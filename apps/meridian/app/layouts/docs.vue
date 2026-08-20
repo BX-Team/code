@@ -648,7 +648,7 @@ onUnmounted(() => {
 	transition: color 0.15s, background 0.15s;
 	text-decoration: none;
 }
-.top-nav a:hover { color: var(--fg-hi); background: rgba(255, 255, 255, 0.04); }
+.top-nav a:hover { color: var(--fg-hi); background: var(--hover); }
 .top-nav a.active { color: var(--fg-hi); }
 .top-nav a.active::after {
 	content: "";
@@ -700,7 +700,7 @@ onUnmounted(() => {
 	color: var(--dim);
 	text-decoration: none;
 }
-.icon-btn:hover { background: rgba(255, 255, 255, 0.04); color: var(--fg-hi); border-color: var(--line); }
+.icon-btn:hover { background: var(--hover); color: var(--fg-hi); border-color: var(--line); }
 
 .mobile-menu-btn {
 	display: none;
@@ -715,7 +715,7 @@ onUnmounted(() => {
 	cursor: pointer;
 	flex-shrink: 0;
 }
-.mobile-menu-btn:hover { color: var(--fg-hi); background: rgba(255, 255, 255, 0.04); }
+.mobile-menu-btn:hover { color: var(--fg-hi); background: var(--hover); }
 
 .shell {
 	display: grid;
@@ -791,7 +791,7 @@ onUnmounted(() => {
 	text-decoration: none;
 	color: inherit;
 }
-.proj-item:hover { background: rgba(255, 255, 255, 0.04); }
+.proj-item:hover { background: var(--hover); }
 .proj-item .ic-wrap {
 	width: 28px;
 	height: 28px;
@@ -830,8 +830,8 @@ onUnmounted(() => {
 	position: relative;
 	text-decoration: none;
 }
-.nav-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--fg-hi); }
-.nav-item.active { background: rgba(255, 255, 255, 0.06); color: var(--fg-hi); }
+.nav-item:hover { background: var(--hover); color: var(--fg-hi); }
+.nav-item.active { background: var(--hover-2); color: var(--fg-hi); }
 .nav-item.active::before {
 	content: "";
 	position: absolute;
@@ -980,7 +980,7 @@ onUnmounted(() => {
 	color: inherit;
 	transition: background 0.12s;
 }
-.sr-item:hover, .sr-item.selected { background: rgba(255, 255, 255, 0.05); }
+.sr-item:hover, .sr-item.selected { background: var(--hover); }
 .sr-breadcrumb {
 	font: 500 11px var(--font-mono);
 	color: var(--mute);

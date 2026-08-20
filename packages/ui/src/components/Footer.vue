@@ -158,12 +158,13 @@ const effectiveColumns = computed<FooterColumn[]>(
 	border: 1px solid var(--line);
 	border-radius: var(--r-md);
 	color: var(--dim);
-	transition: color 0.15s, border-color 0.15s;
+	transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .bx-footer__social:hover {
 	color: var(--fg-hi);
-	border-color: var(--brand);
+	border-color: var(--line-2);
+	background: var(--bg-3);
 }
 
 .bx-footer__cols {

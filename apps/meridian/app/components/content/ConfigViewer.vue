@@ -226,7 +226,7 @@ function fmtVal(v: unknown): string {
 	color: var(--mute);
 	transition: color .15s, border-color .15s, background .15s;
 }
-.cv-btn:hover { color: var(--fg-hi); border-color: var(--line-2); background: rgba(255,255,255,.03); }
+.cv-btn:hover { color: var(--fg-hi); border-color: var(--line-2); background: var(--hover); }
 .cv-btn.primary {
 	color: var(--fg-hi);
 	border-color: color-mix(in oklab, var(--brand) 50%, var(--line));
@@ -290,7 +290,7 @@ function fmtVal(v: unknown): string {
 	flex-wrap: wrap;
 	min-width: 0;
 }
-.cv-row:hover { background: rgba(255,255,255,.03); }
+.cv-row:hover { background: var(--hover); }
 
 /* Section header */
 .cv-section { margin-top: 4px; }
@@ -319,7 +319,7 @@ function fmtVal(v: unknown): string {
 
 .tk-true  { color: var(--brand-2); }
 .tk-false { color: var(--err); }
-.tk-num   { color: oklch(0.78 0.13 320); }
+.tk-num   { color: oklch(0.78 0.14 320); }
 .tk-str   { color: var(--brand-2); }
 .tk-default { color: var(--fg); }
 

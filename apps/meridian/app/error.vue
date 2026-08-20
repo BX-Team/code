@@ -102,12 +102,9 @@ const handleError = () => clearError({ redirect: '/' });
 	border: 1px solid var(--line);
 	border-radius: 16px;
 	padding: 48px 40px;
-	background: oklch(0.16 0.006 240 / 0.6);
+	background: color-mix(in oklab, var(--bg-1) 60%, transparent);
 	backdrop-filter: blur(12px);
-	box-shadow:
-		0 1px 0 rgba(255, 255, 255, 0.04) inset,
-		0 40px 100px -30px rgba(0, 0, 0, 0.7),
-		0 0 80px -20px var(--brand-soft);
+	box-shadow: var(--shadow-pop);
 }
 
 .err-icon {

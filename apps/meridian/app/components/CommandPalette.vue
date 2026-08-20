@@ -260,10 +260,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	backdrop-filter: blur(20px);
 	border: 1px solid var(--line);
 	border-radius: 14px;
-	box-shadow:
-		0 1px 0 rgba(255, 255, 255, 0.04) inset,
-		0 40px 100px -30px rgba(0, 0, 0, 0.7),
-		0 0 80px -20px var(--brand-soft);
+	box-shadow: var(--shadow-pop);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;

@@ -40,11 +40,12 @@ defineProps<{
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	transition: border-color 0.2s;
+	transition: border-color 0.2s, background 0.2s;
 }
 
 .bx-project-card:hover {
-	border-color: var(--brand);
+	border-color: var(--line-2);
+	background: var(--bg-2);
 }
 
 .bx-project-card--archived {

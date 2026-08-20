@@ -85,7 +85,7 @@ const kind = computed<CalloutKind>(() => {
 	border-radius: 3px;
 }
 .callout .body :deep(pre) {
-	background: var(--bg-0, oklch(0.10 0.005 240));
+	background: var(--bg-deep);
 	border: 1px solid var(--line);
 	border-radius: 8px;
 	padding: 12px 14px;
