@@ -15,7 +15,6 @@ function loadSections(): Promise<DocSearchSection[]> {
   return sectionsPromise;
 }
 
-/** Client-side docs search over @nuxt/content's sections, fetched once and filtered locally. */
 export async function searchDocs(query: string): Promise<DocSearchSection[]> {
   const term = query.trim().toLowerCase();
   if (!term) return [];

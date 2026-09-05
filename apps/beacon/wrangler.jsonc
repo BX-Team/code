@@ -14,16 +14,6 @@
     "GUILD_ID": "931595732752953375"
   },
   "secrets": {
-    "required": ["DISCORD_BOT_TOKEN", "DISCORD_PUBLIC_KEY", "GITHUB_WEBHOOK_SECRET"]
-  },
-  "queues": {
-    "consumers": [
-      {
-        "queue": "atlas-events",
-        "max_batch_size": 10,
-        "max_batch_timeout": 10,
-        "max_retries": 3
-      }
-    ]
+    "required": ["DISCORD_BOT_TOKEN", "DISCORD_PUBLIC_KEY", "GITHUB_WEBHOOK_SECRET", "AZIMUTH_WEBHOOK_SECRET"]
   }
 }

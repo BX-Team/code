@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
 import tailwindcss from '@tailwindcss/vite';
 
+const api = process.env.VITE_API_BASE || 'https://api.bxteam.org';
+const apiBase = process.env.NODE_ENV !== 'production' && !process.env.VITE_API_BASE ? '' : api;
+
 export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
@@ -16,9 +19,11 @@ export default defineNuxtConfig({
     forceDarkModeState: 'dark',
     hideDarkModeToggle: true,
     hideClientButton: true,
+    agent: { disabled: true },
+    mcp: { disabled: true },
     customCss: readFileSync(new URL('./app/assets/css/scalar.css', import.meta.url), 'utf8'),
     pathRouting: { basePath: '/docs/api' },
-    url: `${process.env.VITE_API_BASE || 'https://api.bxteam.org'}/openapi.json`,
+    url: `${apiBase}/v1/openapi.json`,
   },
 
   fonts: {
@@ -105,6 +110,12 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'static',
+
+    // Dev only — the generated site has no server, and in production the browser
+    // talks to azimuth directly from an origin that Worker allows.
+    devProxy: {
+      '/v1': { target: `${api}/v1`, changeOrigin: true },
+    },
   },
 
   compatibilityDate: '2026-01-01',

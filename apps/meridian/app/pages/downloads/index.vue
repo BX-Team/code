@@ -1,36 +1,77 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
-import { ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
-import { API_BASE } from '@/lib/api';
-import type { Build, ProjectGroup, ProjectsResponse } from '@/lib/atlas';
-import { formatFileSize, getChannelColor } from '@/lib/atlas';
-import { GITHUB_URL } from '~/config/links';
+import { AlertCircle, ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
+import {
+  type BuildCommit,
+  type Channel,
+  commitUrl,
+  type Download as File,
+  fetchLatestBuild,
+  fetchLatestRelease,
+  fetchProjects,
+  getChannelColor,
+  type ProjectSummary,
+  primaryDownload,
+} from '@/lib/builds';
+import { formatBytes } from '@/lib/format';
 
-const { data: projects } = await useAsyncData<ProjectGroup[]>(
+/** A versioned project's newest publication is a build, a release project's is a
+ *  tag; the card is the same either way, so the difference is resolved here. */
+interface Entry {
+  project: ProjectSummary;
+  label: string;
+  channel: Channel;
+  at: string;
+  file?: File;
+  commits: BuildCommit[];
+}
+
+async function latestOf(project: ProjectSummary): Promise<Entry | null> {
+  if (project.kind === 'release') {
+    const release = await fetchLatestRelease(project.key).catch(() => null);
+    if (!release) return null;
+    return {
+      project,
+      label: release.tag,
+      channel: release.channel,
+      at: release.created_at,
+      file: primaryDownload(release.downloads),
+      commits: release.commits,
+    };
+  }
+
+  if (!project.latest) return null;
+  const build = await fetchLatestBuild(project.key, project.latest).catch(() => null);
+  if (!build) return null;
+  return {
+    project,
+    label: `#${build.build}`,
+    channel: build.channel,
+    at: build.created_at,
+    file: primaryDownload(build.downloads),
+    commits: build.commits,
+  };
+}
+
+// Only the list itself may fail: a project whose newest publication cannot be
+// read still belongs on the page, and an unreachable API is not an empty one.
+const { data: entries, error } = await useAsyncData<{ project: ProjectSummary; latest: Entry | null }[]>(
   'downloads:projects',
   async () => {
-    const { projects: list } = await $fetch<ProjectsResponse>(`${API_BASE}/atlas/projects`);
-    return Promise.all(
-      list.map(async pg => {
-        if (!pg.project.latestVersion) return pg;
-        const latestBuild = await $fetch<Build>(
-          `${API_BASE}/atlas/projects/${pg.project.id}/versions/${pg.project.latestVersion}/builds/latest`,
-        ).catch(() => undefined);
-        return { ...pg, latestBuild };
-      }),
-    );
+    const projects = await fetchProjects();
+    return Promise.all(projects.map(async project => ({ project, latest: await latestOf(project) })));
   },
-  { default: () => [] as ProjectGroup[] },
+  { default: () => [] },
 );
 
 useHead({
   title: 'Downloads',
-  meta: [{ name: 'description', content: 'Download the latest builds of our Minecraft server software.' }],
+  meta: [{ name: 'description', content: 'Download the latest builds and releases of our software.' }],
 });
 </script>
 
 <template>
-  <PageShell>
+  <PageShell max-width="1100px" gutter="24px">
     <div class="dl-root">
     <div class="dl-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
@@ -39,69 +80,75 @@ useHead({
         <p>Select software you want to download</p>
       </header>
 
-      <div v-if="projects.length" class="project-list">
-        <article v-for="p in projects" :key="p.project.id" class="proj-card">
+      <div v-if="entries.length" class="project-list">
+        <article v-for="{ project, latest } in entries" :key="project.key" class="proj-card">
           <header class="proj-head">
-            <NuxtLink :to="`/downloads/${p.project.id}`" class="proj-title">
-              <h2>{{ p.project.name }}</h2>
+            <NuxtLink :to="`/downloads/${project.key}`" class="proj-title">
+              <h2>{{ project.name }}</h2>
             </NuxtLink>
-            <p>{{ p.project.description || 'No description available.' }}</p>
+            <p>{{ project.description || 'No description available.' }}</p>
           </header>
 
-          <div v-if="p.latestBuild" class="stats">
+          <div v-if="latest" class="stats">
             <div class="stat">
-              <div class="stat-label">Latest Build</div>
-              <div class="stat-val">#{{ p.latestBuild.id }}</div>
+              <div class="stat-label">{{ project.kind === 'release' ? 'Latest Release' : 'Latest Build' }}</div>
+              <div class="stat-val">{{ latest.label }}</div>
             </div>
             <div class="stat">
               <div class="stat-label">Channel</div>
-              <span class="badge-channel" :class="getChannelColor(p.latestBuild.channel)">{{ p.latestBuild.channel }}</span>
+              <span class="badge-channel" :class="getChannelColor(latest.channel)">{{ latest.channel }}</span>
             </div>
             <div class="stat">
               <div class="stat-label">Size</div>
               <div class="stat-val with-icon">
                 <Package :size="12" :stroke-width="1.8" />
-                {{ formatFileSize(p.latestBuild.downloads.application.size) }}
+                {{ latest.file ? formatBytes(latest.file.size) : '—' }}
               </div>
             </div>
             <div class="stat">
               <div class="stat-label">Updated</div>
               <div class="stat-val with-icon">
                 <Clock :size="12" :stroke-width="1.8" />
-                {{ new Date(p.latestBuild.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}
+                {{ new Date(latest.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}
               </div>
             </div>
           </div>
 
-          <div v-if="p.latestBuild?.commits?.length" class="commits">
+          <div v-if="latest?.commits.length" class="commits">
             <div class="commits-head">
               <GitCommit :size="14" :stroke-width="1.7" />
               <h4>Recent Changes</h4>
             </div>
             <ul>
-              <li v-for="c in p.latestBuild.commits.slice(0, 3)" :key="c.sha">
-                <a
-                  :href="`${GITHUB_URL}/${p.project.name}/commit/${c.sha}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <li v-for="c in latest.commits.slice(0, 3)" :key="c.sha">
+                <NuxtLink
+                  :to="commitUrl(project, c.sha)"
+                  :target="project.repo ? undefined : '_blank'"
+                  :rel="project.repo ? undefined : 'noopener noreferrer'"
                   class="sha"
-                >{{ c.sha.substring(0, 7) }}</a>
-                <span>{{ c.message }}</span>
+                >{{ c.sha.substring(0, 7) }}</NuxtLink>
+                <span>{{ c.summary }}</span>
               </li>
             </ul>
           </div>
 
           <footer class="proj-foot">
-            <Button v-if="p.latestBuild" :href="p.latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary">
+            <Button v-if="latest?.file" :href="latest.file.url" target="_blank" rel="noopener noreferrer" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
               Download Latest
             </Button>
-            <Button :href="`/downloads/${p.project.id}`" variant="secondary">
+            <Button :href="`/downloads/${project.key}`" variant="secondary">
               <ArrowRight :size="16" :stroke-width="1.7" />
-              All Builds
+              {{ project.kind === 'release' ? 'All Releases' : 'All Builds' }}
             </Button>
           </footer>
         </article>
+      </div>
+
+      <div v-else-if="error" class="empty">
+        <AlertCircle :size="36" :stroke-width="1.5" />
+        <h3>Downloads Unavailable</h3>
+        <p>The downloads API could not be reached. Please try again in a moment.</p>
       </div>
 
       <div v-else class="empty">
@@ -228,17 +275,17 @@ useHead({
 
 .proj-foot { padding: 14px 24px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* Channel badge colors */
 .badge-channel {
   font-family: var(--font-mono);
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
 }
+/* Channel badge colors */
 .channel-stable { background: color-mix(in oklab, var(--ch-stable) 15%, transparent); color: var(--ch-stable); border-color: color-mix(in oklab, var(--ch-stable) 30%, transparent); }
 .channel-beta { background: color-mix(in oklab, var(--ch-beta) 15%, transparent); color: var(--ch-beta); border-color: color-mix(in oklab, var(--ch-beta) 30%, transparent); }
 .channel-alpha { background: color-mix(in oklab, var(--ch-alpha) 15%, transparent); color: var(--ch-alpha); border-color: color-mix(in oklab, var(--ch-alpha) 30%, transparent); }
-.channel-experimental { background: color-mix(in oklab, var(--ch-experimental) 15%, transparent); color: var(--ch-experimental); border-color: color-mix(in oklab, var(--ch-experimental) 30%, transparent); }
 .channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
 
 .empty {

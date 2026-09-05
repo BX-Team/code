@@ -5,15 +5,15 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "dev:meridian": "bun run --filter @bx-team/meridian dev",
-    "dev:azimuth": "bun run --filter @bx-team/azimuth dev",
     "dev:beacon": "bun run --filter @bx-team/beacon dev",
+    "dev:azimuth": "bun run --filter @bx-team/azimuth dev",
     "build": "bun run --filter '*' build",
     "build:meridian": "bun run --filter @bx-team/meridian generate",
-    "build:azimuth": "bun run --filter @bx-team/azimuth build",
     "build:beacon": "bun run --filter @bx-team/beacon build",
+    "build:azimuth": "bun run --filter @bx-team/azimuth build",
     "deploy:meridian": "bun run --filter @bx-team/meridian deploy",
-    "deploy:azimuth": "bun run --filter @bx-team/azimuth deploy",
     "deploy:beacon": "bun run --filter @bx-team/beacon deploy",
+    "deploy:azimuth": "bun run --filter @bx-team/azimuth deploy",
     "lint": "biome check ."
   },
   "devDependencies": {

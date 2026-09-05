@@ -2,77 +2,137 @@
 import { Button } from '@bx-team/ui';
 import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
 import { useRoute } from 'vue-router';
-import AtlasBuildsList from '@/components/downloads/AtlasBuildsList.vue';
-import { API_BASE } from '@/lib/api';
-import type { Build, Project, VersionWithBuilds } from '@/lib/atlas';
-import { formatFileSize, getAllVersions } from '@/lib/atlas';
-import { GITHUB_URL } from '~/config/links';
+import BuildsList from '@/components/downloads/BuildsList.vue';
+import ReleaseList from '@/components/downloads/ReleaseList.vue';
+import {
+  BUILDS_PER_PAGE,
+  type Build,
+  commitUrl,
+  fetchLatestBuild,
+  fetchProject,
+  fetchReleases,
+  fetchVersion,
+  fetchVersions,
+  primaryDownload,
+  type Release,
+  repoUrl,
+  type VersionSummary,
+} from '@/lib/builds';
+import { formatBytes } from '@/lib/format';
 
 const route = useRoute();
-const projectId = String(route.params.project);
+const projectKey = String(route.params.project);
 const queryVersion = computed(() => {
   const v = route.query.version;
   return typeof v === 'string' && v ? v : null;
 });
 
-const { data } = await useAsyncData(`project:${projectId}`, async () => {
-  const projectResp = await $fetch<{ project: Project; version_groups: Record<string, string[]> }>(
-    `${API_BASE}/atlas/projects/${projectId}`,
-  ).catch(() => null);
-
-  if (!projectResp?.project) {
+const { data } = await useAsyncData(`project:${projectKey}`, async () => {
+  const project = await fetchProject(projectKey).catch(() => null);
+  if (!project) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found', fatal: true });
   }
 
-  const { project, version_groups } = projectResp;
+  // A release project has no versions at all, so nothing below applies to it.
+  if (project.kind === 'release') {
+    const releases = await fetchReleases(project.key).catch(() => [] as Release[]);
+    return {
+      project,
+      releases,
+      versions: [] as string[],
+      versionsMetadata: [] as VersionSummary[],
+      latestBuild: null as Build | null,
+      initialVersion: '',
+      initialBuilds: [] as Build[],
+      initialNext: null as string | null,
+    };
+  }
 
-  const availableVersions = getAllVersions(version_groups);
-  const requestedVersion =
-    queryVersion.value && availableVersions.includes(queryVersion.value) ? queryVersion.value : null;
-  const initialVersion = requestedVersion ?? project.latestVersion ?? '';
+  // Already newest first from the server; re-sorting here would only disagree.
+  const versions = project.versions ?? [];
+  const requested = queryVersion.value && versions.includes(queryVersion.value) ? queryVersion.value : null;
+  const initialVersion = requested ?? project.latest ?? versions[0] ?? '';
 
-  const [versionsMetadata, latestBuild, initialBuilds] = await Promise.all([
-    $fetch<VersionWithBuilds[]>(`${API_BASE}/atlas/projects/${projectId}/versions`).catch(
-      () => [] as VersionWithBuilds[],
-    ),
-    project.latestVersion
-      ? $fetch<Build>(`${API_BASE}/atlas/projects/${projectId}/versions/${project.latestVersion}/builds/latest`).catch(
-          () => null,
-        )
-      : Promise.resolve(null),
+  const [versionsMetadata, latestBuild, initial] = await Promise.all([
+    fetchVersions(project.key).catch(() => [] as VersionSummary[]),
+    project.latest ? fetchLatestBuild(project.key, project.latest).catch(() => null) : Promise.resolve(null),
     initialVersion
-      ? $fetch<Build[]>(`${API_BASE}/atlas/projects/${projectId}/versions/${initialVersion}/builds`).catch(
-          () => [] as Build[],
-        )
-      : Promise.resolve([] as Build[]),
+      ? fetchVersion(project.key, initialVersion, BUILDS_PER_PAGE).catch(() => null)
+      : Promise.resolve(null),
   ]);
 
-  return { project, version_groups, versionsMetadata, latestBuild, initialBuilds, initialVersion };
+  return {
+    project,
+    releases: [] as Release[],
+    versions,
+    versionsMetadata,
+    latestBuild,
+    initialVersion,
+    initialBuilds: initial?.builds.items ?? [],
+    initialNext: initial?.builds.next ?? null,
+  };
 });
 
 if (!data.value) throw createError({ statusCode: 500, statusMessage: 'Failed to load project', fatal: true });
 
 const project = computed(() => data.value!.project);
+const isRelease = computed(() => project.value.kind === 'release');
 const latestBuild = computed(() => data.value!.latestBuild);
-const allVersions = computed(() => getAllVersions(data.value!.version_groups));
+const latestRelease = computed(() => data.value!.releases[0] ?? null);
+
+const headline = computed(() => {
+  const source = isRelease.value ? latestRelease.value : latestBuild.value;
+  if (!source) return null;
+  const label = isRelease.value ? (source as Release).tag : `#${(source as Build).build}`;
+  return {
+    label,
+    channel: source.channel,
+    at: source.created_at,
+    file: primaryDownload(source.downloads),
+    commits: source.commits,
+  };
+});
+
+const releases = computed(() => data.value!.releases);
+const versions = computed(() => data.value!.versions);
 const versionsMetadata = computed(() => data.value!.versionsMetadata);
-const initialBuilds = computed(() => data.value!.initialBuilds);
 const initialVersion = computed(() => data.value!.initialVersion);
+const initialBuilds = computed(() => data.value!.initialBuilds);
+const initialNext = computed(() => data.value!.initialNext);
+
 const initialShowExperimental = computed(
-  () => !!project.value.experimentalVersion && initialVersion.value === project.value.experimentalVersion,
+  () => !!project.value.experimental && initialVersion.value === project.value.experimental,
 );
 
 useHead({
   title: computed(() => project.value.name),
-  meta: [{ name: 'description', content: computed(() => `Download the latest ${project.value.name} builds.`) }],
+  meta: [
+    {
+      name: 'description',
+      content: computed(() =>
+        isRelease.value
+          ? `Download the latest ${project.value.name} releases.`
+          : `Download the latest ${project.value.name} builds.`,
+      ),
+    },
+  ],
 });
 
-const githubUrl = computed(() => `${GITHUB_URL}/${project.value.name}`);
-const docsUrl = computed(() => `/docs/${projectId}`);
+const sourceUrl = computed(() => repoUrl(project.value));
+const docsUrl = computed(() => `/docs/${projectKey}`);
+
+// The content collection is the only thing that knows whether a project is documented.
+const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async () => {
+  const page = await queryCollection('docs')
+    .where('path', 'LIKE', `/docs/${projectKey}/%`)
+    .first()
+    .catch(() => null);
+  return !!page;
+});
 </script>
 
 <template>
-  <PageShell>
+  <PageShell max-width="1180px" gutter="24px">
     <div class="dl-root">
     <div class="dl-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
@@ -85,64 +145,69 @@ const docsUrl = computed(() => `/docs/${projectId}`);
       <div class="hero-card">
         <div class="hero-main">
           <h1>{{ project.name }}</h1>
-          <p class="hero-desc">Get the latest builds of {{ project.name }} for your Minecraft server</p>
+          <p class="hero-desc">{{ project.description || `Get the latest builds of ${project.name}` }}</p>
 
-          <div v-if="latestBuild" class="stats">
+          <div v-if="headline" class="stats">
             <div class="stat">
-              <div class="stat-label">Latest Build</div>
-              <div class="stat-val">#{{ latestBuild.id }}</div>
+              <div class="stat-label">{{ isRelease ? 'Latest Release' : 'Latest Build' }}</div>
+              <div class="stat-val">{{ headline.label }}</div>
             </div>
             <div class="stat">
               <div class="stat-label">Channel</div>
-              <div class="stat-val brand-c">{{ latestBuild.channel }}</div>
+              <div class="stat-val brand-c">{{ headline.channel }}</div>
             </div>
             <div class="stat">
               <div class="stat-label">File Size</div>
-              <div class="stat-val">{{ formatFileSize(latestBuild.downloads.application.size) }}</div>
+              <div class="stat-val">{{ headline.file ? formatBytes(headline.file.size) : '—' }}</div>
             </div>
             <div class="stat">
               <div class="stat-label">Updated</div>
-              <div class="stat-val">{{ new Date(latestBuild.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}</div>
+              <div class="stat-val">{{ new Date(headline.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}</div>
             </div>
           </div>
 
           <div class="cta-row">
-            <Button v-if="latestBuild" :href="latestBuild.downloads.application.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
-              <Download :size="18" :stroke-width="1.7" /> Download Latest Build
+            <Button v-if="headline?.file" :href="headline.file.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
+              <Download :size="18" :stroke-width="1.7" /> {{ isRelease ? 'Download Latest Release' : 'Download Latest Build' }}
             </Button>
-            <Button :href="docsUrl" variant="secondary" size="lg">
+            <Button v-if="hasDocs" :href="docsUrl" variant="secondary" size="lg">
               <BookOpen :size="18" :stroke-width="1.7" /> Documentation
             </Button>
-            <Button :href="githubUrl" target="_blank" rel="noopener noreferrer" variant="secondary" size="lg">
+            <Button :href="sourceUrl" :target="project.repo ? undefined : '_blank'" :rel="project.repo ? undefined : 'noopener noreferrer'" variant="secondary" size="lg">
               <img src="~/assets/external/github.svg" width="18" height="18" alt="" aria-hidden="true" class="btn-icon" /> Source Code
             </Button>
           </div>
         </div>
 
-        <aside v-if="latestBuild" class="info-side">
-          <h3><Info :size="14" :stroke-width="1.7" /> Latest Build Info</h3>
-          <div class="info-label">Build #{{ latestBuild.id }} Changes</div>
+        <aside v-if="headline?.commits.length" class="info-side">
+          <h3><Info :size="14" :stroke-width="1.7" /> {{ isRelease ? 'Latest Release Info' : 'Latest Build Info' }}</h3>
+          <div class="info-label">{{ headline.label }} Changes</div>
           <ul class="info-list">
-            <li v-for="c in latestBuild.commits" :key="c.sha">
-              <a :href="`${githubUrl}/commit/${c.sha}`" target="_blank" rel="noopener noreferrer" class="sha">{{ c.sha.substring(0, 7) }}</a>
-              <p>{{ c.message }}</p>
+            <li v-for="c in headline.commits" :key="c.sha">
+              <NuxtLink
+                :to="commitUrl(project, c.sha)"
+                :target="project.repo ? undefined : '_blank'"
+                :rel="project.repo ? undefined : 'noopener noreferrer'"
+                class="sha"
+              >{{ c.sha.substring(0, 7) }}</NuxtLink>
+              <p>{{ c.summary }}</p>
             </li>
           </ul>
         </aside>
       </div>
 
       <section class="builds-section">
-        <h2>All Builds</h2>
+        <h2>{{ isRelease ? 'All Releases' : 'All Builds' }}</h2>
         <div class="panel">
-          <AtlasBuildsList
-            :project-id="projectId"
-            :project-name="project.name"
-            :initial-versions="allVersions"
+          <ReleaseList v-if="isRelease" :project="project" :releases="releases" />
+          <BuildsList
+            v-else
+            :project="project"
+            :versions="versions"
             :default-version="initialVersion"
-            :stable-default-version="project.latestVersion ?? ''"
-            :experimental-version="project.experimentalVersion"
             :versions-metadata="versionsMetadata"
             :initial-builds="initialBuilds"
+            :initial-next="initialNext"
             :initial-show-experimental="initialShowExperimental"
           />
         </div>
@@ -238,7 +303,7 @@ const docsUrl = computed(() => `/docs/${projectId}`);
 }
 .stat-label { font-size: 11px; color: var(--mute); margin-bottom: 4px; }
 .stat-val { font-size: 16px; font-weight: 700; color: var(--fg-hi); }
-.stat-val.brand-c { color: var(--brand); }
+.stat-val.brand-c { color: var(--brand); text-transform: uppercase; }
 
 .cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
 

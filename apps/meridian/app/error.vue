@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, Navbar } from '@bx-team/ui';
+import { Button } from '@bx-team/ui';
 import { AlertCircle, ArrowLeft, Home } from '@lucide/vue';
 
 defineProps<{
@@ -13,7 +13,7 @@ const handleError = () => clearError({ redirect: '/' });
 	<div class="err-page">
 		<div class="err-atmosphere" aria-hidden="true" />
 
-		<Navbar />
+		<SiteNav />
 
 		<main class="err-main">
 			<div class="err-card">
@@ -57,7 +57,8 @@ const handleError = () => clearError({ redirect: '/' });
 .err-page {
 	position: relative;
 	min-height: 100vh;
-	overflow: hidden;
+	/* `clip`, not `hidden`: `hidden` would make this a scroll container and unstick the bar. */
+	overflow-x: clip;
 }
 
 .err-atmosphere {

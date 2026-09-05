@@ -10,31 +10,24 @@
     "enabled": true
   },
   "vars": {
-    "R2_PUBLIC_URL": "https://files.bxteam.org"
+    "R2_PUBLIC_URL": "https://files.bxteam.org",
+    "BEACON_PUBLISH_URL": "https://beacon.bxteam.org/hooks/publish"
   },
   "secrets": {
-    "required": ["API_SECRET_KEY"]
+    "required": ["BEACON_WEBHOOK_SECRET"]
   },
   "d1_databases": [
     {
-      "binding": "ATLAS_DB",
+      "binding": "DB",
       "database_name": "atlas-db",
       "database_id": "f10f7ede-1373-403a-8149-62b6772532ba",
-      "migrations_dir": "../../packages/stratus/drizzle/d1/atlas"
+      "migrations_dir": "migrations"
     }
   ],
   "r2_buckets": [
     {
-      "binding": "ATLAS_BUCKET",
+      "binding": "BUCKET",
       "bucket_name": "builds"
     }
-  ],
-  "queues": {
-    "producers": [
-      {
-        "binding": "ATLAS_EVENTS",
-        "queue": "atlas-events"
-      }
-    ]
-  }
+  ]
 }

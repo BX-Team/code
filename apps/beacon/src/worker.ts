@@ -1,8 +1,7 @@
-import type { ExportedHandler, MessageBatch } from '@cloudflare/workers-types';
+import type { ExportedHandler } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
 import type { BeaconEnv } from './context';
 import type { Env } from './env';
-import { consume } from './queue/consumer';
 import { routes } from './routes';
 import { errorHandler, notFoundHandler } from './util/error';
 
@@ -13,7 +12,4 @@ app.route('/', routes);
 app.onError(errorHandler);
 app.notFound(notFoundHandler);
 
-export default {
-  fetch: app.fetch,
-  queue: (batch: MessageBatch<unknown>, env: Env) => consume(batch, env),
-} satisfies ExportedHandler<Env>;
+export default { fetch: app.fetch } satisfies ExportedHandler<Env>;

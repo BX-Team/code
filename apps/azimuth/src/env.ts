@@ -1,13 +1,13 @@
-import type { AtlasEvent } from '@bx-team/types/schema/events';
-import type { D1Database, Queue, R2Bucket } from '@cloudflare/workers-types';
+import type { D1Database, R2Bucket } from '@cloudflare/workers-types';
 
 export interface Env {
-  ATLAS_DB: D1Database;
-  ATLAS_BUCKET: R2Bucket;
-  ATLAS_EVENTS: Queue<AtlasEvent>;
+  DB: D1Database;
+  BUCKET: R2Bucket;
 
-  /** Bearer token guarding the publish endpoints; set with `wrangler secret put`. */
-  API_SECRET_KEY: string;
-  /** Public origin the ATLAS_BUCKET is served from, used to build download URLs. */
+  /** Public origin the BUCKET is served from; every download URL is built off it. */
   R2_PUBLIC_URL: string;
+  /** Where a publish is announced. Empty leaves the publish silent rather than failing. */
+  BEACON_PUBLISH_URL: string;
+  /** Keys the `X-Azimuth-Signature` HMAC beacon verifies. */
+  BEACON_WEBHOOK_SECRET: string;
 }

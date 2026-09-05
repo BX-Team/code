@@ -5,4 +5,5 @@ export interface Env {
   DISCORD_BOT_TOKEN: string;
   DISCORD_PUBLIC_KEY: string;
   GITHUB_WEBHOOK_SECRET: string;
+  AZIMUTH_WEBHOOK_SECRET: string;
 }

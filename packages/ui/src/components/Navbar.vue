@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { type Component, computed, onMounted, ref } from 'vue';
 import BrandMark from './BrandMark.vue';
 
 export interface NavLink {
@@ -13,19 +13,32 @@ const props = withDefaults(
     active?: string;
     links?: NavLink[];
     brandHref?: string;
+    /** Section badge next to the wordmark, e.g. `DOCS`. */
+    tag?: string;
     discordHref?: string;
     searchEnabled?: boolean;
+    searchLabel?: string;
+    /** Width of the bar's row — give it the page's own container so the wordmark
+     *  lines up with the content under it. `none` spans the viewport. */
+    maxWidth?: string;
+    gutter?: string;
+    /** `NuxtLink` keeps navigation client-side; a plain anchor reloads the page. */
+    linkAs?: string | Component;
   }>(),
   {
     active: '',
     links: () => [
-      { id: 'downloads', label: 'Downloads', href: '/downloads' },
       { id: 'documentation', label: 'Documentation', href: '/docs' },
+      { id: 'downloads', label: 'Downloads', href: '/downloads' },
       { id: 'team', label: 'Team', href: '/team' },
     ],
     brandHref: '/',
     discordHref: 'https://discord.gg/qNyybSSPm5',
     searchEnabled: false,
+    searchLabel: 'Search…',
+    maxWidth: '1180px',
+    gutter: '32px',
+    linkAs: 'a',
   },
 );
 
@@ -44,63 +57,64 @@ const mobileOpen = ref(false);
 </script>
 
 <template>
-	<div class="bx-navwrap">
-		<nav class="bx-bar">
-			<a :href="brandHref" class="bx-bar__brand">
+	<header class="bx-nav" :style="{ '--bx-nav-max': maxWidth, '--bx-nav-pad': gutter }">
+		<div class="bx-nav__row">
+			<span v-if="$slots.lead" class="bx-nav__lead">
+				<slot name="lead" />
+			</span>
+
+			<component :is="linkAs" :href="brandHref" class="bx-nav__brand">
 				<BrandMark :size="22" />
 				<span>BX Team</span>
-			</a>
+				<span v-if="tag" class="bx-nav__tag">{{ tag }}</span>
+			</component>
 
-			<div class="bx-bar__links">
-				<a
+			<nav class="bx-nav__links">
+				<component
+					:is="linkAs"
 					v-for="link in links"
 					:key="link.id"
 					:href="link.href"
-					class="bx-bar__link"
-					:class="{ 'bx-bar__link--active': active === link.id }"
+					class="bx-nav__link"
+					:class="{ 'bx-nav__link--active': active === link.id }"
 					@click="emit('navigate', link.id)"
 				>
 					{{ link.label }}
-				</a>
+				</component>
+			</nav>
+
+			<div class="bx-nav__right">
+				<button
+					v-if="searchEnabled"
+					type="button"
+					class="bx-nav__search"
+					aria-label="Open search"
+					@click="emit('search')"
+				>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<circle cx="11" cy="11" r="7" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<span class="bx-nav__search-text">{{ searchLabel }}</span>
+					<span class="bx-nav__kbd">{{ kbdLabel }}</span>
+				</button>
+
+				<slot name="right" />
+
+				<button
+					class="bx-nav__ham"
+					:class="{ 'bx-nav__ham--open': mobileOpen }"
+					:aria-label="mobileOpen ? 'Close menu' : 'Open menu'"
+					:aria-expanded="mobileOpen"
+					@click="mobileOpen = !mobileOpen"
+				>
+					<span />
+					<span />
+					<span />
+				</button>
 			</div>
-
-			<button
-				v-if="searchEnabled"
-				type="button"
-				class="bx-bar__search"
-				aria-label="Open search"
-				@click="emit('search')"
-			>
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<circle cx="11" cy="11" r="7" />
-					<line x1="21" y1="21" x2="16.65" y2="16.65" />
-				</svg>
-				<span class="bx-bar__search-kbd">{{ kbdLabel }}</span>
-			</button>
-
-			<div class="bx-bar__right-wrap">
-				<slot name="right">
-					<div class="bx-bar__right">
-						<a :href="discordHref" class="bx-bar__cta" target="_blank" rel="noopener">
-							Discord
-						</a>
-					</div>
-				</slot>
-			</div>
-
-			<button
-				class="bx-bar__ham"
-				:class="{ 'bx-bar__ham--open': mobileOpen }"
-				:aria-label="mobileOpen ? 'Close menu' : 'Open menu'"
-				:aria-expanded="mobileOpen"
-				@click="mobileOpen = !mobileOpen"
-			>
-				<span />
-				<span />
-				<span />
-			</button>
-		</nav>
-	</div>
+		</div>
+	</header>
 
 	<Transition name="bx-bd">
 		<div v-if="mobileOpen" class="bx-drawer-backdrop" @click="mobileOpen = false" />
@@ -109,10 +123,10 @@ const mobileOpen = ref(false);
 	<Transition name="bx-drawer">
 		<div v-if="mobileOpen" class="bx-drawer">
 			<div class="bx-drawer__hd">
-				<a :href="brandHref" class="bx-drawer__brand" @click="mobileOpen = false">
+				<component :is="linkAs" :href="brandHref" class="bx-drawer__brand" @click="mobileOpen = false">
 					<BrandMark :size="18" />
 					<span>BX Team</span>
-				</a>
+				</component>
 				<button class="bx-drawer__close" aria-label="Close menu" @click="mobileOpen = false">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
 						<line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -131,10 +145,11 @@ const mobileOpen = ref(false);
 						<circle cx="11" cy="11" r="7" />
 						<line x1="21" y1="21" x2="16.65" y2="16.65" />
 					</svg>
-					<span>Search</span>
+					<span>{{ searchLabel }}</span>
 					<span class="bx-drawer__search-kbd">{{ kbdLabel }}</span>
 				</button>
-				<a
+				<component
+					:is="linkAs"
 					v-for="link in links"
 					:key="link.id"
 					:href="link.href"
@@ -143,7 +158,7 @@ const mobileOpen = ref(false);
 					@click="mobileOpen = false; emit('navigate', link.id)"
 				>
 					{{ link.label }}
-				</a>
+				</component>
 			</nav>
 
 			<div class="bx-drawer__footer">
@@ -153,143 +168,129 @@ const mobileOpen = ref(false);
 			</div>
 		</div>
 	</Transition>
-
-	<div class="bx-navwrap-spacer" aria-hidden="true" />
 </template>
 
 <style scoped>
-.bx-navwrap {
-	position: fixed;
+.bx-nav {
+	position: sticky;
 	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 100;
-	display: flex;
-	justify-content: center;
-	padding-top: 16px;
-	pointer-events: none;
-}
-
-.bx-navwrap-spacer {
-	height: 52px;
-}
-
-.bx-bar {
-	pointer-events: auto;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 7px 8px 7px 18px;
-	background: color-mix(in oklab, var(--bg-1) 75%, transparent);
+	z-index: 40;
+	flex: 0 0 auto;
+	height: 56px;
+	border-bottom: 1px solid var(--line);
+	background: color-mix(in oklab, var(--bg-1) 82%, transparent);
 	-webkit-backdrop-filter: blur(20px);
 	backdrop-filter: blur(20px);
-	border: 1px solid var(--line);
-	border-radius: var(--r-full);
-	box-shadow: var(--shadow-card);
 }
 
-.bx-bar__brand {
+.bx-nav__row {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding-right: 14px;
-	margin-right: 6px;
-	border-right: 1px solid var(--line);
-	font: 700 14px var(--font-sans);
-	color: var(--fg-hi);
+	gap: 20px;
+	height: 100%;
+	max-width: var(--bx-nav-max);
+	margin: 0 auto;
+	padding: 0 var(--bx-nav-pad);
+}
+
+/* `contents`, not `flex`: a hidden toggle would still leave the row's gap in front
+   of the wordmark, pushing it off the edge on the sections that have a sidebar. */
+.bx-nav__lead {
+	display: contents;
+}
+
+.bx-nav__brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 0 0 auto;
+	font: 600 14.5px var(--font-sans);
 	letter-spacing: -0.01em;
+	color: var(--fg-hi);
 	text-decoration: none;
 }
 
-.bx-bar__links {
+.bx-nav__tag {
+	font: 600 10px/1 var(--font-mono);
+	letter-spacing: 0.12em;
+	color: var(--mute);
+	background: var(--bg-2);
+	border: 1px solid var(--line);
+	border-radius: var(--r-full);
+	padding: 4px 7px;
+}
+
+.bx-nav__links {
 	display: flex;
 	gap: 2px;
+	margin-left: -12px;
 }
 
-.bx-bar__link {
-	padding: 7px 14px;
-	color: var(--dim);
-	font: 500 13.5px var(--font-sans);
+.bx-nav__link {
+	padding: 6px 12px;
 	border-radius: var(--r-full);
-	transition: color 0.15s, background 0.15s;
+	font: 500 13.5px/1 var(--font-sans);
+	color: var(--dim);
 	text-decoration: none;
-	cursor: pointer;
+	transition: color 0.15s, background-color 0.15s;
 }
 
-.bx-bar__link:hover,
-.bx-bar__link--active {
+.bx-nav__link:hover {
 	color: var(--fg-hi);
 	background: var(--hover);
 }
 
-.bx-bar__right {
+.bx-nav__link--active {
+	color: var(--fg-hi);
+	background: var(--hover-2);
+}
+
+.bx-nav__right {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 8px;
+	margin-left: auto;
 }
 
-.bx-bar__search {
+.bx-nav__search {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	height: 30px;
-	padding: 0 8px 0 10px;
-	margin-left: 6px;
-	background: var(--bg-2);
-	border: 1px solid var(--line);
-	border-radius: var(--r-full);
-	color: var(--mute);
-	cursor: pointer;
-	transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.bx-bar__search:hover {
-	color: var(--fg-hi);
-	border-color: var(--line-2);
+	gap: 10px;
+	height: 32px;
+	min-width: 230px;
+	padding: 0 10px 0 12px;
 	background: var(--bg-3);
+	border: 1px solid var(--line);
+	border-radius: var(--r-md);
+	color: var(--mute);
+	font: 400 13px/1 var(--font-sans);
+	cursor: pointer;
+	transition: border-color 0.15s, color 0.15s;
 }
 
-.bx-bar__search svg {
+.bx-nav__search:hover {
+	border-color: var(--line-2);
+	color: var(--dim);
+}
+
+.bx-nav__search svg {
 	flex-shrink: 0;
 }
 
-.bx-bar__search-kbd {
-	display: inline-flex;
-	align-items: center;
-	height: 18px;
-	padding: 0 6px;
-	background: var(--bg-3);
-	border: 1px solid var(--line);
-	border-radius: var(--r-xs);
-	font: 600 10.5px var(--font-mono);
+.bx-nav__search-text {
+	flex: 1;
+	text-align: left;
+}
+
+.bx-nav__kbd {
+	font: 500 10.5px/1 var(--font-mono);
 	color: var(--mute);
-	letter-spacing: 0.02em;
+	border: 1px solid var(--line-2);
+	border-radius: var(--r-xs);
+	padding: 4px 6px;
 }
 
-.bx-bar__right-wrap {
-	display: flex;
-	align-items: center;
-	margin-left: 12px;
-	padding-left: 14px;
-	border-left: 1px solid var(--line);
-}
-
-.bx-bar__cta {
-	padding: 7px 14px;
-	font: 500 13px var(--font-sans);
-	color: var(--bg-0);
-	background: var(--fg-hi);
-	border-radius: var(--r-full);
-	text-decoration: none;
-	transition: background 0.15s;
-}
-
-.bx-bar__cta:hover {
-	background: var(--fg);
-}
-
-/* Hamburger – hidden on desktop */
-.bx-bar__ham {
+.bx-nav__ham {
 	display: none;
 	flex-direction: column;
 	justify-content: center;
@@ -297,35 +298,36 @@ const mobileOpen = ref(false);
 	gap: 5px;
 	width: 36px;
 	height: 36px;
+	padding: 6px;
+	flex-shrink: 0;
 	background: transparent;
 	border: none;
-	padding: 6px;
 	cursor: pointer;
-	flex-shrink: 0;
 }
 
-.bx-bar__ham span {
+.bx-nav__ham span {
 	display: block;
 	width: 18px;
 	height: 1.5px;
 	background: var(--dim);
 	border-radius: 1px;
-	transition: transform 0.2s ease, opacity 0.2s ease;
 	transform-origin: center;
+	transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.bx-bar__ham--open span:nth-child(1) {
+.bx-nav__ham--open span:nth-child(1) {
 	transform: translateY(6.5px) rotate(45deg);
 }
-.bx-bar__ham--open span:nth-child(2) {
+
+.bx-nav__ham--open span:nth-child(2) {
 	opacity: 0;
 	transform: scaleX(0);
 }
-.bx-bar__ham--open span:nth-child(3) {
+
+.bx-nav__ham--open span:nth-child(3) {
 	transform: translateY(-6.5px) rotate(-45deg);
 }
 
-/* Backdrop */
 .bx-drawer-backdrop {
 	position: fixed;
 	inset: 0;
@@ -335,7 +337,6 @@ const mobileOpen = ref(false);
 	backdrop-filter: blur(2px);
 }
 
-/* Side drawer */
 .bx-drawer {
 	position: fixed;
 	top: 0;
@@ -343,11 +344,11 @@ const mobileOpen = ref(false);
 	bottom: 0;
 	z-index: 200;
 	width: 280px;
-	background: var(--bg-1);
-	border-left: 1px solid var(--line);
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
+	background: var(--bg-1);
+	border-left: 1px solid var(--line);
 }
 
 .bx-drawer__hd {
@@ -363,9 +364,9 @@ const mobileOpen = ref(false);
 	align-items: center;
 	gap: 8px;
 	font: 700 14px var(--font-sans);
+	letter-spacing: -0.01em;
 	color: var(--fg-hi);
 	text-decoration: none;
-	letter-spacing: -0.01em;
 }
 
 .bx-drawer__close {
@@ -380,6 +381,7 @@ const mobileOpen = ref(false);
 	cursor: pointer;
 	transition: color 0.15s, border-color 0.15s;
 }
+
 .bx-drawer__close:hover {
 	color: var(--fg-hi);
 	border-color: var(--line-2);
@@ -388,18 +390,18 @@ const mobileOpen = ref(false);
 .bx-drawer__nav {
 	display: flex;
 	flex-direction: column;
-	padding: 12px;
 	flex: 1;
 	gap: 2px;
+	padding: 12px;
 }
 
 .bx-drawer__link {
 	padding: 12px 14px;
-	color: var(--dim);
-	font: 500 14.5px var(--font-sans);
 	border-radius: var(--r-md);
+	font: 500 14.5px var(--font-sans);
+	color: var(--dim);
 	text-decoration: none;
-	transition: color 0.15s, background 0.15s;
+	transition: color 0.15s, background-color 0.15s;
 }
 
 .bx-drawer__link:hover,
@@ -441,8 +443,8 @@ const mobileOpen = ref(false);
 	border: 1px solid var(--line);
 	border-radius: var(--r-xs);
 	font: 600 10.5px var(--font-mono);
-	color: var(--mute);
 	letter-spacing: 0.02em;
+	color: var(--mute);
 }
 
 .bx-drawer__footer {
@@ -455,23 +457,24 @@ const mobileOpen = ref(false);
 
 .bx-drawer__footer-cta {
 	padding: 12px 14px;
+	border-radius: var(--r-md);
 	font: 500 14px var(--font-sans);
 	color: var(--bg-0);
 	background: var(--fg-hi);
-	border-radius: var(--r-md);
-	text-decoration: none;
 	text-align: center;
-	transition: background 0.15s;
+	text-decoration: none;
+	transition: background-color 0.15s;
 }
+
 .bx-drawer__footer-cta:hover {
 	background: var(--fg);
 }
 
-/* Drawer transitions */
 .bx-bd-enter-active,
 .bx-bd-leave-active {
 	transition: opacity 0.2s ease;
 }
+
 .bx-bd-enter-from,
 .bx-bd-leave-to {
 	opacity: 0;
@@ -481,38 +484,35 @@ const mobileOpen = ref(false);
 .bx-drawer-leave-active {
 	transition: transform 0.25s ease;
 }
+
 .bx-drawer-enter-from,
 .bx-drawer-leave-to {
 	transform: translateX(100%);
 }
 
-@media (max-width: 768px) {
-	.bx-bar {
-		width: calc(100% - 32px);
-		max-width: calc(100% - 32px);
+@media (max-width: 1023px) {
+	.bx-nav__row {
+		max-width: none;
+		padding: 0 16px;
+		gap: 12px;
 	}
 
-	.bx-bar__brand {
-		border-right: none;
-		padding-right: 0;
-		margin-right: 0;
-	}
-
-	.bx-bar__links {
+	.bx-nav__links {
 		display: none;
 	}
 
-	.bx-bar__right-wrap {
+	.bx-nav__search {
+		min-width: 0;
+		padding: 0 9px;
+	}
+
+	.bx-nav__search-text,
+	.bx-nav__kbd {
 		display: none;
 	}
 
-	.bx-bar__search {
-		display: none;
-	}
-
-	.bx-bar__ham {
+	.bx-nav__ham {
 		display: flex;
-		margin-left: auto;
 	}
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, FeatureCard, FeatureGrid, Footer, Hero, Navbar, ProjectCard, ProjectsGrid } from '@bx-team/ui';
+import { Button, FeatureCard, FeatureGrid, Footer, Hero, ProjectCard, ProjectsGrid } from '@bx-team/ui';
 import { BookOpen, Box, Download, Package, Users, Zap } from '@lucide/vue';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
@@ -137,15 +137,10 @@ function projectVersion(href: string): string | undefined {
 
 <template>
 	<div class="lp">
-		<!-- Atmospheric glow — covers navbar + hero area -->
+		<!-- Atmospheric glow — covers the bar + hero area -->
 		<div class="lp-atmosphere" aria-hidden="true" />
 
-		<!-- Floating pill navbar -->
-		<Navbar
-			:discord-href="DISCORD_URL"
-			search-enabled
-			@search="openCommandPalette()"
-		/>
+		<SiteNav search-enabled @search="openCommandPalette()" />
 
 		<!-- Hero -->
 		<Hero
@@ -238,7 +233,9 @@ function projectVersion(href: string): string | undefined {
 .lp {
 	position: relative;
 	min-height: 100vh;
-	overflow-x: hidden;
+	/* `clip`, not `hidden`: `hidden` makes this a scroll container and the sticky bar
+	   would scroll away with the page. */
+	overflow-x: clip;
 }
 
 /* Atmospheric glow behind navbar + hero */

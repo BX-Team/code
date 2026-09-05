@@ -1,8 +1,3 @@
-import type { ChannelSchema } from '@bx-team/types/schema/atlas';
-import type { z } from 'zod';
-
-type BuildChannel = z.infer<typeof ChannelSchema>;
-
 const DESTINATIONS = {
   /** Threads in the GitHub forum, one per repository. */
   divinemc: '1332360164870717521',
@@ -34,15 +29,15 @@ export const GITHUB_ROUTES: Record<string, GithubRoute[]> = {
   'BX-Team/Nyx': [{ channelId: DESTINATIONS.nyx }],
 };
 
-export interface AtlasRoute {
-  channelId: string;
-  buildChannels?: BuildChannel[];
-}
-
-/** Keyed by Atlas project key; `*` catches every other project. */
-export const ATLAS_ROUTES: Record<string, AtlasRoute[]> = {
-  '*': [{ channelId: DESTINATIONS.releases, buildChannels: ['STABLE', 'BETA'] }],
+/** Keyed by the project key on the downloads API; `*` catches every other project. */
+export const PUBLISH_ROUTES: Record<string, string[]> = {
+  '*': [DESTINATIONS.releases],
 };
+
+/** Channels a publish of `project` is announced in. */
+export function publishRoutesFor(project: string): string[] {
+  return PUBLISH_ROUTES[project] ?? PUBLISH_ROUTES['*'] ?? [];
+}
 
 function lookup<T>(table: Record<string, T[]>, key: string): T[] {
   return table[key] ?? table['*'] ?? [];
@@ -56,14 +51,5 @@ export function githubRoutesFor(repoFullName: string, event: GithubEvent, branch
     // Releases are not tied to a branch, so branch filters do not apply to them.
     if (event === 'release' || !route.branches) return true;
     return route.branches.some(allowed => (allowed === DEFAULT_BRANCH ? defaultBranch : allowed) === branch);
-  });
-}
-
-/** Atlas routes for a project that accept `buildChannel`. */
-export function atlasRoutesFor(projectKey: string, buildChannel: BuildChannel) {
-  return lookup(ATLAS_ROUTES, projectKey).filter(route => {
-    if (!route.channelId) return false;
-    if (!route.buildChannels) return true;
-    return route.buildChannels.includes(buildChannel);
   });
 }

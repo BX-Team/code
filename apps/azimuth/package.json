@@ -12,10 +12,7 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@bx-team/stratus": "workspace:*",
     "@bx-team/types": "workspace:*",
-    "@scalar/hono-api-reference": "^0.11.8",
-    "drizzle-orm": "^0.45.2",
     "hono": "^4.12.23",
     "zod": "^4.4.3"
   },

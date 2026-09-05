@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /git/
 Content-Usage: search=y, train-ai=n
 Content-Signal: search=yes, ai-input=no, ai-train=no
 

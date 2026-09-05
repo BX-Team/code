@@ -3,8 +3,8 @@ import { type GithubEvent, githubRoutesFor } from '../config/routing';
 import type { BeaconEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { type GithubPayload, renderEvent } from '../github/events';
-import { verifyGithubSignature } from '../github/verify';
 import { badRequest, unauthorized } from '../util/error';
+import { verifySignature } from '../util/signature';
 
 export const github = new Hono<BeaconEnv>();
 
@@ -19,7 +19,7 @@ github.post('/github', async c => {
   const raw = await c.req.arrayBuffer();
   const signature = c.req.header('X-Hub-Signature-256') ?? null;
 
-  if (!(await verifyGithubSignature(c.env.GITHUB_WEBHOOK_SECRET, signature, raw))) throw unauthorized();
+  if (!(await verifySignature(c.env.GITHUB_WEBHOOK_SECRET, signature, raw))) throw unauthorized();
 
   const event = c.req.header('X-GitHub-Event');
   if (event === 'ping') return c.json({ ok: true });

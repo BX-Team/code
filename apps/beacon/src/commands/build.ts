@@ -1,14 +1,14 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { getLatestBuild, getProject, listProjects, newestVersion } from '../atlas/client';
-import { latestBuildEmbed } from '../atlas/embeds';
 import { errorEmbed } from '../discord/embeds';
 import { autocompleteChoices, focusedOption, reply, stringOption } from '../discord/respond';
+import { getLatestBuild, getLatestRelease, getProject, listProjects } from '../downloads/client';
+import { latestBuildEmbed, latestReleaseEmbed } from '../downloads/embeds';
 import type { Command } from './types';
 
 export const build: Command = {
   data: new SlashCommandBuilder()
     .setName('build')
-    .setDescription('Show the latest Atlas build of a project')
+    .setDescription('Show the latest build of a project')
     .addStringOption(option =>
       option.setName('project').setDescription('Project key').setRequired(true).setAutocomplete(true),
     )
@@ -26,17 +26,25 @@ export const build: Command = {
       return reply([errorEmbed({ title: `Unknown project \`${projectKey}\`` })], { ephemeral: true });
     }
 
-    const version = stringOption(interaction.data.options, 'version') ?? newestVersion(project);
+    // A release project has tags rather than versions, so it answers with its newest one.
+    if (project.kind === 'release') {
+      const release = await getLatestRelease(project.key);
+      if (!release) return reply([errorEmbed({ title: `${project.name} has no releases yet` })], { ephemeral: true });
+
+      return reply([latestReleaseEmbed(project, release)]);
+    }
+
+    const version = stringOption(interaction.data.options, 'version') ?? project.latest ?? project.versions?.[0];
     if (!version) {
-      return reply([errorEmbed({ title: `${project.project.name} has no versions yet` })], { ephemeral: true });
+      return reply([errorEmbed({ title: `${project.name} has no versions yet` })], { ephemeral: true });
     }
 
-    const latest = await getLatestBuild(projectKey, version);
+    const latest = await getLatestBuild(project.key, version);
     if (!latest) {
-      return reply([errorEmbed({ title: `No builds for ${project.project.name} ${version}` })], { ephemeral: true });
+      return reply([errorEmbed({ title: `No builds for ${project.name} ${version}` })], { ephemeral: true });
     }
 
-    return reply([latestBuildEmbed(project.project, version, latest)]);
+    return reply([latestBuildEmbed(project, latest)]);
   },
 
   async autocomplete(interaction) {
@@ -46,25 +54,18 @@ export const build: Command = {
     if (focused?.name === 'version') {
       const projectKey = stringOption(interaction.data.options, 'project');
       const project = projectKey ? await getProject(projectKey) : null;
-      const versions = project ? Object.values(project.version_groups).flat() : [];
+      const keys = project?.versions ?? project?.releases ?? [];
 
       return autocompleteChoices(
-        versions
-          .filter(version => version.toLowerCase().includes(query))
-          .map(version => ({
-            name: version,
-            value: version,
-          })),
+        keys.filter(key => key.toLowerCase().includes(query)).map(key => ({ name: key, value: key })),
       );
     }
 
-    const projects = await listProjects();
+    const projects = (await listProjects()) ?? [];
     return autocompleteChoices(
       projects
-        .filter(
-          entry => entry.project.id.toLowerCase().includes(query) || entry.project.name.toLowerCase().includes(query),
-        )
-        .map(entry => ({ name: entry.project.name, value: entry.project.id })),
+        .filter(project => project.key.toLowerCase().includes(query) || project.name.toLowerCase().includes(query))
+        .map(project => ({ name: project.name, value: project.key })),
     );
   },
 };

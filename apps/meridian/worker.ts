@@ -6,11 +6,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    const asset = await env.ASSETS.fetch(request);
-    if (asset.status !== 404) return asset;
-
-    const isFileRequest = /\.[a-z0-9]+$/i.test(url.pathname);
-    if (isFileRequest) return asset;
+    if (/\.[a-z0-9]+$/i.test(url.pathname)) return env.ASSETS.fetch(request);
 
     return env.ASSETS.fetch(new URL('/200.html', url));
   },

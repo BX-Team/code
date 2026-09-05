@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BrandMark } from '@bx-team/ui';
 import {
   AlertCircle,
   Atom,
@@ -43,7 +42,6 @@ import {
 } from '@lucide/vue';
 import type { Component } from 'vue';
 import discordSvgRaw from '~/assets/external/discord.svg?raw';
-import githubSvgRaw from '~/assets/external/github.svg?raw';
 import { DISCORD_URL, docsEditUrl, docsIssueUrl } from '~/config/links';
 
 interface TocLink {
@@ -359,40 +357,13 @@ onUnmounted(() => {
 	<div class="docs-root">
 		<div class="ambient" aria-hidden="true" />
 
-		<header class="topbar">
-			<button v-if="!hideSidebar" class="mobile-menu-btn" :aria-label="mobileSidebarOpen ? 'Close menu' : 'Open menu'" @click.stop="mobileSidebarOpen = !mobileSidebarOpen">
-				<component :is="mobileSidebarOpen ? X : Menu" :size="18" :stroke-width="1.8" />
-			</button>
-
-			<NuxtLink class="brand" to="/">
-				<BrandMark :size="22" />
-				<span>BX Team</span>
-				<span class="ver-tag">DOCS</span>
-			</NuxtLink>
-
-			<nav class="top-nav">
-				<NuxtLink to="/docs" :class="{ active: route.path.startsWith('/docs') }">Documentation</NuxtLink>
-				<NuxtLink to="/downloads">Downloads</NuxtLink>
-				<NuxtLink to="/team">Team</NuxtLink>
-			</nav>
-
-			<div class="right">
-				<button class="search-btn" aria-label="Open search" @click="searchOpen = true">
-					<Search :size="14" :stroke-width="2" />
-					<span class="q-text">Search docs…</span>
-					<span class="kbd-row">
-						<kbd class="kbd">Ctrl</kbd>
-						<kbd class="kbd">K</kbd>
-					</span>
+		<SiteNav tag="DOCS" max-width="none" gutter="24px" search-enabled search-label="Search documentation…" @search="searchOpen = true">
+			<template v-if="!hideSidebar" #lead>
+				<button class="mobile-menu-btn" :aria-label="mobileSidebarOpen ? 'Close menu' : 'Open menu'" @click.stop="mobileSidebarOpen = !mobileSidebarOpen">
+					<component :is="mobileSidebarOpen ? X : Menu" :size="18" :stroke-width="1.8" />
 				</button>
-				<a class="icon-btn" href="https://github.com/bx-team" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub">
-					<span class="raw-icon" v-html="githubSvgRaw" />
-				</a>
-				<a class="icon-btn" :href="DISCORD_URL" target="_blank" rel="noopener" title="Discord" aria-label="Discord">
-					<span class="raw-icon" v-html="discordSvgRaw" />
-				</a>
-			</div>
-		</header>
+			</template>
+		</SiteNav>
 
 		<div class="shell" :class="{ 'no-sidebar': hideSidebar }">
 			<Transition name="overlay">
@@ -596,31 +567,6 @@ onUnmounted(() => {
 	opacity: 0.35;
 }
 
-.topbar {
-	position: relative;
-	z-index: 10;
-	display: flex;
-	align-items: center;
-	flex-shrink: 0;
-	height: 56px;
-	padding: 0 24px;
-	border-bottom: 1px solid var(--line);
-	background: color-mix(in oklab, var(--bg-0) 80%, transparent);
-	-webkit-backdrop-filter: blur(14px);
-	backdrop-filter: blur(14px);
-	gap: 18px;
-}
-
-.brand {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	font: 600 14.5px var(--font-sans);
-	color: var(--fg-hi);
-	letter-spacing: -0.01em;
-	text-decoration: none;
-	flex-shrink: 0;
-}
 .raw-icon {
 	display: inline-flex;
 	align-items: center;
@@ -628,79 +574,14 @@ onUnmounted(() => {
 }
 .raw-icon--sm :deep(svg) { width: 13px; height: 13px; }
 
-.ver-tag {
-	font: 500 10.5px var(--font-mono);
-	color: var(--mute);
-	background: var(--bg-2);
-	border: 1px solid var(--line);
-	padding: 2px 7px;
-	border-radius: 4px;
-	letter-spacing: 0.04em;
-	margin-left: 4px;
-}
-
-.top-nav { display: flex; gap: 2px; margin-left: 22px; }
-.top-nav a {
-	padding: 6px 12px;
-	font: 500 13px var(--font-sans);
-	color: var(--dim);
-	border-radius: 6px;
-	transition: color 0.15s, background 0.15s;
-	text-decoration: none;
-}
-.top-nav a:hover { color: var(--fg-hi); background: var(--hover); }
-.top-nav a.active { color: var(--fg-hi); }
-.top-nav a.active::after {
-	content: "";
-	display: block;
-	height: 2px;
-	margin: 8px -12px -8px;
-	background: linear-gradient(90deg, var(--brand), var(--brand-2));
-	border-radius: 2px;
-}
-
-.right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-
-.search-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-	width: 280px;
-	padding: 7px 8px 7px 12px;
-	background: var(--bg-1);
-	border: 1px solid var(--line);
-	border-radius: 8px;
-	color: var(--mute);
-	font: 400 13px var(--font-sans);
-	cursor: pointer;
-	transition: border-color 0.15s;
-}
-.search-btn:hover { border-color: var(--line-2); }
-.search-btn .q-text { color: var(--mute); }
-.search-btn .kbd-row { margin-left: auto; display: inline-flex; gap: 3px; }
-
 .kbd {
 	display: inline-block;
-	font: 500 10.5px var(--font-mono);
-	padding: 2px 5px;
-	background: var(--bg-3);
-	border: 1px solid var(--line);
-	border-radius: 4px;
-	color: var(--dim);
-	line-height: 1.1;
+	font: 500 10.5px/1 var(--font-mono);
+	padding: 4px 6px;
+	border: 1px solid var(--line-2);
+	border-radius: var(--r-xs);
+	color: var(--mute);
 }
-
-.icon-btn {
-	display: inline-grid;
-	place-items: center;
-	width: 32px;
-	height: 32px;
-	border-radius: 7px;
-	border: 1px solid transparent;
-	color: var(--dim);
-	text-decoration: none;
-}
-.icon-btn:hover { background: var(--hover); color: var(--fg-hi); border-color: var(--line); }
 
 .mobile-menu-btn {
 	display: none;
@@ -708,7 +589,7 @@ onUnmounted(() => {
 	justify-content: center;
 	width: 36px;
 	height: 36px;
-	border-radius: 7px;
+	border-radius: var(--r-md);
 	border: 1px solid var(--line);
 	background: transparent;
 	color: var(--dim);
@@ -1042,15 +923,6 @@ onUnmounted(() => {
 
 	.content { overflow-y: visible; padding: 32px 20px 60px; }
 
-	.topbar { padding: 0 16px; gap: 12px; }
-	.top-nav { display: none; }
 	.mobile-menu-btn { display: flex; }
-	.search-btn {
-		width: 40px;
-		padding: 7px;
-		justify-content: center;
-	}
-	.search-btn .q-text, .search-btn .kbd-row { display: none; }
-	.icon-btn { display: none; }
 }
 </style>

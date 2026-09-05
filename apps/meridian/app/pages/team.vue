@@ -78,7 +78,7 @@ useHead({
 </script>
 
 <template>
-  <PageShell>
+  <PageShell max-width="1180px" gutter="24px">
     <div class="team-root">
     <div class="team-atmosphere" aria-hidden="true" />
     <div class="page-wrap">

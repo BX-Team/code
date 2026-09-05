@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { Footer, Navbar } from '@bx-team/ui';
+import { Footer } from '@bx-team/ui';
 import { openCommandPalette } from '@/composables/useCommandPalette';
+
+/** The bar's row follows the page's own container, so the wordmark sits above the
+ *  left edge of the content rather than the viewport's. */
+defineProps<{ maxWidth?: string; gutter?: string }>();
+
 import { DISCORD_URL, GITHUB_URL } from '~/config/links';
 </script>
 
 <template>
 	<div class="shell">
-		<Navbar
-			:discord-href="DISCORD_URL"
-			search-enabled
-			@search="openCommandPalette()"
-		/>
+		<SiteNav :max-width="maxWidth" :gutter="gutter" search-enabled @search="openCommandPalette()" />
 		<slot />
 		<Footer
 			:github-href="GITHUB_URL"

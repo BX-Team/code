@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.bxteam.divinemc:divinemc-api:26.1.2.build.+")
+    compileOnly("org.bxteam.divinemc:divinemc-api:26.2.build.+")
 }
 
 java {
@@ -35,7 +35,7 @@ java {
     <dependency>
         <groupId>org.bxteam.divinemc</groupId>
         <artifactId>divinemc-api</artifactId>
-        <version>[26.1.2.build,)</version>
+        <version>[26.2.build,)</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -56,7 +56,7 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("26.1.2.build.+") // [!code --]
-    paperweight.devBundle("org.bxteam.divinemc", "26.1.2.build.+") // [!code ++]
+    paperweight.paperDevBundle("26.2.build.+") // [!code --]
+    paperweight.devBundle("org.bxteam.divinemc", "26.2.build.+") // [!code ++]
 }
 ```

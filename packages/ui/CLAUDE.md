@@ -87,7 +87,7 @@ props: {
 ```
 
 ### `Navbar`
-Floating glass pill nav. Slot `#right` overrides the Discord CTA.
+The site-wide bar: full width, 56px tall, sticky, blurred, with a bottom rule. Its row follows the page's own container (`maxWidth` / `gutter`) so the wordmark sits above the left edge of the content, not the viewport's — the shells that lay out edge to edge pass `maxWidth: 'none'`. `#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box; under 1023px the row goes full width and the links fold into a drawer. Nothing else may make a bar of its own — `meridian` wires this one through `app/components/SiteNav.vue`.
 ```ts
 interface NavLink { id: string; label: string; href?: string }
 
@@ -95,10 +95,16 @@ props: {
   active?: string
   links?: NavLink[]
   brandHref?: string
+  tag?: string                 // section badge, e.g. 'DOCS'
   discordHref?: string
   searchEnabled?: boolean
+  searchLabel?: string
+  maxWidth?: string            // the page's container; default '1180px', 'none' spans the viewport
+  gutter?: string              // that container's side padding; default '32px'
+  linkAs?: string | Component  // NuxtLink keeps navigation client-side; default 'a'
 }
 emits: { navigate: [id: string]; search: [] }
+slots: #lead, #right
 ```
 
 ### `Hero`

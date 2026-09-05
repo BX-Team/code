@@ -3,12 +3,12 @@ import { Button } from '@bx-team/ui';
 import { AlertTriangle, ChevronDown, FlaskConical, XCircle } from '@lucide/vue';
 import { onClickOutside } from '@vueuse/core';
 import { ref } from 'vue';
-import type { VersionWithBuilds } from '@/lib/atlas';
+import type { VersionSummary } from '@/lib/builds';
 
 const props = defineProps<{
   versions: string[];
   selectedVersion: string;
-  versionsMetadata?: VersionWithBuilds[];
+  versionsMetadata?: VersionSummary[];
   experimentalVersion?: string;
   showExperimental?: boolean;
 }>();
@@ -25,7 +25,7 @@ onClickOutside(dropdownRef, () => {
 });
 
 function statusOf(v: string) {
-  return props.versionsMetadata?.find(m => m.version.id === v)?.version.support.status;
+  return props.versionsMetadata?.find(m => m.version === v)?.support;
 }
 
 function pick(v: string) {
@@ -57,8 +57,8 @@ function pick(v: string) {
 					<span v-if="selectedVersion === experimentalVersion" class="badge badge-exp">
 						<FlaskConical :size="11" :stroke-width="1.8" /> Experimental
 					</span>
-					<span v-else-if="statusOf(selectedVersion) === 'DEPRECATED'" class="badge badge-warn">Deprecated</span>
-					<span v-else-if="statusOf(selectedVersion) === 'UNSUPPORTED'" class="badge badge-err">Unsupported</span>
+					<span v-else-if="statusOf(selectedVersion) === 'deprecated'" class="badge badge-warn">Deprecated</span>
+					<span v-else-if="statusOf(selectedVersion) === 'unsupported'" class="badge badge-err">Unsupported</span>
 				</span>
 				<ChevronDown :size="14" :stroke-width="1.7" class="caret" :class="{ flipped: open }" />
 			</button>
@@ -77,10 +77,10 @@ function pick(v: string) {
 						<span v-if="v === experimentalVersion" class="badge badge-exp">
 							<FlaskConical :size="11" :stroke-width="1.8" /> Experimental
 						</span>
-						<span v-else-if="statusOf(v) === 'DEPRECATED'" class="badge badge-warn">
+						<span v-else-if="statusOf(v) === 'deprecated'" class="badge badge-warn">
 							<AlertTriangle :size="11" :stroke-width="1.8" /> Deprecated
 						</span>
-						<span v-else-if="statusOf(v) === 'UNSUPPORTED'" class="badge badge-err">
+						<span v-else-if="statusOf(v) === 'unsupported'" class="badge badge-err">
 							<XCircle :size="11" :stroke-width="1.8" /> Unsupported
 						</span>
 					</span>

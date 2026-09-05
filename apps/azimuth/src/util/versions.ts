@@ -18,8 +18,8 @@ const VERSION_RE = /^(\d+)\.(\d+)(?:\.(\d+))?(?:-(pre|rc)(\d+))?$/;
 
 function toInt(value: string | undefined): number {
   if (!value) return 0;
-  const n = parseInt(value, 10);
-  return Number.isNaN(n) ? 0 : n;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function parseVersion(version: string): ParsedVersion {
@@ -34,19 +34,23 @@ function parseVersion(version: string): ParsedVersion {
   };
 }
 
-function compareVersions(a: string, b: string): number {
-  const vA = parseVersion(a);
-  const vB = parseVersion(b);
-  if (vA.major !== vB.major) return vB.major - vA.major;
-  if (vA.minor !== vB.minor) return vB.minor - vA.minor;
-  if (vA.patch !== vB.patch) return vB.patch - vA.patch;
-  if (vA.preRelease === null && vB.preRelease !== null) return -1;
-  if (vA.preRelease !== null && vB.preRelease === null) return 1;
-  if (vA.preRelease !== vB.preRelease) {
-    if (vA.preRelease === 'rc' && vB.preRelease === 'pre') return -1;
-    if (vA.preRelease === 'pre' && vB.preRelease === 'rc') return 1;
+export function newestFirst(a: string, b: string): number {
+  const left = parseVersion(a);
+  const right = parseVersion(b);
+  if (left.major !== right.major) return right.major - left.major;
+  if (left.minor !== right.minor) return right.minor - left.minor;
+  if (left.patch !== right.patch) return right.patch - left.patch;
+  if (left.preRelease === null && right.preRelease !== null) return -1;
+  if (left.preRelease !== null && right.preRelease === null) return 1;
+  if (left.preRelease !== right.preRelease) {
+    if (left.preRelease === 'rc' && right.preRelease === 'pre') return -1;
+    if (left.preRelease === 'pre' && right.preRelease === 'rc') return 1;
   }
-  return vB.preNumber - vA.preNumber;
+  return right.preNumber - left.preNumber;
+}
+
+export function sortNewestFirst(versionKeys: string[]): string[] {
+  return [...versionKeys].sort(newestFirst);
 }
 
 /**
@@ -54,9 +58,8 @@ function compareVersions(a: string, b: string): number {
  * sorted newest-first. 26.1 and 26.1.2 land in the same group; 26.2 is its own group.
  */
 export function groupVersions(versionKeys: string[]): Record<string, string[]> {
-  const sorted = [...versionKeys].sort(compareVersions);
   const groups: Record<string, string[]> = {};
-  for (const version of sorted) {
+  for (const version of sortNewestFirst(versionKeys)) {
     const { major, minor } = parseVersion(version);
     const key = `${major}.${minor}`;
     if (!groups[key]) groups[key] = [];

@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
-/** The single error shape every route group answers with. */
+/** The single error shape every route answers with. */
 export class ApiError extends Error {
   constructor(
     readonly status: ContentfulStatusCode,
@@ -14,8 +14,9 @@ export class ApiError extends Error {
 
 export const badRequest = (message: string) => new ApiError(400, 'Bad Request', message);
 export const unauthorized = () => new ApiError(401, 'Unauthorized', 'Unauthorized');
+export const forbidden = (message: string) => new ApiError(403, 'Forbidden', message);
 export const notFound = (message: string) => new ApiError(404, 'Not Found', message);
-export const conflict = (message: string) => new ApiError(409, 'Conflict', message);
+export const payloadTooLarge = (message: string) => new ApiError(413, 'Payload Too Large', message);
 export const internal = (message: string) => new ApiError(500, 'Internal Server Error', message);
 
 export function errorHandler(err: Error, c: Context) {

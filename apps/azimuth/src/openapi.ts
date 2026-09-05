@@ -1,131 +1,4 @@
-/**
- * Hand-authored OpenAPI 3.1 document for the public Atlas (downloads) API served at
- * api.bxteam.org. It describes the read surface consumers rely on to fetch project,
- * version and build metadata, plus the bearer-protected publish endpoints used by CI.
- * Rendered as a browser reference at /reference via Scalar.
- */
-
-const errorResponse = {
-  type: 'object',
-  properties: {
-    ok: { type: 'boolean', example: false },
-    error: { type: 'string', example: 'Not Found' },
-    message: { type: 'string', example: "Project 'purpur' not found" },
-  },
-  required: ['ok', 'error', 'message'],
-} as const;
-
-const download = {
-  type: 'object',
-  properties: {
-    name: { type: 'string', example: 'purpur-1.21.4-2200.jar' },
-    checksums: {
-      type: 'object',
-      properties: { sha256: { type: 'string' } },
-      required: ['sha256'],
-    },
-    size: { type: 'integer', example: 52428800 },
-    url: { type: 'string', format: 'uri' },
-  },
-  required: ['name', 'checksums', 'size', 'url'],
-} as const;
-
-const build = {
-  type: 'object',
-  properties: {
-    id: { type: 'integer', example: 2200 },
-    time: { type: 'string', format: 'date-time' },
-    channel: { type: 'string', enum: ['ALPHA', 'BETA', 'STABLE'] },
-    commits: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          sha: { type: 'string' },
-          message: { type: 'string' },
-          time: { type: 'string', format: 'date-time' },
-        },
-        required: ['sha', 'message', 'time'],
-      },
-    },
-    downloads: { type: 'object', additionalProperties: download },
-  },
-  required: ['id', 'time', 'channel', 'commits', 'downloads'],
-} as const;
-
-const version = {
-  type: 'object',
-  properties: {
-    version: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', example: '1.21.4' },
-        java: {
-          type: 'object',
-          properties: {
-            version: {
-              type: 'object',
-              properties: { minimum: { type: 'integer', example: 21 } },
-            },
-          },
-        },
-        support: {
-          type: 'object',
-          properties: { status: { type: 'string', enum: ['SUPPORTED', 'DEPRECATED', 'UNSUPPORTED'] } },
-          required: ['status'],
-        },
-      },
-      required: ['id', 'support'],
-    },
-    builds: { type: 'array', items: { type: 'integer' } },
-  },
-  required: ['version', 'builds'],
-} as const;
-
-const project = {
-  type: 'object',
-  properties: {
-    project: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', example: 'purpur' },
-        name: { type: 'string', example: 'Purpur' },
-        description: { type: 'string' },
-        latestVersion: { type: 'string' },
-        experimentalVersion: { type: 'string' },
-      },
-      required: ['id', 'name'],
-    },
-    version_groups: {
-      type: 'object',
-      additionalProperties: { type: 'array', items: { type: 'string' } },
-      example: { '1.21': ['1.21.4', '1.21.3'], '1.20': ['1.20.6'] },
-    },
-  },
-  required: ['project', 'version_groups'],
-} as const;
-
-const projectParam = {
-  name: 'project',
-  in: 'path',
-  required: true,
-  description: 'Project key, e.g. `purpur`.',
-  schema: { type: 'string' },
-} as const;
-
-const versionParam = {
-  name: 'version',
-  in: 'path',
-  required: true,
-  description: 'Version key, e.g. `1.21.4`.',
-  schema: { type: 'string' },
-} as const;
-
-const notFound = {
-  description: 'Resource not found',
-  content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
-} as const;
-
+/** Hand-authored because the surface is small and stable; `/docs/api` renders it. */
 export function openApiDocument(origin: string) {
   return {
     openapi: '3.1.0',
@@ -133,207 +6,384 @@ export function openApiDocument(origin: string) {
       title: 'BX Team API',
       version: '1.0.0',
       description:
-        'Public API for BX Team downloads (Atlas). Browse projects, their Minecraft ' +
-        'version groups, and per-version builds with checksummed download artifacts.',
+        'Downloads for every BX Team project. Reads are public and credential-less; publishing takes a project token. Every download URL points straight at the bucket, so this API is never in the path of a file.',
       license: { name: 'AGPL-3.0-only', url: 'https://www.gnu.org/licenses/agpl-3.0.html' },
     },
     servers: [{ url: origin }],
     tags: [
-      { name: 'Atlas', description: 'Project, version and build metadata for downloads.' },
-      { name: 'Meta', description: 'Service metadata.' },
+      { name: 'Downloads', description: 'Projects, versions, builds and releases.' },
+      { name: 'Publishing', description: 'What a release workflow calls. Bearer token, one project each.' },
+      { name: 'Service', description: 'Health and edge location.' },
     ],
     paths: {
-      '/atlas/projects': {
+      '/v1/projects': {
         get: {
-          tags: ['Atlas'],
+          tags: ['Downloads'],
           summary: 'List projects',
-          operationId: 'listProjects',
-          responses: {
-            200: {
-              description: 'All projects with their grouped versions',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: { projects: { type: 'array', items: { $ref: '#/components/schemas/Project' } } },
-                    required: ['projects'],
-                  },
-                },
-              },
-            },
-          },
+          responses: ok({ type: 'array', items: ref('ProjectSummary') }),
         },
       },
-      '/atlas/projects/{project}': {
+      '/v1/projects/{project}': {
         get: {
-          tags: ['Atlas'],
-          summary: 'Get a project',
-          operationId: 'getProject',
-          parameters: [projectParam],
-          responses: {
-            200: {
-              description: 'Project with its grouped versions',
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Project' } } },
-            },
-            404: notFound,
-          },
+          tags: ['Downloads'],
+          summary: 'Get a project with its versions or its releases',
+          parameters: [path('project', 'divinemc')],
+          responses: { ...ok(ref('Project')), ...missing() },
         },
       },
-      '/atlas/projects/{project}/versions': {
+      '/v1/builds/{project}': {
         get: {
-          tags: ['Atlas'],
-          summary: 'List a project’s versions',
-          operationId: 'listVersions',
-          parameters: [projectParam],
-          responses: {
-            200: {
-              description: 'Every version of the project with its build numbers',
-              content: {
-                'application/json': {
-                  schema: { type: 'array', items: { $ref: '#/components/schemas/Version' } },
-                },
-              },
-            },
-            404: notFound,
-          },
+          tags: ['Downloads'],
+          summary: "List a versioned project's versions, newest first",
+          parameters: [path('project', 'divinemc')],
+          responses: { ...ok({ type: 'array', items: ref('VersionSummary') }), ...missing() },
         },
       },
-      '/atlas/projects/{project}/versions/{version}': {
+      '/v1/builds/{project}/{version}': {
         get: {
-          tags: ['Atlas'],
-          summary: 'Get a version',
-          operationId: 'getVersion',
-          parameters: [projectParam, versionParam],
-          responses: {
-            200: {
-              description: 'A single version with its build numbers',
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Version' } } },
-            },
-            404: notFound,
-          },
-        },
-      },
-      '/atlas/projects/{project}/versions/{version}/builds': {
-        get: {
-          tags: ['Atlas'],
-          summary: 'List builds for a version',
-          operationId: 'listBuilds',
+          tags: ['Downloads'],
+          summary: 'Get a version with one page of its builds',
           parameters: [
-            projectParam,
-            versionParam,
-            {
-              name: 'channel',
-              in: 'query',
-              required: false,
-              description: 'Filter by release channel.',
-              schema: { type: 'string', enum: ['ALPHA', 'BETA', 'STABLE'] },
-            },
+            path('project', 'divinemc'),
+            path('version', '26.2'),
+            query('limit', { type: 'integer', minimum: 1, maximum: 200, default: 50 }, 'Builds per page.'),
+            query('after', { type: 'integer' }, 'Builds strictly older than this number.'),
           ],
+          responses: { ...ok(ref('Version')), ...missing() },
+        },
+      },
+      '/v1/builds/{project}/{version}/latest': {
+        get: {
+          tags: ['Downloads'],
+          summary: 'Get the newest build of a version',
+          parameters: [path('project', 'divinemc'), path('version', '26.2')],
+          responses: { ...ok(ref('Build')), ...missing() },
+        },
+      },
+      '/v1/builds/{project}/{version}/{build}': {
+        get: {
+          tags: ['Downloads'],
+          summary: 'Get one build',
+          parameters: [path('project', 'divinemc'), path('version', '26.2'), path('build', '11')],
+          responses: { ...ok(ref('Build')), ...missing() },
+        },
+      },
+      '/v1/releases/{project}': {
+        get: {
+          tags: ['Downloads'],
+          summary: "List a release project's releases, newest first",
+          parameters: [path('project', 'nyx')],
+          responses: { ...ok({ type: 'array', items: ref('Release') }), ...missing() },
+        },
+      },
+      '/v1/releases/{project}/latest': {
+        get: {
+          tags: ['Downloads'],
+          summary: 'Get the newest release',
+          parameters: [path('project', 'nyx')],
+          responses: { ...ok(ref('Release')), ...missing() },
+        },
+      },
+      '/v1/releases/{project}/{tag}': {
+        get: {
+          tags: ['Downloads'],
+          summary: 'Get one release',
+          parameters: [path('project', 'nyx'), path('tag', '1.2.0')],
+          responses: { ...ok(ref('Release')), ...missing() },
+        },
+      },
+      '/v1/publish/next/{project}/{version}': {
+        get: {
+          tags: ['Publishing'],
+          summary: 'The number the next build of a version will take',
+          description: 'Creates the version when it does not exist yet. Never cached.',
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'divinemc'), path('version', '26.2')],
           responses: {
-            200: {
-              description: 'Builds newest-first',
-              content: {
-                'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Build' } } },
-              },
-            },
-            404: notFound,
+            ...ok({
+              type: 'object',
+              properties: { project: { type: 'string' }, version: { type: 'string' }, next: { type: 'integer' } },
+            }),
+            ...denied(),
           },
         },
       },
-      '/atlas/projects/{project}/versions/{version}/builds/latest': {
-        get: {
-          tags: ['Atlas'],
-          summary: 'Get the latest build',
-          operationId: 'getLatestBuild',
-          parameters: [projectParam, versionParam],
-          responses: {
-            200: {
-              description: 'The highest-numbered build for the version',
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Build' } } },
-            },
-            404: notFound,
-          },
+      '/v1/publish/builds/{project}/{version}': {
+        post: {
+          tags: ['Publishing'],
+          summary: 'Publish a build',
+          description:
+            'Multipart: `file` is the artifact, `metadata` a JSON object. Publishing the same number again replaces that named download and leaves the others alone, so a re-run of a failed upload is safe.',
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'divinemc'), path('version', '26.2')],
+          requestBody: upload('PublishBuild'),
+          responses: { ...ok(ref('Build')), ...denied(), ...missing() },
         },
       },
-      '/atlas/projects/{project}/versions/{version}/builds/{build}': {
-        get: {
-          tags: ['Atlas'],
-          summary: 'Get a build',
-          operationId: 'getBuild',
-          parameters: [
-            projectParam,
-            versionParam,
-            {
-              name: 'build',
-              in: 'path',
-              required: true,
-              description: 'Build number.',
-              schema: { type: 'integer' },
-            },
-          ],
-          responses: {
-            200: {
-              description: 'A single build',
-              content: { 'application/json': { schema: { $ref: '#/components/schemas/Build' } } },
-            },
-            404: notFound,
-          },
+      '/v1/publish/releases/{project}/{tag}': {
+        post: {
+          tags: ['Publishing'],
+          summary: 'Publish a release',
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'nyx'), path('tag', '1.2.0')],
+          requestBody: upload('PublishRelease'),
+          responses: { ...ok(ref('Release')), ...denied(), ...missing() },
+        },
+        delete: {
+          tags: ['Publishing'],
+          summary: 'Remove a release and the objects it published',
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'nyx'), path('tag', '1.2.0')],
+          responses: { ...ok(ref('Ok')), ...denied(), ...missing() },
         },
       },
-      '/location': {
-        get: {
-          tags: ['Meta'],
-          summary: 'Edge location that served the request',
-          operationId: 'getLocation',
-          responses: {
-            200: {
-              description: 'Cloudflare colo and coarse geolocation for the caller',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      colo: { type: 'string', nullable: true, example: 'WAW' },
-                      city: { type: 'string', nullable: true, example: 'Warsaw' },
-                      country: { type: 'string', nullable: true, example: 'PL' },
-                    },
-                    required: ['colo', 'city', 'country'],
-                  },
-                },
-              },
-            },
-          },
+      '/v1/publish/projects/{project}': {
+        patch: {
+          tags: ['Publishing'],
+          summary: "Change a project's name, description, repository or offered versions",
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'divinemc')],
+          requestBody: json('ProjectPatch'),
+          responses: { ...ok(ref('Ok')), ...denied(), ...missing() },
+        },
+      },
+      '/v1/publish/versions/{project}/{version}': {
+        patch: {
+          tags: ['Publishing'],
+          summary: "Change a version's support status or Java floor",
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'divinemc'), path('version', '26.2')],
+          requestBody: json('VersionPatch'),
+          responses: { ...ok(ref('Ok')), ...denied(), ...missing() },
+        },
+      },
+      '/v1/publish/builds/{project}/{version}/{build}': {
+        delete: {
+          tags: ['Publishing'],
+          summary: 'Remove a build and the objects it published',
+          security: [{ publishToken: [] }],
+          parameters: [path('project', 'divinemc'), path('version', '26.2'), path('build', '11')],
+          responses: { ...ok(ref('Ok')), ...denied(), ...missing() },
         },
       },
       '/health': {
+        get: { tags: ['Service'], summary: 'Liveness', responses: ok({ type: 'object' }) },
+      },
+      '/location': {
         get: {
-          tags: ['Meta'],
-          summary: 'Health check',
-          operationId: 'health',
-          responses: {
-            200: {
-              description: 'Service is up',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: { status: { type: 'string', example: 'ok' } },
-                  },
-                },
-              },
-            },
-          },
+          tags: ['Service'],
+          summary: 'The edge location that served the request',
+          responses: ok({ type: 'object' }),
         },
       },
     },
     components: {
+      securitySchemes: {
+        publishToken: { type: 'http', scheme: 'bearer', description: 'A publish token, valid for one project.' },
+      },
       schemas: {
-        Error: errorResponse,
-        Download: download,
-        Build: build,
-        Version: version,
-        Project: project,
+        Ok: { type: 'object', properties: { ok: { type: 'boolean' } } },
+        Error: {
+          type: 'object',
+          properties: {
+            ok: { type: 'boolean', const: false },
+            error: { type: 'string' },
+            message: { type: 'string' },
+          },
+        },
+        Download: {
+          type: 'object',
+          description: 'A published file. `url` points at the bucket, never at this API.',
+          properties: {
+            name: { type: 'string', examples: ['divinemc-26.2-11.jar'] },
+            size: { type: 'integer' },
+            sha256: { type: 'string' },
+            url: { type: 'string', format: 'uri' },
+          },
+        },
+        Commit: {
+          type: 'object',
+          properties: {
+            sha: { type: 'string' },
+            summary: { type: 'string' },
+            at: { type: 'string', format: 'date-time' },
+          },
+        },
+        ProjectSummary: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', examples: ['divinemc'] },
+            name: { type: 'string', examples: ['DivineMC'] },
+            kind: { type: 'string', enum: ['versioned', 'release'] },
+            description: nullable({ type: 'string' }),
+            repo: nullable({ type: 'string' }),
+            latest: nullable({ type: 'string' }),
+            experimental: nullable({ type: 'string' }),
+            updated_at: nullable({ type: 'string', format: 'date-time' }),
+          },
+        },
+        Project: {
+          allOf: [
+            ref('ProjectSummary'),
+            {
+              type: 'object',
+              description: '`kind` says which half is present; the other is absent rather than null.',
+              properties: {
+                versions: { type: 'array', items: { type: 'string' } },
+                version_groups: { type: 'object', additionalProperties: { type: 'array', items: { type: 'string' } } },
+                releases: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          ],
+        },
+        VersionSummary: {
+          type: 'object',
+          properties: {
+            version: { type: 'string', examples: ['26.2'] },
+            support: { type: 'string', enum: ['supported', 'deprecated', 'unsupported'] },
+            java_min: nullable({ type: 'integer' }),
+            latest_build: nullable({ type: 'integer' }),
+            build_count: { type: 'integer' },
+          },
+        },
+        Version: {
+          allOf: [
+            ref('VersionSummary'),
+            {
+              type: 'object',
+              properties: {
+                builds: {
+                  type: 'object',
+                  properties: {
+                    items: { type: 'array', items: ref('Build') },
+                    next: nullable({ type: 'string' }),
+                  },
+                },
+              },
+            },
+          ],
+        },
+        Build: {
+          type: 'object',
+          properties: {
+            build: { type: 'integer' },
+            project: { type: 'string' },
+            version: { type: 'string' },
+            channel: { type: 'string', enum: ['alpha', 'beta', 'stable'] },
+            created_at: { type: 'string', format: 'date-time' },
+            commit: nullable({ type: 'string' }),
+            commits: { type: 'array', items: ref('Commit') },
+            downloads: { type: 'object', additionalProperties: ref('Download') },
+          },
+        },
+        Release: {
+          type: 'object',
+          properties: {
+            tag: { type: 'string' },
+            project: { type: 'string' },
+            channel: { type: 'string', enum: ['alpha', 'beta', 'stable'] },
+            created_at: { type: 'string', format: 'date-time' },
+            commit: nullable({ type: 'string' }),
+            notes: nullable({ type: 'string' }),
+            commits: { type: 'array', items: ref('Commit') },
+            downloads: { type: 'object', additionalProperties: ref('Download') },
+          },
+        },
+        PublishBuild: {
+          type: 'object',
+          description: 'Omitting `build` takes the next number after the newest one.',
+          properties: {
+            build: { type: 'integer', minimum: 1 },
+            channel: { type: 'string', enum: ['alpha', 'beta', 'stable'], default: 'stable' },
+            commit: nullable({ type: 'string' }),
+            commits: { type: 'array', items: ref('Commit') },
+            name: { type: 'string', default: 'application', description: 'Key the file takes in `downloads`.' },
+          },
+        },
+        PublishRelease: {
+          type: 'object',
+          properties: {
+            channel: { type: 'string', enum: ['alpha', 'beta', 'stable'], default: 'stable' },
+            commit: nullable({ type: 'string' }),
+            commits: { type: 'array', items: ref('Commit') },
+            notes: nullable({ type: 'string' }),
+            name: { type: 'string', default: 'application' },
+          },
+        },
+        ProjectPatch: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            description: nullable({ type: 'string' }),
+            repo: nullable({ type: 'string' }),
+            latest: nullable({ type: 'string' }),
+            experimental: nullable({ type: 'string' }),
+          },
+        },
+        VersionPatch: {
+          type: 'object',
+          properties: {
+            support: { type: 'string', enum: ['supported', 'deprecated', 'unsupported'] },
+            java_min: nullable({ type: 'integer' }),
+          },
+        },
       },
     },
   };
 }
+
+const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` });
+
+const nullable = (schema: Record<string, unknown>) => ({ ...schema, nullable: true });
+
+const path = (name: string, example: string) => ({
+  name,
+  in: 'path',
+  required: true,
+  schema: { type: 'string' },
+  examples: { default: { value: example } },
+});
+
+const query = (name: string, schema: Record<string, unknown>, description: string) => ({
+  name,
+  in: 'query',
+  required: false,
+  description,
+  schema,
+});
+
+const ok = (schema: Record<string, unknown>) => ({
+  200: { description: 'OK', content: { 'application/json': { schema } } },
+});
+
+const missing = () => ({
+  404: { description: 'No such project, version, build or release', content: errorContent() },
+});
+
+const denied = () => ({
+  401: { description: 'Missing or unknown token', content: errorContent() },
+  403: { description: 'The token belongs to another project', content: errorContent() },
+});
+
+const errorContent = () => ({ 'application/json': { schema: ref('Error') } });
+
+const json = (schema: string) => ({
+  required: true,
+  content: { 'application/json': { schema: ref(schema) } },
+});
+
+const upload = (schema: string) => ({
+  required: true,
+  content: {
+    'multipart/form-data': {
+      schema: {
+        type: 'object',
+        required: ['file'],
+        properties: {
+          file: { type: 'string', format: 'binary' },
+          metadata: { type: 'string', description: `JSON: ${schema}` },
+        },
+      },
+    },
+  },
+});

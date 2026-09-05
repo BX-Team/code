@@ -126,12 +126,11 @@ watch(query, q => {
 });
 
 watch(open, isOpen => {
-  if (isOpen) {
-    query.value = '';
-    docsResults.value = [];
-    selectedIdx.value = 0;
-    nextTick(() => inputRef.value?.focus());
-  }
+  if (!isOpen) return;
+  query.value = '';
+  docsResults.value = [];
+  selectedIdx.value = 0;
+  nextTick(() => inputRef.value?.focus());
 });
 
 watch(flatItems, items => {

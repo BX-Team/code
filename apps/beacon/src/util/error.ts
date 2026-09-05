@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
-/** The single error shape beacon answers with, mirroring azimuth */
+/** The single error shape beacon answers with. */
 export class BeaconError extends Error {
   constructor(
     readonly status: ContentfulStatusCode,
