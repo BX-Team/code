@@ -111,8 +111,6 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static',
 
-    // Dev only — the generated site has no server, and in production the browser
-    // talks to azimuth directly from an origin that Worker allows.
     devProxy: {
       '/v1': { target: `${api}/v1`, changeOrigin: true },
     },

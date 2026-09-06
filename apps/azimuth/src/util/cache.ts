@@ -24,7 +24,9 @@ export const edgeCache = createMiddleware(async (c, next) => {
   await next();
 
   if (c.res.status === 200) {
-    c.res.headers.set('Cache-Control', CACHE_CONTROL);
+    // A handler that set its own Cache-Control keeps it; the default suits list endpoints
+    // that a publish purges, not a lookup nothing here can invalidate.
+    if (!c.res.headers.has('Cache-Control')) c.res.headers.set('Cache-Control', CACHE_CONTROL);
     c.executionCtx.waitUntil(cache.put(c.req.raw, c.res.clone()));
   }
 });

@@ -22,6 +22,7 @@ const route = useRoute();
 const active = computed(() => {
   if (route.path.startsWith('/docs')) return 'documentation';
   if (route.path.startsWith('/downloads')) return 'downloads';
+  if (route.path.startsWith('/tools')) return 'tools';
   if (route.path.startsWith('/team')) return 'team';
   return '';
 });

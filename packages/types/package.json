@@ -3,7 +3,8 @@
   "type": "module",
   "license": "AGPL-3.0-only",
   "exports": {
-    "./schema/downloads": "./src/schemas/downloads.ts"
+    "./schema/downloads": "./src/schemas/downloads.ts",
+    "./schema/mojang": "./src/schemas/mojang.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

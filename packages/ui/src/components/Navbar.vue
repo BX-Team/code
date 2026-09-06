@@ -30,6 +30,7 @@ const props = withDefaults(
     links: () => [
       { id: 'documentation', label: 'Documentation', href: '/docs' },
       { id: 'downloads', label: 'Downloads', href: '/downloads' },
+      { id: 'tools', label: 'Tools', href: '/tools' },
       { id: 'team', label: 'Team', href: '/team' },
     ],
     brandHref: '/',

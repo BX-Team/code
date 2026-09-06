@@ -1,5 +1,18 @@
 <script setup lang="ts">
-import { BookOpen, CornerDownLeft, Download, FileText, Home, Search, Users } from '@lucide/vue';
+import {
+  BookOpen,
+  CornerDownLeft,
+  Download,
+  FileText,
+  Fingerprint,
+  FolderGit2,
+  Home,
+  Search,
+  SlidersHorizontal,
+  Terminal,
+  Users,
+  Wrench,
+} from '@lucide/vue';
 import type { Component } from 'vue';
 import { closeCommandPalette, useCommandPaletteOpen } from '@/composables/useCommandPalette';
 
@@ -35,6 +48,31 @@ const navItems: PaletteItem[] = [
   { key: 'nav:home', group: 'nav', title: 'Home', subtitle: '/', icon: Home, to: '/' },
   { key: 'nav:docs', group: 'nav', title: 'Documentation', subtitle: '/docs', icon: BookOpen, to: '/docs' },
   { key: 'nav:downloads', group: 'nav', title: 'Downloads', subtitle: '/downloads', icon: Download, to: '/downloads' },
+  { key: 'nav:tools', group: 'nav', title: 'Tools', subtitle: '/tools', icon: Wrench, to: '/tools' },
+  {
+    key: 'nav:flags',
+    group: 'nav',
+    title: 'JVM flags generator',
+    subtitle: '/tools/flags',
+    icon: Terminal,
+    to: '/tools/flags',
+  },
+  {
+    key: 'nav:server-config',
+    group: 'nav',
+    title: 'Server config generator',
+    subtitle: '/tools/server-config',
+    icon: SlidersHorizontal,
+    to: '/tools/server-config',
+  },
+  {
+    key: 'nav:uuid',
+    group: 'nav',
+    title: 'UUID lookup',
+    subtitle: '/tools/uuid',
+    icon: Fingerprint,
+    to: '/tools/uuid',
+  },
   { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
 ];
 

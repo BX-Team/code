@@ -13,6 +13,7 @@ export function openApiDocument(origin: string) {
     tags: [
       { name: 'Downloads', description: 'Projects, versions, builds and releases.' },
       { name: 'Publishing', description: 'What a release workflow calls. Bearer token, one project each.' },
+      { name: 'Mojang', description: 'Username lookups, proxied so a static page can make them.' },
       { name: 'Service', description: 'Health and edge location.' },
     ],
     paths: {
@@ -166,6 +167,16 @@ export function openApiDocument(origin: string) {
           responses: { ...ok(ref('Ok')), ...denied(), ...missing() },
         },
       },
+      '/v1/mojang/profile/{username}': {
+        get: {
+          tags: ['Mojang'],
+          summary: 'Look a Minecraft username up with Mojang',
+          description:
+            'Answers with the account UUID and its skin. Proxied because the browser cannot reach Mojang cross-origin and the rate limit counts source IPs, not callers.',
+          parameters: [path('username', 'NONPLAYT')],
+          responses: { ...ok(ref('MojangProfile')), ...missing() },
+        },
+      },
       '/health': {
         get: { tags: ['Service'], summary: 'Liveness', responses: ok({ type: 'object' }) },
       },
@@ -199,6 +210,17 @@ export function openApiDocument(origin: string) {
             size: { type: 'integer' },
             sha256: { type: 'string' },
             url: { type: 'string', format: 'uri' },
+          },
+        },
+        MojangProfile: {
+          type: 'object',
+          description: 'An account as Mojang has it. The offline UUID is not here: it is derived from the name alone.',
+          properties: {
+            id: { type: 'string', format: 'uuid', examples: ['b83f209c-be04-4258-8165-90d4a747d91b'] },
+            name: { type: 'string', examples: ['NONPLAYT'] },
+            skin: { type: ['string', 'null'], format: 'uri' },
+            cape: { type: ['string', 'null'], format: 'uri' },
+            model: { type: 'string', enum: ['classic', 'slim'] },
           },
         },
         Commit: {
