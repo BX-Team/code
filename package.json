@@ -14,6 +14,9 @@
     "deploy:meridian": "bun run --filter @bx-team/meridian deploy",
     "deploy:beacon": "bun run --filter @bx-team/beacon deploy",
     "deploy:azimuth": "bun run --filter @bx-team/azimuth deploy",
+    "upload:meridian": "bun run --filter @bx-team/meridian upload",
+    "upload:beacon": "bun run --filter @bx-team/beacon upload",
+    "upload:azimuth": "bun run --filter @bx-team/azimuth upload",
     "lint": "biome check ."
   },
   "devDependencies": {

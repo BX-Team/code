@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "upload": "wrangler versions upload",
     "build": "wrangler deploy --dry-run --outdir dist",
     "register": "bun run src/commands/register.ts",
     "lint": "biome check .",

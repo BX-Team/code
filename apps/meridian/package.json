@@ -9,6 +9,7 @@
     "generate": "NODE_OPTIONS=--max-old-space-size=3072 nuxt generate",
     "preview": "nuxt preview",
     "deploy": "bun run generate && wrangler deploy",
+    "upload": "bun run generate && wrangler versions upload",
     "postinstall": "nuxt prepare",
     "lint": "biome check .",
     "check:config": "bun run scripts/check-config-rules.ts",
