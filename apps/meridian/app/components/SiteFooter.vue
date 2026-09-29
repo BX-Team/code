@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Footer, type FooterColumn } from '@bx-team/ui';
-import { DISCORD_URL, GITHUB_URL } from '~/config/links';
+import { DISCORD_URL, GITHUB_URL, MAVEN_URL } from '~/config/links';
 import { PROJECTS } from '~/config/projects';
 
 const columns: FooterColumn[] = [
@@ -13,6 +13,7 @@ const columns: FooterColumn[] = [
     links: [
       { label: 'Documentation', href: '/docs' },
       { label: 'Downloads', href: '/downloads' },
+      { label: 'Maven repository', href: MAVEN_URL, external: true },
       { label: 'API reference', href: '/docs/api' },
     ],
   },
