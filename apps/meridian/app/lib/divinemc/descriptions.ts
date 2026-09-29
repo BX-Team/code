@@ -1,5 +1,4 @@
-/** One line per option, shown in the docs table and next to every key the builder
- *  touches. Taken from the comments DivineMC writes into the file itself. */
+/** One line per option for the docs table, from the comments DivineMC writes into the file itself. */
 export const DESCRIPTIONS: Record<string, string> = {
   'world-settings.default.features.spectator-dont-get-advancement': 'Prevents spectators from getting advancements',
   'world-settings.default.unsupported-features.allow-entity-portal-with-passenger':

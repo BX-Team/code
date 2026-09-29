@@ -12,8 +12,6 @@
     "upload": "bun run generate && wrangler versions upload",
     "postinstall": "nuxt prepare",
     "lint": "biome check .",
-    "check:config": "bun run scripts/check-config-rules.ts",
-    "build:config-reference": "bun run scripts/build-config-reference.ts",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
