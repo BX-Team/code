@@ -1,26 +1,22 @@
 import type { ThemedToken } from 'shiki/core';
 
-export type CodeLang = 'yaml' | 'properties' | 'bash' | 'batch' | 'kotlin';
+export type CodeLang = 'bash' | 'kotlin';
 
 /** Browser only, so the grammars never reach the server bundle or the prerendered HTML. */
 let pending: Promise<{ codeToTokens: (code: string, lang: CodeLang) => ThemedToken[][] }> | null = null;
 
 async function load() {
-  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }, theme, yaml, properties, bash, batch, kotlin] =
-    await Promise.all([
-      import('shiki/core'),
-      import('shiki/engine/javascript'),
-      import('shiki/themes/github-dark.mjs'),
-      import('shiki/langs/yaml.mjs'),
-      import('shiki/langs/properties.mjs'),
-      import('shiki/langs/bash.mjs'),
-      import('shiki/langs/batch.mjs'),
-      import('shiki/langs/kotlin.mjs'),
-    ]);
+  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }, theme, bash, kotlin] = await Promise.all([
+    import('shiki/core'),
+    import('shiki/engine/javascript'),
+    import('shiki/themes/github-dark.mjs'),
+    import('shiki/langs/bash.mjs'),
+    import('shiki/langs/kotlin.mjs'),
+  ]);
 
   const highlighter = await createHighlighterCore({
     themes: [theme.default],
-    langs: [yaml.default, properties.default, bash.default, batch.default, kotlin.default],
+    langs: [bash.default, kotlin.default],
     engine: createJavaScriptRegexEngine(),
   });
 

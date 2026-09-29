@@ -1,5 +1,4 @@
-/** The stock `divinemc.yml`, as shipped. Single source for the reference table in the
- *  docs and for the config builder — a second copy would drift within one release. */
+/** The stock `divinemc.yml`, as shipped; the docs render their reference table from it. */
 export const DIVINEMC_DEFAULTS = {
   'world-settings': {
     default: {
@@ -199,9 +198,3 @@ export const DIVINEMC_DEFAULTS = {
     'parallel-sensors': { enable: false, 'max-threads': 0 },
   },
 };
-
-/** `version:` in the file above. A pasted config newer than this is flagged, not parsed
- *  against the wrong defaults. */
-export const CONFIG_VERSION = 9;
-
-export type { ConfigTree, ConfigValue } from '../serverconfig/tree';
