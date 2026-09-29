@@ -281,8 +281,6 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	inset: 0;
 	z-index: 300;
 	background: rgba(0, 0, 0, 0.55);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
@@ -292,11 +290,9 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 .cmdk-panel {
 	width: 100%;
 	max-width: 580px;
-	background: color-mix(in oklab, var(--bg-1) 92%, transparent);
-	-webkit-backdrop-filter: blur(20px);
-	backdrop-filter: blur(20px);
+	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 14px;
+	border-radius: var(--r-4);
 	box-shadow: var(--shadow-pop);
 	overflow: hidden;
 	display: flex;
@@ -328,7 +324,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	background: transparent;
 	border: none;
 	outline: none;
-	font: 500 14.5px var(--font-sans);
+	font: 500 14.5px var(--font-mono);
 	color: var(--fg-hi);
 	caret-color: var(--brand);
 }
@@ -344,7 +340,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	border-bottom-width: 2px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	padding: 2px 6px;
 	min-width: 22px;
 	display: inline-grid;
@@ -371,7 +367,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 
 .cmdk-list::-webkit-scrollbar-thumb {
 	background: var(--line-2);
-	border-radius: 4px;
+	border-radius: var(--r-1);
 }
 
 .cmdk-group-label {
@@ -395,7 +391,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	padding: 9px 10px;
 	background: transparent;
 	border: none;
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	cursor: pointer;
 	text-align: left;
 	color: inherit;
@@ -411,7 +407,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	place-items: center;
 	width: 22px;
 	height: 22px;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	color: var(--dim);
@@ -424,7 +420,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__title {
-	font: 500 13.5px var(--font-sans);
+	font: 500 13.5px var(--font-mono);
 	color: var(--fg-hi);
 	min-width: 0;
 	white-space: nowrap;
@@ -447,7 +443,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	color: var(--warn);
 	background: color-mix(in oklab, var(--warn) 14%, transparent);
 	border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--line));
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	padding: 2px 6px;
 	letter-spacing: 0.02em;
 }
@@ -470,7 +466,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 .cmdk-state {
 	padding: 28px 12px;
 	text-align: center;
-	font: 400 13px var(--font-sans);
+	font: 400 13px var(--font-mono);
 	color: var(--mute);
 }
 

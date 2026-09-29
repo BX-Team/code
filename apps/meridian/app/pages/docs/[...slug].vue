@@ -126,7 +126,7 @@ const breadcrumbs = computed(() => {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 12.5px var(--font-sans);
+	font: 500 12.5px var(--font-mono);
 	color: var(--mute);
 	margin-bottom: 12px;
 	flex-wrap: wrap;
@@ -151,13 +151,13 @@ const breadcrumbs = computed(() => {
 
 /* Page header */
 .doc-h1 {
-	font: 700 36px/1.15 var(--font-sans);
+	font: 600 36px/1.15 var(--font-heading);
 	letter-spacing: -0.025em;
 	color: var(--fg-hi);
 	margin: 0 0 14px;
 }
 .doc-lede {
-	font: 400 16px/1.55 var(--font-sans);
+	font: 400 16px/1.55 var(--font-mono);
 	color: var(--dim);
 	margin: 0 0 32px;
 	text-wrap: pretty;
@@ -165,21 +165,21 @@ const breadcrumbs = computed(() => {
 
 /* Content body — style nuxt/content rendered HTML */
 .doc-body :deep(h2) {
-	font: 700 24px/1.25 var(--font-sans);
+	font: 600 24px/1.25 var(--font-heading);
 	letter-spacing: -0.015em;
 	color: var(--fg-hi);
 	margin: 48px 0 14px;
 	scroll-margin-top: 80px;
 }
 .doc-body :deep(h3) {
-	font: 600 18px/1.3 var(--font-sans);
+	font: 600 18px/1.3 var(--font-heading);
 	letter-spacing: -0.01em;
 	color: var(--fg-hi);
 	margin: 28px 0 10px;
 	scroll-margin-top: 80px;
 }
 .doc-body :deep(h4) {
-	font: 600 15px/1.4 var(--font-sans);
+	font: 600 15px/1.4 var(--font-heading);
 	color: var(--fg-hi);
 	margin: 20px 0 8px;
 }
@@ -215,12 +215,12 @@ const breadcrumbs = computed(() => {
 	background: var(--bg-2);
 	border: 1px solid var(--line);
 	padding: 1px 6px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 }
 .doc-body :deep(pre) {
 	background: var(--bg-deep);
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-1);
 	padding: 16px 18px;
 	margin: 22px 0;
 	overflow-x: auto;
@@ -251,7 +251,7 @@ const breadcrumbs = computed(() => {
 .doc-body :deep(.highlighted-word) {
 	background: color-mix(in oklab, var(--brand) 20%, transparent);
 	border: 1px solid color-mix(in oklab, var(--brand) 40%, transparent);
-	border-radius: 3px;
+	border-radius: var(--r-1);
 	padding: 0 2px;
 }
 
@@ -283,9 +283,8 @@ const breadcrumbs = computed(() => {
 	top: 14px;
 	width: 5px;
 	height: 5px;
-	border-radius: 50%;
+	border-radius: 0;
 	background: var(--brand);
-	box-shadow: 0 0 6px color-mix(in oklab, var(--brand) 60%, transparent);
 }
 .doc-body :deep(ol) {
 	counter-reset: list-counter;
@@ -349,7 +348,7 @@ const breadcrumbs = computed(() => {
 }
 .doc-body :deep(img) {
 	max-width: 100%;
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	border: 1px solid var(--line);
 	margin: 16px 0;
 }
@@ -367,7 +366,7 @@ const breadcrumbs = computed(() => {
 	display: block;
 	padding: 14px 16px;
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-1);
 	background: var(--bg-1);
 	transition: border-color 0.15s;
 	text-decoration: none;
@@ -383,7 +382,7 @@ const breadcrumbs = computed(() => {
 	display: block;
 }
 .doc-footer-nav .ttl {
-	font: 600 14px var(--font-sans);
+	font: 500 14px var(--font-mono);
 	color: var(--fg-hi);
 	margin-top: 3px;
 	display: block;
@@ -399,7 +398,7 @@ const breadcrumbs = computed(() => {
 	gap: 14px;
 	padding: 16px 18px;
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-1);
 	background: var(--bg-1);
 	margin: 22px 0;
 	font-size: 14px;

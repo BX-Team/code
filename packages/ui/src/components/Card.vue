@@ -19,17 +19,16 @@ defineProps<{
 
 <style scoped>
 .bx-card {
-	background: var(--bg-1);
+	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-lg);
+	border-radius: var(--r-1);
 }
 
 .bx-card--featured {
-	border-color: color-mix(in oklab, var(--brand) 50%, var(--line));
-	box-shadow: 0 0 32px -10px var(--brand-soft);
+	border-color: var(--edge);
 }
 
-.bx-card--pad-sm { padding: 12px; }
-.bx-card--pad-md { padding: 16px; }
-.bx-card--pad-lg { padding: 24px; }
+.bx-card--pad-sm { padding: var(--s-3); }
+.bx-card--pad-md { padding: var(--s-4); }
+.bx-card--pad-lg { padding: var(--s-6); }
 </style>

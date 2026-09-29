@@ -1,6 +1,14 @@
 # packages/ui — BX Team Design System
 
-Shared Vue 3 component library for the BX Team monorepo. Dark-first, CSS-variable-driven. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation via `build.transpile: ['@bx-team/ui']`.
+Shared Vue 3 component library for the BX Team monorepo, on the **BX Team Omarchy** design system
+(Basalt palette — the previous site's warm `#12100d` ground under the system's Meridian accents): dark warm surfaces, JetBrains Mono for everything but headings, Inter for
+headings only, 2px corners, borders instead of shadows, no blur and no glow, and a pixel field on the
+hero and the footer. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation
+via `build.transpile: ['@bx-team/ui']`.
+
+The mark is the design system's 11-cell pixel mark (`BrandMark`, monochrome, `currentColor`), and the
+name is always written **BX Team** — never uppercase, not even where the design system sets its
+wordmark in caps.
 
 ## Package setup
 
@@ -28,139 +36,149 @@ All tokens are CSS custom properties on `:root`. Never hard-code colours — alw
 
 | Category | Variables |
 |---|---|
-| Surfaces | `--bg-0` `--bg-1` `--bg-2` `--bg-3` |
-| Borders | `--line` `--line-2` |
+| Surfaces | `--surface-deep` (bar, hero, footer) `--surface-0` (alt band) `--surface-1` (page) `--surface-card` `--surface-2` (hover) `--surface-3` (inset) |
+| Lines | `--line` (cards) `--line-2` (nested) `--rule` (dividers, decorative) `--edge` (control borders — the only one on anything focusable) |
 | Text | `--mute` `--dim` `--fg` `--fg-hi` |
-| Brand (cyan) | `--brand` `--brand-glow` `--brand-soft` |
-| Brand 2 (green) | `--brand-2` `--brand-glow-2` `--brand-soft-2` |
-| Semantic | `--ok` `--warn` `--err` `--info` |
-| Radii | `--r-xs` `--r-sm` `--r-md` `--r-lg` `--r-full` |
-| Shadows | `--shadow-card` `--shadow-glow` |
-| Fonts | `--font-sans` `--font-mono` |
+| Accent | `--accent` (cyan) `--accent-2` (green) `--accent-wash` (tag chip fill) `--ring` |
+| Pixel field | `--pixel-bg` `--pixel-dim` `--pixel-mid` `--pixel-lit` `--pixel-hover` `--pixel-crest` |
+| Status | `--ok` `--warn` `--err` `--info` `--exp`, channels `--ch-stable` `--ch-beta` `--ch-alpha` `--ch-experimental` |
+| Radii | `--r-1` 2px (buttons, cards) `--r-2` 3px (inputs) `--r-3` 4px (code) `--r-4` 6px (modals) `--r-pill` (dots only) |
+| Spacing | `--s-1` … `--s-32`, `--container` |
+| Shadows | `--shadow-panel` `--shadow-modal` — floating things only; cards never get one |
+| Fonts | `--font-mono` (default) `--font-heading` / `--font-sans` (headings only) |
 
-Utility classes: `.bx-text-grad`, `.bx-container`, `.bx-h1`–`.bx-h5`, `.bx-eyebrow`, `.bx-code-inline`.
+The pre-redesign names (`--bg-0…3`, `--brand*`, `--hover*`, `--r-xs…xl`, `--r-full`, `--shadow-card`)
+still resolve, as aliases onto the tokens above, so older pages read the new palette. Prefer the new
+names in anything you write.
+
+The accent is rationed: focus ring, link hover, active markers, the one `bx-accent` phrase in the hero,
+and `--accent-wash` tag chips. Buttons, borders and body text never take it.
+
+Utility classes: `.bx-h1`–`.bx-h5`, `.bx-hero-lede`, `.bx-lede`, `.bx-body`, `.bx-body-sm`,
+`.bx-caption`, `.bx-micro` (`.bx-eyebrow`), `.bx-link`, `.bx-accent`, `.bx-text-grad`,
+`.bx-code-inline`, `.bx-container`, `.bx-channel` (+ `--stable`/`--beta`/`--alpha`/`--experimental`: a
+release-channel chip with a dot) and `.bx-callout` (+ `--note`/`--warn`/`--err`/`--exp`, with a
+`.bx-callout__mark` label: a notice with a coloured left edge, never a tinted fill).
 
 ## Components
 
 ### `BrandMark`
-Conic gradient ring logo mark.
+The pixel mark: an 11-cell frame with the top-left and bottom-right corners opened around a solid core,
+`fg` by default. Keep sizes on whole 2px multiples (22, 44, 66) so the cells stay square. The field
+stamps the same glyph (`MARK` in `src/pixel/glyphs.ts`); `public/favicon.svg`/`.ico` in meridian are it too.
 ```ts
 props: { size?: number }  // default 22
 ```
 
 ### `Button`
-Renders `<a>` when `href` is provided, otherwise `<button>`.
+Renders `<a>` when `href` is provided, otherwise `<button>`. 40px tall, mono, `--r-1`.
 ```ts
 props: {
   variant?: 'primary' | 'accent' | 'secondary' | 'ghost'  // default: primary
-  size?: 'sm' | 'md' | 'lg'                               // default: md
+  size?: 'sm' | 'md' | 'lg'
   href?: string
   disabled?: boolean
 }
 ```
-- `primary` — white fill, dark text
-- `accent` — brand cyan fill
-- `secondary` — transparent, border, hover → brand border
-- `ghost` — no border, muted text
+- `primary` — `fg` plate, the one loud action on a page
+- `accent` — `mute` plate, section-level actions (a download)
+- `secondary` — outline on `edge`
+- `ghost` — no border, `dim` text
 
 ### `Badge`
-When `dot` is provided renders a status chip with a glowing dot. Otherwise renders a pill badge.
+A mono chip; with `dot`, an uppercase status label with a flat dot.
 ```ts
-props: {
-  variant?: 'brand' | 'soft' | 'green' | 'warn' | 'err' | 'mono'  // default: soft
-  dot?: 'ok' | 'warn' | 'err' | 'info'
-}
+props: { variant?: 'brand' | 'soft' | 'green' | 'warn' | 'err' | 'mono'; dot?: 'ok' | 'warn' | 'err' | 'info' }
 ```
 
 ### `Input`
-Controlled via `v-model`.
+Controlled via `v-model`. `surface-3` fill, `edge` border.
 ```ts
 props: { label?: string; placeholder?: string; type?: string }
 ```
 
 ### `Card`
 ```ts
-props: {
-  featured?: boolean       // brand border + glow
-  padding?: 'sm' | 'md' | 'lg'  // default: md
-}
+props: { featured?: boolean; padding?: 'sm' | 'md' | 'lg' }
 ```
 
 ### `Navbar`
-The site-wide bar: full width, 56px tall, sticky, blurred, with a bottom rule. Its row follows the page's own container (`maxWidth` / `gutter`) so the wordmark sits above the left edge of the content, not the viewport's — the shells that lay out edge to edge pass `maxWidth: 'none'`. `#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box; under 1023px the row goes full width and the links fold into a drawer. Nothing else may make a bar of its own — `meridian` wires this one through `app/components/SiteNav.vue`.
+The site-wide bar: full width, 56px, sticky, **opaque** `surface-deep` with a bottom rule — nothing
+here uses `backdrop-filter`. Its row follows the page's own container (`maxWidth` / `gutter`) so the
+lockup sits above the left edge of the content; shells that lay out edge to edge pass `maxWidth: 'none'`.
+`#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box. With
+`overlay` the bar is transparent while the page's `[data-nav-overlay]` band (the hero, pulled up 56px
+under it) is in view and turns opaque once it scrolls away; on a phone it then shows only the mark.
+Under 1023px the links, search and socials move into a sheet that drops under the bar, as on omarchy.org. Nothing else may make a bar of its own — `meridian` wires this one through
+`app/components/SiteNav.vue`.
 ```ts
-interface NavLink { id: string; label: string; href?: string }
-
-props: {
-  active?: string
-  links?: NavLink[]
-  brandHref?: string
-  tag?: string                 // section badge, e.g. 'DOCS'
-  discordHref?: string
-  searchEnabled?: boolean
-  searchLabel?: string
-  maxWidth?: string            // the page's container; default '1180px', 'none' spans the viewport
-  gutter?: string              // that container's side padding; default '32px'
-  linkAs?: string | Component  // NuxtLink keeps navigation client-side; default 'a'
-}
+props: { active?, links?: NavLink[], brandHref?, tag?, githubHref?, discordHref?, overlay?, searchEnabled?, searchLabel?, maxWidth?, gutter?, linkAs? }
 emits: { navigate: [id: string]; search: [] }
 slots: #lead, #right
 ```
 
-### `Hero`
-Full-width hero section with built-in atmosphere glow. Use `noAtmosphere` when the page renders its own atmosphere (e.g. `index.vue`).
+### `PixelField`
+The drifting dithered ground after omarchy.org's hero: one lattice, a glow that follows the pointer,
+the BrandMark stamped where the field is pressed. It fills its positioned, clipped parent; elements in
+the same `section`/`footer` marked `data-quiet` keep the field clear around them and hush the glow. The
+engine is `src/pixel/field.ts`, the bitmaps (`BX Team` wordmark, the stamp) `src/pixel/glyphs.ts`.
+At most two per page — the page's top band and the footer.
 ```ts
-props: {
-  kicker?: string
-  kickerBadge?: string   // default: 'NEW'
-  lede?: string
-  noAtmosphere?: boolean
-}
-slots: #kicker, #title, #lede, #cta
+props: { variant?: 'hero' | 'field'; slotEl?: HTMLElement | null; markEl?: HTMLElement | null }  // hero draws the wordmark into slotEl, the mark into markEl
+emits: { painted: [] }
+```
+
+### `Hero`
+The home page's opening band: full viewport height, pulled up under an `overlay` bar, `PixelField` in `hero` mode.
+Left-aligned in the container: the pixel "BX Team" wordmark drawn into the field, then the headline in
+mono, a lede and two buttons. On the right the BrandMark, drawn into the same lattice at a whole-cell
+scale, so the glow and the stamps light it like the word. Below 860px the mark is dropped and the
+column centres. Both glyphs have an
+SVG copy server-rendered in their boxes and hidden once the canvas paints.
+```ts
+props: { lede?: string }
+slots: #title (the h1, mono), #cta
+```
+
+### `PageHero`
+The top band of every inner page that has one (project pages, downloads): `PixelField` on
+`surface-deep`, pulled up under an `overlay` bar (`PageShell overlay`), then crumbs, a sans title with an
+optional badge, mono tagline and lede, actions, a meta line and a four-cell stat strip; `#aside` adds a
+340px panel to the right of the text (a changelog, say), which drops under it below 1024px.
+```ts
+interface PageHeroStat { label: string; value: string; channel?: 'stable' | 'beta' | 'alpha' | 'experimental' }
+props: { title: string; tagline?: string; lede?: string; stats?: PageHeroStat[] }
+slots: #crumbs, #badge, #cta, #meta, #aside
 ```
 
 ### `Footer`
+`surface-deep` with a `PixelField`, the BrandMark lockup, blurb and social icons on the left, link
+columns on the right, legal line under a rule. Columns come from the app (`SiteFooter.vue` in meridian).
 ```ts
-interface FooterLink   { label: string; href: string }
-interface FooterColumn { heading: string; links: FooterLink[] }
+interface FooterLink   { label: string; href: string; external?: boolean }
+interface FooterColumn { title: string; links: FooterLink[] }
+props: { columns: FooterColumn[]; blurb?: string; githubHref?: string; discordHref?: string; brandHref?: string }
+```
 
-props: {
-  columns?: FooterColumn[]
-  blurb?: string
-  location?: string | null  // edge location label, e.g. "Warsaw, PL (WAW)"
-  githubHref?: string
-  discordHref?: string
-}
+### `Section`
+A full-width band: left-aligned sans `h2`, mono lede, an optional `#action` link pushed right.
+`alt` moves it onto `surface-0`; stacked sections alternate so two bands never read as one.
+```ts
+props: { id?: string; eyebrow?: string; title?: string; lede?: string; alt?: boolean }
+slots: default, #action
 ```
 
 ### `FeatureCard`
 ```ts
-props: { title: string; body: string }
-slots: #icon  // 36×36 icon wrapper, colour: var(--brand)
+props: { title: string; body: string; href?: string; linkAs?: string | Component }  // href makes the card a link
+slots: #icon
 ```
 
-### `FeatureGrid`
-```ts
-props: { eyebrow?: string; heading: string; lede?: string }
-// default slot: <FeatureCard> children
-```
 
 ### `ProjectCard`
+The whole card is one link to the project's page.
 ```ts
-props: {
-  name: string
-  description: string
-  tag: string
-  version?: string
-  archived?: boolean  // dims card + shows "Archived" badge
-  href?: string       // full-card overlay link
-}
-```
-
-### `ProjectsGrid`
-```ts
-props: { eyebrow?: string; heading: string }
-// default slot: <ProjectCard> children
+props: { name; description; tag; version?; archived?; href: string; linkAs?: string | Component }
 ```
 
 ## Responsive design
@@ -176,28 +194,3 @@ All components must work on both desktop and mobile. Use Tailwind responsive pre
 - **No shadcn-vue.** Pages and components in `apps/meridian` must import from `@bx-team/ui`, not from `@/components/ui/*`.
 - **Icons** come from `@lucide/vue`. Standard props: `:size="16" :stroke-width="1.7"`.
 - **Adding a component:** create `src/components/MyComponent.vue`, add a named export to `src/index.ts`.
-
-## Atmosphere pattern (pages)
-
-Pages that need the brand glow + grid use this structure:
-
-```html
-<div class="foo-root">          <!-- position: relative; overflow: hidden -->
-  <div class="foo-atmosphere" aria-hidden="true" />  <!-- ::before glow, ::after grid -->
-  <div class="page-wrap">...</div>  <!-- position: relative; z-index: 1 -->
-</div>
-```
-
-```css
-.foo-atmosphere::before {
-  /* 1200×800 radial blob, blur(50px), opacity 0.55 */
-}
-.foo-atmosphere::after {
-  /* 56px line grid, mask fades to transparent at 75% */
-  background-image:
-    linear-gradient(to right,  rgba(255,255,255,.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-}
-```

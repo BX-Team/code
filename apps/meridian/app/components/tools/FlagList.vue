@@ -66,7 +66,7 @@ const groups = computed(() => {
 	align-items: center;
 	gap: 8px;
 	margin: 0 0 10px;
-	font: 600 11px/1.4 var(--font-sans);
+	font: 500 11px/1.4 var(--font-mono);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--mute);
@@ -111,7 +111,7 @@ const groups = computed(() => {
 
 .fl-desc {
 	margin: 0;
-	font: 400 13px/1.6 var(--font-sans);
+	font: 400 13px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 

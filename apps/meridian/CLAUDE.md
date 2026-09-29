@@ -15,6 +15,11 @@ Nuxt 4, **fully static** — the site is built with `nuxt generate` and deployed
 ## Components
 The top bar is `app/components/SiteNav.vue` — a thin wrapper over `@bx-team/ui`'s `Navbar` that supplies the links, the GitHub and Discord icons and `NuxtLink`. Every section renders it (landing, team, downloads through `PageShell`, the docs layout); none of them builds a bar of its own.
 
+The footer is `app/components/SiteFooter.vue`, which supplies `@bx-team/ui`'s `Footer` with its link columns; `PageShell` and the standalone pages (home, project pages) render it.
+
+## Projects
+The home page is the pixel-field `Hero` and a grid of `ProjectCard`s; each card opens `/<slug>` (`app/pages/[project].vue`), a page with the project's hero, previews, features, get-started cards and — for DivineMC — the benchmark results (`app/config/benchmarks.ts`). Everything on those pages comes from `app/config/projects.ts`; add a project there and it appears on the home page, in the footer and at its own URL. A slug must not collide with a top-level route (`docs`, `downloads`, `tools`, `team`). Screenshots go in `public/projects/<slug>/` and into the project's `previews` list; the preview section hides itself while the list is empty. The latest release tag on the home page cards is fetched while the page is prerendered (`app/lib/github.ts`, `GITHUB_TOKEN` raises the rate limit) and baked in.
+
 Shared components come from `@bx-team/ui` — see [`packages/ui/CLAUDE.md`](../../packages/ui/CLAUDE.md). Add a page-specific component under `app/components/` only when it has no reuse outside this app; anything reusable belongs in `@bx-team/ui`.
 
 ## Responsive design

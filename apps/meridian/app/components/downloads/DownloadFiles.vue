@@ -40,7 +40,7 @@ const files = computed(() => downloadEntries(props.downloads));
 	flex-wrap: wrap;
 	padding: 10px 12px;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	background: color-mix(in oklab, var(--bg-2) 45%, transparent);
 }
 

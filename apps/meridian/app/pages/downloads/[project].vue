@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from '@bx-team/ui';
-import { ArrowLeft, BookOpen, Download, Info } from '@lucide/vue';
+import { Button, PageHero, type PageHeroStat, Section } from '@bx-team/ui';
+import { ArrowUpRight, BookOpen, Download } from '@lucide/vue';
 import { useRoute } from 'vue-router';
 import BuildsList from '@/components/downloads/BuildsList.vue';
 import ReleaseList from '@/components/downloads/ReleaseList.vue';
@@ -19,6 +19,8 @@ import {
   type VersionSummary,
 } from '@/lib/builds';
 import { formatBytes } from '@/lib/format';
+import githubSvgRaw from '~/assets/external/github.svg?raw';
+import { findProject } from '~/config/projects';
 
 const route = useRoute();
 const projectKey = String(route.params.project);
@@ -119,6 +121,26 @@ useHead({
 });
 
 const sourceUrl = computed(() => repoUrl(project.value));
+const about = computed(() => findProject(projectKey));
+
+const stats = computed<PageHeroStat[]>(() => {
+  const h = headline.value;
+  if (!h) return [];
+  const channel = h.channel?.toLowerCase();
+  return [
+    { label: isRelease.value ? 'Latest release' : 'Latest build', value: h.label },
+    {
+      label: 'Channel',
+      value: h.channel,
+      channel: channel === 'stable' || channel === 'beta' || channel === 'alpha' ? channel : undefined,
+    },
+    { label: 'File size', value: h.file ? formatBytes(h.file.size) : '—' },
+    {
+      label: 'Updated',
+      value: new Date(h.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    },
+  ];
+});
 const docsUrl = computed(() => `/docs/${projectKey}`);
 
 // The content collection is the only thing that knows whether a project is documented.
@@ -132,213 +154,131 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
 </script>
 
 <template>
-  <PageShell max-width="1180px" gutter="24px">
-    <div class="dl-root">
-    <div class="dl-atmosphere" aria-hidden="true" />
-    <div class="page-wrap">
-      <div class="back-row">
-        <Button href="/downloads" variant="ghost" size="sm">
-          <ArrowLeft :size="14" :stroke-width="1.8" /> Back to Downloads
+  <PageShell overlay>
+    <PageHero
+      :title="project.name"
+      :lede="project.description || `Get the latest builds of ${project.name}.`"
+      :stats="stats"
+    >
+      <template #crumbs>
+        <NuxtLink to="/downloads">Downloads</NuxtLink>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{{ project.name }}</span>
+      </template>
+      <template #cta>
+        <Button v-if="headline?.file" :href="headline.file.url" target="_blank" rel="noopener noreferrer" variant="primary">
+          <Download :size="16" :stroke-width="1.7" />
+          {{ isRelease ? 'Download latest release' : 'Download latest build' }}
         </Button>
-      </div>
-
-      <div class="hero-card">
-        <div class="hero-main">
-          <h1>{{ project.name }}</h1>
-          <p class="hero-desc">{{ project.description || `Get the latest builds of ${project.name}` }}</p>
-
-          <div v-if="headline" class="stats">
-            <div class="stat">
-              <div class="stat-label">{{ isRelease ? 'Latest Release' : 'Latest Build' }}</div>
-              <div class="stat-val">{{ headline.label }}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Channel</div>
-              <div class="stat-val brand-c">{{ headline.channel }}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">File Size</div>
-              <div class="stat-val">{{ headline.file ? formatBytes(headline.file.size) : '—' }}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Updated</div>
-              <div class="stat-val">{{ new Date(headline.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}</div>
-            </div>
-          </div>
-
-          <div class="cta-row">
-            <Button v-if="headline?.file" :href="headline.file.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
-              <Download :size="18" :stroke-width="1.7" /> {{ isRelease ? 'Download Latest Release' : 'Download Latest Build' }}
-            </Button>
-            <Button v-if="hasDocs" :href="docsUrl" variant="secondary" size="lg">
-              <BookOpen :size="18" :stroke-width="1.7" /> Documentation
-            </Button>
-            <Button :href="sourceUrl" :target="project.repo ? undefined : '_blank'" :rel="project.repo ? undefined : 'noopener noreferrer'" variant="secondary" size="lg">
-              <img src="~/assets/external/github.svg" width="18" height="18" alt="" aria-hidden="true" class="btn-icon" /> Source Code
-            </Button>
-          </div>
-        </div>
-
-        <aside v-if="headline?.commits.length" class="info-side">
-          <h3><Info :size="14" :stroke-width="1.7" /> {{ isRelease ? 'Latest Release Info' : 'Latest Build Info' }}</h3>
-          <div class="info-label">{{ headline.label }} Changes</div>
-          <ul class="info-list">
+        <Button v-if="hasDocs" :href="docsUrl" variant="secondary">
+          <BookOpen :size="16" :stroke-width="1.7" />
+          Documentation
+        </Button>
+        <Button
+          :href="sourceUrl"
+          :target="project.repo ? undefined : '_blank'"
+          :rel="project.repo ? undefined : 'noopener noreferrer'"
+          variant="ghost"
+        >
+          <span class="dl-gh" v-html="githubSvgRaw" />
+          Source code
+        </Button>
+      </template>
+      <template v-if="about" #meta>
+        <NuxtLink :to="`/${about.slug}`" class="bx-link dl-about">
+          About {{ about.name }}
+          <ArrowUpRight :size="14" :stroke-width="1.7" />
+        </NuxtLink>
+      </template>
+      <template v-if="headline?.commits.length" #aside>
+        <div class="dl-aside">
+          <p class="bx-micro">What's in {{ headline.label }}</p>
+          <ul class="dl-changes">
             <li v-for="c in headline.commits" :key="c.sha">
               <NuxtLink
                 :to="commitUrl(project, c.sha)"
                 :target="project.repo ? undefined : '_blank'"
                 :rel="project.repo ? undefined : 'noopener noreferrer'"
-                class="sha"
+                class="dl-sha"
               >{{ c.sha.substring(0, 7) }}</NuxtLink>
-              <p>{{ c.summary }}</p>
+              <span>{{ c.summary }}</span>
             </li>
           </ul>
-        </aside>
-      </div>
-
-      <section class="builds-section">
-        <h2>{{ isRelease ? 'All Releases' : 'All Builds' }}</h2>
-        <div class="panel">
-          <ReleaseList v-if="isRelease" :project="project" :releases="releases" />
-          <BuildsList
-            v-else
-            :project="project"
-            :versions="versions"
-            :default-version="initialVersion"
-            :versions-metadata="versionsMetadata"
-            :initial-builds="initialBuilds"
-            :initial-next="initialNext"
-            :initial-show-experimental="initialShowExperimental"
-          />
         </div>
-      </section>
-    </div>
-    </div>
+      </template>
+    </PageHero>
+
+
+    <Section
+      :title="isRelease ? 'All releases' : 'All builds'"
+      :lede="isRelease ? 'Every tagged release, newest first.' : 'Every build for the selected Minecraft version, newest first.'"
+    >
+      <ReleaseList v-if="isRelease" :project="project" :releases="releases" />
+      <BuildsList
+        v-else
+        :project="project"
+        :versions="versions"
+        :default-version="initialVersion"
+        :versions-metadata="versionsMetadata"
+        :initial-builds="initialBuilds"
+        :initial-next="initialNext"
+        :initial-show-experimental="initialShowExperimental"
+      />
+    </Section>
   </PageShell>
 </template>
 
 <style scoped>
-.dl-root {
-	position: relative;
-	overflow: hidden;
+.dl-gh {
+  display: inline-flex;
+  line-height: 0;
 }
 
-.dl-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 960px;
-	pointer-events: none;
-	overflow: hidden;
-	z-index: 0;
+.dl-gh :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
-.dl-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1200px;
-	height: 800px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(50px);
-	opacity: 0.55;
+.dl-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.dl-atmosphere::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image:
-		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-	background-size: 56px 56px;
-	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
+.dl-aside {
+  padding: var(--s-5) var(--s-5) var(--s-2);
 }
 
-.page-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 60px 24px 80px; }
-.back-row { margin-bottom: 18px; }
-
-.hero-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 32px;
-  background: linear-gradient(180deg, color-mix(in oklab, var(--bg-1) 65%, transparent), color-mix(in oklab, var(--bg-0) 55%, transparent));
-  backdrop-filter: blur(10px);
-  margin-bottom: 32px;
+.dl-changes {
+  max-height: 320px;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
 }
-@media (max-width: 920px) { .hero-card { grid-template-columns: 1fr; padding: 24px; } }
 
-.hero-main h1 {
-  font-size: clamp(32px, 4.5vw, 44px);
-  font-weight: 700;
-  color: var(--fg-hi);
-  letter-spacing: -.02em;
-  margin: 0 0 10px;
-}
-.hero-desc { color: var(--dim); font-size: 16px; margin: 0 0 24px; }
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-.stat {
-  background: color-mix(in oklab, var(--bg-2) 55%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-.stat-label { font-size: 11px; color: var(--mute); margin-bottom: 4px; }
-.stat-val { font-size: 16px; font-weight: 700; color: var(--fg-hi); }
-.stat-val.brand-c { color: var(--brand); text-transform: uppercase; }
-
-.cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
-
-.info-side {
-  background: color-mix(in oklab, var(--bg-0) 60%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 18px;
-}
-.info-side h3 {
-  display: flex; align-items: center; gap: 6px;
-  margin: 0 0 14px;
-  font-size: 13px;
+.dl-changes li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--line);
+  font: 400 13px/1.5 var(--font-mono);
   color: var(--dim);
-  font-weight: 500;
 }
-.info-label { font-size: 11px; color: var(--mute); margin-bottom: 10px; }
-.info-list { list-style: none; padding: 0; margin: 0; max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.info-list li { font-size: 12px; }
-.info-list .sha { font-family: var(--font-mono); font-size: 11px; color: var(--brand); }
-.info-list p { margin: 4px 0 0; color: var(--dim); }
 
-.builds-section h2 {
-  font-size: 22px; font-weight: 600;
-  color: var(--fg-hi);
-  margin: 0 0 18px;
+.dl-changes li:last-child {
+  border-bottom: 0;
 }
-.panel {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 22px;
-  background: color-mix(in oklab, var(--bg-1) 50%, transparent);
+
+.dl-sha {
+  flex-shrink: 0;
+  font: 400 12.5px/1.55 var(--font-mono);
+  color: var(--accent);
 }
-.btn-icon {
-  filter: brightness(0) invert(1);
-  opacity: 0.75;
+
+.dl-sha:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 </style>

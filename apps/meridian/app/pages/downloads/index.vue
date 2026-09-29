@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from '@bx-team/ui';
-import { AlertCircle, ArrowRight, Clock, Download, GitCommit, Package } from '@lucide/vue';
+import { Button, PageHero, Section } from '@bx-team/ui';
+import { ArrowRight, ArrowUpRight, Download } from '@lucide/vue';
 import {
   type BuildCommit,
   type Channel,
@@ -14,6 +14,7 @@ import {
   primaryDownload,
 } from '@/lib/builds';
 import { formatBytes } from '@/lib/format';
+import { findProject } from '~/config/projects';
 
 /** A versioned project's newest publication is a build, a release project's is a
  *  tag; the card is the same either way, so the difference is resolved here. */
@@ -71,232 +72,211 @@ useHead({
 </script>
 
 <template>
-  <PageShell max-width="1100px" gutter="24px">
-    <div class="dl-root">
-    <div class="dl-atmosphere" aria-hidden="true" />
-    <div class="page-wrap">
-      <header class="page-head">
-        <h1>Downloads</h1>
-        <p>Select software you want to download</p>
-      </header>
+  <PageShell overlay>
+    <PageHero
+      title="Downloads"
+      tagline="The latest versions of our projects, ready to download"
+      lede="Grab the newest version below, or open a project to see all of its builds."
+    />
 
-      <div v-if="entries.length" class="project-list">
-        <article v-for="{ project, latest } in entries" :key="project.key" class="proj-card">
-          <header class="proj-head">
-            <NuxtLink :to="`/downloads/${project.key}`" class="proj-title">
-              <h2>{{ project.name }}</h2>
+    <Section title="Projects" lede="The latest version of each project.">
+      <div v-if="entries.length" class="dl-list">
+        <article v-for="{ project, latest } in entries" :key="project.key" class="dl-card">
+          <div class="dl-card__head">
+            <NuxtLink :to="`/downloads/${project.key}`" class="dl-card__title">
+              <h3>{{ project.name }}</h3>
             </NuxtLink>
-            <p>{{ project.description || 'No description available.' }}</p>
-          </header>
-
-          <div v-if="latest" class="stats">
-            <div class="stat">
-              <div class="stat-label">{{ project.kind === 'release' ? 'Latest Release' : 'Latest Build' }}</div>
-              <div class="stat-val">{{ latest.label }}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Channel</div>
-              <span class="badge-channel" :class="getChannelColor(latest.channel)">{{ latest.channel }}</span>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Size</div>
-              <div class="stat-val with-icon">
-                <Package :size="12" :stroke-width="1.8" />
-                {{ latest.file ? formatBytes(latest.file.size) : '—' }}
-              </div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Updated</div>
-              <div class="stat-val with-icon">
-                <Clock :size="12" :stroke-width="1.8" />
-                {{ new Date(latest.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }}
-              </div>
-            </div>
+            <span v-if="latest" class="bx-channel" :class="getChannelColor(latest.channel)">{{ latest.channel }}</span>
           </div>
+          <p class="dl-card__desc">{{ project.description || 'No description available.' }}</p>
 
-          <div v-if="latest?.commits.length" class="commits">
-            <div class="commits-head">
-              <GitCommit :size="14" :stroke-width="1.7" />
-              <h4>Recent Changes</h4>
+          <dl v-if="latest" class="dl-card__facts">
+            <div>
+              <dt>{{ project.kind === 'release' ? 'Latest release' : 'Latest build' }}</dt>
+              <dd>{{ latest.label }}</dd>
             </div>
+            <div>
+              <dt>Size</dt>
+              <dd>{{ latest.file ? formatBytes(latest.file.size) : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Updated</dt>
+              <dd>{{ new Date(latest.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</dd>
+            </div>
+          </dl>
+
+          <div v-if="latest?.commits.length" class="dl-card__changes">
+            <p class="bx-micro">Recent changes</p>
             <ul>
               <li v-for="c in latest.commits.slice(0, 3)" :key="c.sha">
                 <NuxtLink
                   :to="commitUrl(project, c.sha)"
                   :target="project.repo ? undefined : '_blank'"
                   :rel="project.repo ? undefined : 'noopener noreferrer'"
-                  class="sha"
+                  class="dl-sha"
                 >{{ c.sha.substring(0, 7) }}</NuxtLink>
                 <span>{{ c.summary }}</span>
               </li>
             </ul>
           </div>
 
-          <footer class="proj-foot">
+          <div class="dl-card__foot">
             <Button v-if="latest?.file" :href="latest.file.url" target="_blank" rel="noopener noreferrer" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
-              Download Latest
+              Download latest
             </Button>
             <Button :href="`/downloads/${project.key}`" variant="secondary">
               <ArrowRight :size="16" :stroke-width="1.7" />
-              {{ project.kind === 'release' ? 'All Releases' : 'All Builds' }}
+              {{ project.kind === 'release' ? 'All releases' : 'All builds' }}
             </Button>
-          </footer>
+            <NuxtLink v-if="findProject(project.key)" :to="`/${project.key}`" class="bx-link dl-card__about">
+              About {{ project.name }}
+              <ArrowUpRight :size="14" :stroke-width="1.7" />
+            </NuxtLink>
+          </div>
         </article>
       </div>
 
-      <div v-else-if="error" class="empty">
-        <AlertCircle :size="36" :stroke-width="1.5" />
-        <h3>Downloads Unavailable</h3>
-        <p>The downloads API could not be reached. Please try again in a moment.</p>
-      </div>
+      <p v-else-if="error" class="bx-callout bx-callout--err">
+        <span class="bx-callout__mark">Unavailable</span>
+        <span>The downloads API could not be reached. Please try again in a moment.</span>
+      </p>
 
-      <div v-else class="empty">
-        <Download :size="36" :stroke-width="1.5" />
-        <h3>No Projects Available</h3>
-        <p>There are currently no projects available for download.</p>
-      </div>
-    </div>
-    </div>
+      <p v-else class="bx-callout bx-callout--note">
+        <span class="bx-callout__mark">Empty</span>
+        <span>There are currently no projects available for download.</span>
+      </p>
+    </Section>
   </PageShell>
 </template>
 
 <style scoped>
-.dl-root {
-	position: relative;
-	overflow: hidden;
+.dl-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
 }
 
-.dl-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 960px;
-	pointer-events: none;
-	overflow: hidden;
-	z-index: 0;
-}
-
-.dl-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1200px;
-	height: 800px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(50px);
-	opacity: 0.55;
-}
-
-.dl-atmosphere::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image:
-		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-	background-size: 56px 56px;
-	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-}
-
-.page-wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 90px 24px 80px; }
-.page-head { text-align: center; margin-bottom: 48px; }
-.page-head h1 {
-  font-size: clamp(36px, 5vw, 52px);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: var(--fg-hi);
-  margin: 0 0 12px;
-}
-.page-head p { color: var(--dim); font-size: 17px; margin: 0; }
-
-.project-list { display: flex; flex-direction: column; gap: 18px; max-width: 880px; margin: 0 auto; }
-
-.proj-card {
+.dl-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  background: var(--surface-card);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: color-mix(in oklab, var(--bg-1) 55%, transparent);
-  backdrop-filter: blur(8px);
-  transition: border-color .15s;
+  border-radius: var(--r-1);
 }
-.proj-card:hover { border-color: var(--line-2); }
 
-.proj-head { padding: 22px 24px 14px; }
-.proj-title { display: inline-block; }
-.proj-title h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--fg-hi);
-  margin: 0 0 6px;
-  transition: color .15s;
+.dl-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
 }
-.proj-title:hover h2 { color: var(--brand); }
-.proj-head p { margin: 0; color: var(--mute); font-size: 13.5px; line-height: 1.55; }
 
-.stats {
+.dl-card__title h3 {
+  margin: 0;
+  font: 600 26px/1.2 var(--font-heading);
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  transition: color 0.15s ease;
+}
+
+.dl-card__title:hover h3 {
+  color: var(--accent);
+}
+
+.dl-card__desc {
+  max-width: 44rem;
+  margin: 0;
+  font: 400 13.5px/1.6 var(--font-mono);
+  color: var(--dim);
+}
+
+.dl-card__facts {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  padding: 0 24px 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
 }
-@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-.stat {
-  background: color-mix(in oklab, var(--bg-2) 55%, transparent);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
+
+.dl-card__facts div {
+  padding: var(--s-4) var(--s-5);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
-.stat-label { font-size: 11px; color: var(--mute); margin-bottom: 4px; }
-.stat-val { font-size: 14px; font-weight: 700; color: var(--fg-hi); }
-.stat-val.with-icon { display: flex; align-items: center; gap: 5px; }
 
-.commits { padding: 14px 24px; border-top: 1px solid var(--line); }
-.commits-head { display: flex; align-items: center; gap: 8px; color: var(--mute); margin-bottom: 10px; }
-.commits-head h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin: 0; }
-.commits ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.commits li { display: flex; gap: 8px; font-size: 13px; color: var(--dim); align-items: baseline; }
-.sha {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--brand);
-  flex-shrink: 0;
-  transition: opacity .15s;
-}
-.sha:hover { opacity: .8; }
-
-.proj-foot { padding: 14px 24px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; flex-wrap: wrap; }
-
-.badge-channel {
-  font-family: var(--font-mono);
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
+.dl-card__facts dt {
+  font: 500 11px/1.4 var(--font-mono);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-/* Channel badge colors */
-.channel-stable { background: color-mix(in oklab, var(--ch-stable) 15%, transparent); color: var(--ch-stable); border-color: color-mix(in oklab, var(--ch-stable) 30%, transparent); }
-.channel-beta { background: color-mix(in oklab, var(--ch-beta) 15%, transparent); color: var(--ch-beta); border-color: color-mix(in oklab, var(--ch-beta) 30%, transparent); }
-.channel-alpha { background: color-mix(in oklab, var(--ch-alpha) 15%, transparent); color: var(--ch-alpha); border-color: color-mix(in oklab, var(--ch-alpha) 30%, transparent); }
-.channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
-
-.empty {
-  display: grid; place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 64px 24px;
-  background: color-mix(in oklab, var(--bg-1) 50%, transparent);
-  text-align: center;
   color: var(--mute);
 }
-.empty h3 { margin: 14px 0 6px; color: var(--fg-hi); font-size: 18px; }
-.empty p { margin: 0; }
+
+.dl-card__facts dd {
+  margin: var(--s-1) 0 0;
+  font: 600 20px/1.2 var(--font-heading);
+  letter-spacing: -0.015em;
+  color: var(--fg);
+}
+
+.dl-card__changes ul {
+  display: flex;
+  flex-direction: column;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dl-card__changes li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  font: 400 13.5px/1.5 var(--font-mono);
+  color: var(--dim);
+}
+
+.dl-card__changes li:last-child {
+  border-bottom: 0;
+}
+
+.dl-sha {
+  flex-shrink: 0;
+  font: 400 12.5px/1.5 var(--font-mono);
+  color: var(--accent);
+}
+
+.dl-sha:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dl-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding-top: var(--s-2);
+}
+
+.dl-card__about {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 13.5px;
+}
+
+@media (max-width: 640px) {
+  .dl-card__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .dl-card__about {
+    margin-left: 0;
+  }
+}
 </style>

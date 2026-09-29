@@ -61,13 +61,13 @@ defineProps<{ notices: Notice[]; columns?: boolean }>();
 
 .notice h4 {
 	margin: 0 0 3px;
-	font: 600 13px/1.4 var(--font-sans);
+	font: 500 13px/1.4 var(--font-mono);
 	color: var(--fg-hi);
 }
 
 .notice p {
 	margin: 0;
-	font: 400 13px/1.6 var(--font-sans);
+	font: 400 13px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 </style>

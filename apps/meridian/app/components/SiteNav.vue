@@ -11,6 +11,7 @@ defineProps<{
   searchLabel?: string;
   maxWidth?: string;
   gutter?: string;
+  overlay?: boolean;
 }>();
 
 defineEmits<{ search: [] }>();
@@ -33,11 +34,13 @@ const active = computed(() => {
 		:active="active"
 		:tag="tag"
 		:link-as="link"
+		:github-href="GITHUB_URL"
 		:discord-href="DISCORD_URL"
 		:search-enabled="searchEnabled"
 		:search-label="searchLabel"
 		:max-width="maxWidth"
 		:gutter="gutter"
+		:overlay="overlay"
 		@search="$emit('search')"
 	>
 		<template v-if="$slots.lead" #lead>

@@ -87,14 +87,14 @@ const projects = [
 }
 
 .heading {
-	font: 700 36px/1.15 var(--font-sans);
+	font: 600 36px/1.15 var(--font-heading);
 	letter-spacing: -0.025em;
 	color: var(--fg-hi);
 	margin: 0 0 12px;
 }
 
 .lede {
-	font: 400 16px/1.55 var(--font-sans);
+	font: 400 16px/1.55 var(--font-mono);
 	color: var(--dim);
 	margin: 0;
 	text-wrap: pretty;
@@ -120,7 +120,7 @@ const projects = [
 	padding: 20px;
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: var(--r-1);
 	text-decoration: none;
 	color: inherit;
 	transition: border-color 0.15s, background 0.15s;
@@ -142,7 +142,7 @@ const projects = [
 	place-items: center;
 	width: 34px;
 	height: 34px;
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	background: color-mix(in oklab, var(--brand-soft) 80%, transparent);
 	border: 1px solid color-mix(in oklab, var(--brand) 25%, var(--line));
 	color: var(--brand);
@@ -154,19 +154,19 @@ const projects = [
 	background: var(--bg-2);
 	border: 1px solid var(--line);
 	padding: 2px 8px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	letter-spacing: 0.04em;
 }
 
 .card-title {
-	font: 700 17px/1.2 var(--font-sans);
+	font: 600 17px/1.2 var(--font-heading);
 	letter-spacing: -0.01em;
 	color: var(--fg-hi);
 	margin: 0;
 }
 
 .card-desc {
-	font: 400 13px/1.55 var(--font-sans);
+	font: 400 13px/1.55 var(--font-mono);
 	color: var(--dim);
 	margin: 0;
 	flex: 1;
@@ -176,7 +176,7 @@ const projects = [
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 12.5px var(--font-sans);
+	font: 500 12.5px var(--font-mono);
 	color: var(--brand);
 	margin-top: 4px;
 }

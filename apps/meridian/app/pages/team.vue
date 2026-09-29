@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
 import { GITHUB_URL } from '~/config/links';
+import { githubHeaders } from '~/lib/github';
 
 interface TeamMember {
   name: string;
@@ -42,7 +43,7 @@ const sections: TeamSection[] = [
   },
 ];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'docs'];
+const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'Nyx', 'code'];
 
 const { data: contributors } = await useAsyncData<GithubContributor[]>(
   'team:contributors',
@@ -51,7 +52,7 @@ const { data: contributors } = await useAsyncData<GithubContributor[]>(
       const results = await Promise.all(
         REPOS.map(repo =>
           $fetch<GithubContributor[]>(`https://api.github.com/repos/BX-Team/${repo}/contributors?per_page=100`, {
-            headers: { Accept: 'application/vnd.github.v3+json' },
+            headers: githubHeaders(),
           }).catch(() => [] as GithubContributor[]),
         ),
       );
@@ -80,7 +81,6 @@ useHead({
 <template>
   <PageShell max-width="1180px" gutter="24px">
     <div class="team-root">
-    <div class="team-atmosphere" aria-hidden="true" />
     <div class="page-wrap">
       <header class="page-head">
         <h1>Meet our team</h1>
@@ -150,45 +150,8 @@ useHead({
 	overflow: hidden;
 }
 
-.team-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 960px;
-	pointer-events: none;
-	overflow: hidden;
-	z-index: 0;
-}
 
-.team-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1200px;
-	height: 800px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(50px);
-	opacity: 0.55;
-}
 
-.team-atmosphere::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image:
-		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-	background-size: 56px 56px;
-	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-}
 
 .page-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 90px 24px 80px; }
 .page-head { max-width: 720px; margin: 0 auto 56px; text-align: center; }
@@ -220,8 +183,8 @@ useHead({
   display: flex; align-items: center; gap: 14px;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--bg-1) 60%, transparent);
+  border-radius: var(--r-1);
+  background: var(--bg-1);
   text-decoration: none;
   color: inherit;
   transition: border-color .15s, background .15s, transform .15s;
@@ -239,15 +202,13 @@ a.member-card:hover {
 .member-card p { margin: 0; color: var(--mute); font-size: 13px; }
 
 .contributors { display: flex; flex-wrap: wrap; gap: 12px; }
-.contrib { transition: transform .15s; }
-.contrib:hover { transform: translateY(-2px); }
 
 .avatar {
   border-radius: 50%;
   overflow: hidden;
   background: var(--bg-3);
   display: flex; align-items: center; justify-content: center;
-  font: 600 13px var(--font-sans);
+  font: 500 13px var(--font-mono);
   color: var(--fg-hi);
   flex-shrink: 0;
 }

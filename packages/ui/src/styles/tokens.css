@@ -1,69 +1,53 @@
-/* ===========================================================
-   BX Team — Design Tokens
-   Dark-first: cyan→green brand on a warm basalt canvas.
-   The ground is deliberately warm (hue 70) so the cool brand
-   reads as the only cold thing on screen — cyan is already at
-   the sRGB chroma ceiling and cannot be pushed further.
-   Inter UI · JetBrains Mono code. (imported by frontend with @nuxt/fonts)
-   =========================================================== */
-
 :root {
-  /* ── Surfaces (warm basalt ladder) ── */
-  --bg-0: #12100d; /* page */
-  --bg-1: #171512; /* card / nav */
-  --bg-2: #1c1916; /* hover surface */
-  --bg-3: #201e1b; /* input fill */
-  --bg-deep: #0c0a07; /* code panels, recessed wells */
+  --surface-deep: #100e0b;
+  --surface-0: #151310;
+  --surface-1: #12100d;
+  --surface-card: #1b1915;
+  --surface-2: #221f1b;
+  --surface-3: #27241f;
 
-  /* ── Borders ── */
-  --line: #25211e;
-  --line-2: #33302c;
+  --line: #2e2a26;
+  --line-2: #3c3833;
+  --rule: #534e48;
+  --edge: #7a756f;
 
-  /* ── Text ladder ── */
-  --mute: #847f7a;
-  --dim: #b3afaa;
-  --fg: #e9e6e2;
-  --fg-hi: #f9f6f3;
+  --mute: #938d86;
+  --dim: #bdb8b2;
+  --fg: #efebe6;
+  --fg-hi: #fbf8f5;
 
-  /* ── Brand: cyan (primary) ── */
-  --brand: oklch(0.82 0.135 195);
-  --brand-soft: oklch(0.82 0.135 195 / 0.2);
-  --brand-glow: oklch(0.82 0.135 195 / 0.5);
+  --accent: #25dfdf;
+  --accent-2: #61da92;
+  --accent-wash: #26402d;
+  --glow: rgba(37, 223, 223, 0.09);
+  --ring: var(--accent);
+  --select-bg: var(--line-2);
 
-  /* ── Brand: green (secondary) ── */
-  --brand-2: oklch(0.8 0.15 155);
-  --brand-soft-2: oklch(0.8 0.15 155 / 0.2);
-  --brand-glow-2: oklch(0.8 0.15 155 / 0.5);
+  --pixel-bg: var(--surface-deep);
+  --pixel-dim: #332e28;
+  --pixel-mid: #238a78;
+  --pixel-lit: #25dfdf;
+  --pixel-hover: #7aeaea;
+  --pixel-crest: #c4f6f6;
 
-  /* ── Interactive fills (brand-tinted, never flat white) ── */
-  --hover: color-mix(in oklab, var(--brand) 8%, transparent);
-  --hover-2: color-mix(in oklab, var(--brand) 14%, transparent);
+  --ok: #75d079;
+  --warn: #f7bc50;
+  --err: #f66d62;
+  --info: #6fc6e8;
+  --exp: #bc98f9;
 
-  /* ── Status ── */
-  --ok: oklch(0.78 0.15 145);
-  --warn: oklch(0.83 0.14 80);
-  --err: oklch(0.7 0.17 27);
-  --info: oklch(0.82 0.135 195);
-
-  /* ── Release channels ──
-     Kept separate from the brand on purpose: a channel chip encodes state,
-     so it must not read as the mark. --ok is a yellower green than --brand-2
-     for exactly that reason. */
   --ch-stable: var(--ok);
   --ch-beta: var(--info);
   --ch-alpha: var(--warn);
-  --ch-experimental: oklch(0.75 0.14 300);
+  --ch-experimental: var(--exp);
 
-  /* ── Radii ── */
-  --r-xs: 4px;
-  --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 14px;
-  --r-2xl: 20px;
-  --r-full: 9999px;
+  --r-0: 0;
+  --r-1: 2px;
+  --r-2: 3px;
+  --r-3: 4px;
+  --r-4: 6px;
+  --r-pill: 9999px;
 
-  /* ── Spacing ── */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -75,34 +59,55 @@
   --s-12: 48px;
   --s-16: 64px;
   --s-24: 96px;
+  --s-32: 128px;
+  --container: 1180px;
 
-  /* ── Shadows ── */
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 50px -22px rgba(0, 0, 0, 0.45);
-  --shadow-pop:
-    0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 40px 90px -34px rgba(0, 0, 0, 0.55), 0 0 80px -22px var(--brand-soft);
-  --shadow-glow: 0 0 0 3px var(--brand-soft);
+  --shadow-panel: 0 18px 50px -24px rgba(0, 0, 0, 0.65);
+  --shadow-modal: 0 32px 80px -32px rgba(0, 0, 0, 0.75);
+  --shadow-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
-  /* ── Typography ── */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-heading: var(--font-sans);
+
+  --bg-0: var(--surface-1);
+  --bg-1: var(--surface-card);
+  --bg-2: var(--surface-2);
+  --bg-3: var(--surface-3);
+  --bg-deep: var(--surface-deep);
+  --brand: var(--accent);
+  --brand-2: var(--accent-2);
+  --brand-soft: rgba(37, 223, 223, 0.14);
+  --brand-glow: rgba(37, 223, 223, 0.4);
+  --brand-soft-2: var(--accent-wash);
+  --brand-glow-2: rgba(97, 218, 146, 0.4);
+  --hover: var(--surface-2);
+  --hover-2: var(--surface-3);
+  --r-xs: var(--r-1);
+  --r-sm: var(--r-1);
+  --r-md: var(--r-1);
+  --r-lg: var(--r-1);
+  --r-xl: var(--r-3);
+  --r-2xl: var(--r-4);
+  --r-full: var(--r-pill);
+  --shadow-card: none;
+  --shadow-pop: var(--shadow-panel);
+  --shadow-glow: 0 0 0 1px var(--ring);
 }
 
-/* ── Base ── */
 html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-0);
+  background: var(--surface-1);
   color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.6;
+  font: 400 15px / 1.6 var(--font-mono);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: var(--brand-soft);
+  background: var(--select-bg);
   color: var(--fg-hi);
 }
 
@@ -111,83 +116,197 @@ a {
   text-decoration: none;
 }
 
-/* ── Typography utilities ── */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 .bx-h-display {
-  font: 700 clamp(40px, 6vw, 64px) / 1.05 var(--font-heading);
+  font: 600 clamp(36px, 5vw, 56px) / 1.05 var(--font-heading);
   letter-spacing: -0.025em;
-  color: var(--fg-hi);
+  color: var(--fg);
 }
 .bx-h1 {
-  font: 700 40px / 1.1 var(--font-heading);
+  font: 600 44px / 1.08 var(--font-heading);
   letter-spacing: -0.02em;
-  color: var(--fg-hi);
+  color: var(--fg);
 }
 .bx-h2 {
-  font: 700 30px / 1.2 var(--font-heading);
-  letter-spacing: -0.015em;
-  color: var(--fg-hi);
+  font: 600 32px / 1.15 var(--font-heading);
+  letter-spacing: -0.018em;
+  color: var(--fg);
 }
 .bx-h3 {
-  font: 600 22px / 1.3 var(--font-heading);
+  font: 600 21px / 1.3 var(--font-heading);
   letter-spacing: -0.01em;
-  color: var(--fg-hi);
+  color: var(--fg);
 }
 .bx-h4 {
-  font: 600 17px / 1.4 var(--font-heading);
-  color: var(--fg-hi);
+  font: 600 16px / 1.4 var(--font-heading);
+  color: var(--fg);
 }
 .bx-h5 {
   font: 600 14px / 1.4 var(--font-heading);
-  color: var(--fg-hi);
+  color: var(--fg);
 }
 
+.bx-hero-lede {
+  font: 400 26px / 1.35 var(--font-mono);
+  color: var(--fg);
+}
 .bx-lede {
-  font: 400 17px / 1.55 var(--font-sans);
+  font: 400 17px / 1.6 var(--font-mono);
   color: var(--dim);
 }
 .bx-body {
-  font: 400 15px / 1.6 var(--font-sans);
+  font: 400 15px / 1.6 var(--font-mono);
   color: var(--fg);
 }
 .bx-body-sm {
-  font: 400 13.5px / 1.55 var(--font-sans);
+  font: 400 13.5px / 1.55 var(--font-mono);
   color: var(--dim);
 }
 .bx-caption {
-  font: 400 12.5px / 1.5 var(--font-sans);
+  font: 400 12.5px / 1.5 var(--font-mono);
   color: var(--mute);
 }
-.bx-eyebrow {
-  font: 600 11px / 1.4 var(--font-sans);
+.bx-eyebrow,
+.bx-micro {
+  font: 500 11px / 1.4 var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--mute);
 }
 
 .bx-code {
-  font: 500 13px / 1.45 var(--font-mono);
-  color: var(--fg-hi);
+  font: 400 13px / 1.55 var(--font-mono);
+  color: var(--fg);
 }
 .bx-code-inline {
-  font: 500 12.5px / 1.3 var(--font-mono);
-  background: var(--bg-3);
+  font: 400 12.5px / 1.3 var(--font-mono);
+  background: var(--surface-3);
   border: 1px solid var(--line);
-  color: var(--fg-hi);
-  padding: 1px 6px;
-  border-radius: var(--r-xs);
+  color: var(--fg);
+  padding: 1px 5px;
+  border-radius: var(--r-1);
 }
 
-/* ── Brand gradient text ── */
+.bx-link {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+.bx-link:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+.bx-accent {
+  color: var(--accent);
+}
+
 .bx-text-grad {
-  background: linear-gradient(95deg, var(--brand) 10%, var(--brand-2) 65%);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* ── Layout ── */
 .bx-container {
-  max-width: 1180px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 0 var(--s-8);
+}
+
+@media (max-width: 860px) {
+  .bx-container {
+    padding: 0 var(--s-4);
+  }
+}
+
+[id] {
+  scroll-margin-top: 56px;
+}
+
+.bx-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-1);
+  background: var(--surface-1);
+  font: 500 11px / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.bx-channel::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: currentColor;
+}
+.bx-channel--stable {
+  color: var(--ch-stable);
+}
+.bx-channel--beta {
+  color: var(--ch-beta);
+}
+.bx-channel--alpha {
+  color: var(--ch-alpha);
+}
+.bx-channel--experimental {
+  color: var(--ch-experimental);
+}
+
+.bx-callout {
+  display: flex;
+  gap: var(--s-3);
+  margin: 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--rule);
+  border-radius: var(--r-1);
+  background: var(--surface-0);
+  font: 400 13.5px / 1.6 var(--font-mono);
+  color: var(--dim);
+}
+.bx-callout__mark {
+  flex: none;
+  padding-top: 2px;
+  font: 500 11px / 1.4 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.bx-callout--note {
+  border-left-color: var(--info);
+}
+.bx-callout--note .bx-callout__mark {
+  color: var(--info);
+}
+.bx-callout--warn {
+  border-left-color: var(--warn);
+}
+.bx-callout--warn .bx-callout__mark {
+  color: var(--warn);
+}
+.bx-callout--err {
+  border-left-color: var(--err);
+}
+.bx-callout--err .bx-callout__mark {
+  color: var(--err);
+}
+.bx-callout--exp {
+  border-left-color: var(--exp);
+}
+.bx-callout--exp .bx-callout__mark {
+  color: var(--exp);
 }

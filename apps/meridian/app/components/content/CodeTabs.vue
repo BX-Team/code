@@ -125,7 +125,7 @@ function stripTags(html: string) {
 	position: relative;
 	background: var(--bg-deep);
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-3);
 	margin: 22px 0;
 	overflow: hidden;
 }
@@ -147,7 +147,7 @@ function stripTags(html: string) {
 	padding: 4px 10px;
 	font: 500 12px var(--font-mono);
 	color: var(--mute);
-	border-radius: 5px;
+	border-radius: var(--r-1);
 	cursor: pointer;
 	transition: color .15s, background-color .15s;
 }
@@ -163,7 +163,7 @@ function stripTags(html: string) {
 	color: var(--mute);
 	padding: 4px 9px;
 	border: 1px solid var(--line);
-	border-radius: 5px;
+	border-radius: var(--r-1);
 	background: transparent;
 	cursor: pointer;
 	transition: color .15s, border-color .15s;

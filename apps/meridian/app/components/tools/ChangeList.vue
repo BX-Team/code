@@ -102,7 +102,7 @@ const show = (value: unknown) => (Array.isArray(value) ? value.join(', ') : Stri
 	padding: 1px 7px;
 	border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--line));
 	border-radius: var(--r-full);
-	font: 500 10.5px/1.7 var(--font-sans);
+	font: 500 10.5px/1.7 var(--font-mono);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--warn);
@@ -111,13 +111,13 @@ const show = (value: unknown) => (Array.isArray(value) ? value.join(', ') : Stri
 
 .why {
 	margin: 5px 0 0;
-	font: 400 13px/1.6 var(--font-sans);
+	font: 400 13px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 
 .doc {
 	margin: 4px 0 0;
-	font: 400 12.5px/1.6 var(--font-sans);
+	font: 400 12.5px/1.6 var(--font-mono);
 	color: var(--mute);
 }
 

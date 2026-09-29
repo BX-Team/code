@@ -60,7 +60,7 @@ const num = computed(() => props.n ?? claimed.value ?? 1);
 	place-items: center;
 	width: 28px;
 	height: 28px;
-	border-radius: 999px;
+	border-radius: var(--r-1);
 	background: var(--bg-1);
 	border: 1px solid var(--line);
 	color: var(--fg-hi);
@@ -86,7 +86,7 @@ const num = computed(() => props.n ?? claimed.value ?? 1);
 
 .step-title {
 	margin: 0 0 6px;
-	font: 600 16px/1.4 var(--font-sans);
+	font: 600 16px/1.4 var(--font-heading);
 	letter-spacing: -0.005em;
 	color: var(--fg-hi);
 }
@@ -104,7 +104,7 @@ const num = computed(() => props.n ?? claimed.value ?? 1);
 .step-content :deep(h2),
 .step-content :deep(h3),
 .step-content :deep(h4) {
-	font: 600 14px/1.4 var(--font-sans);
+	font: 500 14px/1.4 var(--font-mono);
 	color: var(--fg-hi);
 	margin: 14px 0 6px;
 	letter-spacing: -0.005em;

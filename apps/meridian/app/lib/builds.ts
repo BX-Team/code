@@ -154,16 +154,8 @@ export function repoUrl(project: ProjectSummary): string {
 }
 
 export function getChannelColor(channel: string): string {
-  switch (channel?.toLowerCase()) {
-    case 'alpha':
-      return 'channel-alpha';
-    case 'beta':
-      return 'channel-beta';
-    case 'stable':
-      return 'channel-stable';
-    default:
-      return 'channel-default';
-  }
+  const c = channel?.toLowerCase();
+  return c === 'stable' || c === 'beta' || c === 'alpha' ? `bx-channel--${c}` : '';
 }
 
 export function getAllVersions(versionGroups?: Record<string, string[]>): string[] {

@@ -9,7 +9,6 @@ defineProps<{
 
 <template>
 	<div class="disabled-page">
-		<div class="disabled-atmosphere" aria-hidden="true" />
 
 		<main class="disabled-main">
 			<div class="disabled-card">
@@ -35,32 +34,7 @@ defineProps<{
 	overflow: hidden;
 }
 
-.disabled-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 100vh;
-	pointer-events: none;
-	z-index: 0;
-}
 
-.disabled-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -100px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 900px;
-	height: 600px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 50%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(60px);
-	opacity: 0.35;
-}
 
 .disabled-main {
 	position: relative;
@@ -75,10 +49,9 @@ defineProps<{
 	max-width: 560px;
 	text-align: center;
 	border: 1px solid var(--line);
-	border-radius: 16px;
+	border-radius: var(--r-1);
 	padding: 48px 40px;
-	background: color-mix(in oklab, var(--bg-1) 60%, transparent);
-	backdrop-filter: blur(12px);
+	background: var(--bg-1);
 	box-shadow: var(--shadow-pop);
 }
 
@@ -87,7 +60,7 @@ defineProps<{
 	place-items: center;
 	width: 64px;
 	height: 64px;
-	border-radius: 16px;
+	border-radius: var(--r-1);
 	background: var(--brand-soft);
 	color: var(--brand);
 	margin-bottom: 20px;

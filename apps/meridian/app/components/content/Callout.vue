@@ -61,7 +61,7 @@ const kind = computed<CalloutKind>(() => {
 	align-items: start;
 	padding: 14px 16px;
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-1);
 	margin: 22px 0;
 	background: var(--bg-1);
 }
@@ -82,12 +82,12 @@ const kind = computed<CalloutKind>(() => {
 	background: var(--bg-2);
 	border: 1px solid var(--line);
 	padding: 1px 5px;
-	border-radius: 3px;
+	border-radius: var(--r-1);
 }
 .callout .body :deep(pre) {
 	background: var(--bg-deep);
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	padding: 12px 14px;
 	margin: 8px 0;
 	overflow-x: auto;

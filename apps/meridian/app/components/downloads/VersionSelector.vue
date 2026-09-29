@@ -102,15 +102,14 @@ function pick(v: string) {
 	gap: 12px;
 	flex-wrap: wrap;
 }
-.vs-head label { font-size: 13px; font-weight: 500; color: var(--dim); }
+.vs-head label { font: 500 11px/1.4 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
 
 .toggle-exp {
-	color: var(--ch-experimental);
-	background: color-mix(in oklab, var(--ch-experimental) 10%, transparent);
-	border: 1px solid color-mix(in oklab, var(--ch-experimental) 20%, transparent);
+	color: var(--dim);
+	border: 1px solid var(--edge);
 }
-.toggle-exp:hover { background: color-mix(in oklab, var(--ch-experimental) 18%, transparent); }
-.toggle-exp.on { background: color-mix(in oklab, var(--ch-experimental) 22%, transparent); border-color: color-mix(in oklab, var(--ch-experimental) 35%, transparent); }
+.toggle-exp:hover { border-color: var(--fg); }
+.toggle-exp.on { color: var(--ch-experimental); border-color: var(--ch-experimental); background: var(--surface-2); }
 
 .vs-dropdown {
 	position: relative;
@@ -122,22 +121,19 @@ function pick(v: string) {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 10px 14px;
-	background: var(--bg-2);
-	border: 1px solid var(--line-2);
-	border-radius: 8px;
-	color: var(--fg-hi);
+	height: 40px;
+	padding: 0 var(--s-3);
+	background: var(--surface-3);
+	border: 1px solid var(--edge);
+	border-radius: var(--r-2);
+	color: var(--fg);
 	cursor: pointer;
 	transition: border-color .15s, background .15s;
 	font-family: inherit;
 }
-.trigger:hover {
-	border-color: var(--dim);
-	background: var(--bg-3);
-}
+.trigger:hover,
 .trigger.open {
-	border-color: var(--brand);
-	background: var(--bg-3);
+	border-color: var(--fg);
 }
 
 .val {
@@ -157,10 +153,10 @@ function pick(v: string) {
 	right: 0;
 	background: var(--bg-1);
 	border: 1px solid var(--line-2);
-	border-radius: 10px;
+	border-radius: var(--r-1);
 	overflow: hidden;
 	z-index: 50;
-	box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+	box-shadow: var(--shadow-panel);
 	max-height: 280px;
 	overflow-y: auto;
 }
@@ -183,14 +179,14 @@ function pick(v: string) {
 .menu-item:hover { background: var(--bg-2); color: var(--fg-hi); }
 .menu-item.selected { color: var(--fg-hi); background: var(--hover-2); }
 
-.check { font-size: 12px; color: var(--brand); }
+.check { font-size: 12px; color: var(--accent); }
 
 .badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 3px;
 	padding: 2px 6px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	border: 1px solid;
 	font-size: 11px;
 	font-weight: 500;

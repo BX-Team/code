@@ -28,7 +28,6 @@ const tools = [
 <template>
 	<PageShell max-width="1180px" gutter="24px">
 		<div class="tools-root">
-			<div class="tools-atmosphere" aria-hidden="true" />
 			<div class="tools-wrap">
 				<header class="tools-head">
 					<h1>Tools</h1>
@@ -55,14 +54,6 @@ const tools = [
 	flex: 1;
 }
 
-.tools-atmosphere {
-	position: absolute;
-	inset: 0 0 auto 0;
-	height: 620px;
-	pointer-events: none;
-	background: radial-gradient(120% 80% at 50% -20%, var(--brand-soft), transparent 60%);
-	opacity: 0.5;
-}
 
 .tools-wrap {
 	position: relative;
@@ -77,7 +68,7 @@ const tools = [
 
 .tools-head h1 {
 	margin: 0 0 8px;
-	font: 700 34px/1.15 var(--font-heading);
+	font: 600 34px/1.15 var(--font-heading);
 	color: var(--fg-hi);
 	letter-spacing: -0.02em;
 }
@@ -85,7 +76,7 @@ const tools = [
 .tools-head p {
 	margin: 0;
 	max-width: 68ch;
-	font: 400 15px/1.6 var(--font-sans);
+	font: 400 15px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 
@@ -130,7 +121,7 @@ const tools = [
 .tool-card p {
 	margin: 0;
 	flex: 1;
-	font: 400 13.5px/1.6 var(--font-sans);
+	font: 400 13.5px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 
@@ -138,7 +129,7 @@ const tools = [
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 13px/1 var(--font-sans);
+	font: 500 13px/1 var(--font-mono);
 	color: var(--brand);
 }
 

@@ -1,55 +1,71 @@
 <script setup lang="ts">
-defineProps<{
-  title: string;
-  body: string;
-}>();
+import type { Component } from 'vue';
+
+withDefaults(
+  defineProps<{
+    title: string;
+    body: string;
+    href?: string;
+    linkAs?: string | Component;
+  }>(),
+  { linkAs: 'a' },
+);
 </script>
 
 <template>
-	<article class="bx-feature-card">
+	<component :is="href ? linkAs : 'article'" :href="href" class="bx-feature-card" :class="{ 'bx-feature-card--link': href }">
 		<div class="bx-feature-card__icon">
 			<slot name="icon" />
 		</div>
 		<h3 class="bx-feature-card__title">{{ title }}</h3>
 		<p class="bx-feature-card__body">{{ body }}</p>
-	</article>
+	</component>
 </template>
 
 <style scoped>
 .bx-feature-card {
-	padding: 22px;
-	background: var(--bg-1);
+	display: flex;
+	flex-direction: column;
+	gap: var(--s-3);
+	padding: var(--s-6);
+	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-lg);
-	transition: border-color 0.2s, background 0.2s;
+	border-radius: var(--r-1);
 }
 
-.bx-feature-card:hover {
+.bx-feature-card--link {
+	color: inherit;
+	text-decoration: none;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease;
+}
+
+.bx-feature-card--link:hover {
 	border-color: var(--line-2);
-	background: var(--bg-2);
+	background: var(--surface-2);
+}
+
+.bx-feature-card--link:hover .bx-feature-card__icon {
+	color: var(--accent);
 }
 
 .bx-feature-card__icon {
-	display: inline-grid;
-	place-items: center;
-	width: 36px;
-	height: 36px;
-	background: var(--bg-3);
-	border: 1px solid var(--line);
-	border-radius: 9px;
-	color: var(--brand);
+	display: flex;
+	color: var(--mute);
+	transition: color 0.15s ease;
 }
 
 .bx-feature-card__title {
-	margin: 12px 0 6px;
-	font: 600 17px/1.4 var(--font-sans);
-	color: var(--fg-hi);
+	margin: 0;
+	font: 600 18px/1.3 var(--font-sans);
+	letter-spacing: -0.01em;
+	color: var(--fg);
 }
 
 .bx-feature-card__body {
 	margin: 0;
+	font: 400 13.5px/1.6 var(--font-mono);
 	color: var(--dim);
-	font-size: 13.5px;
-	line-height: 1.55;
 }
 </style>

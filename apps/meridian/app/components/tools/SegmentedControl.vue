@@ -44,7 +44,7 @@ const model = defineModel<string>({ required: true });
 	display: flex;
 	align-items: baseline;
 	gap: 8px;
-	font: 600 11px/1.4 var(--font-sans);
+	font: 500 11px/1.4 var(--font-mono);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--mute);
@@ -76,7 +76,7 @@ const model = defineModel<string>({ required: true });
 	border-radius: var(--r-sm);
 	background: transparent;
 	color: var(--dim);
-	font: 500 13px/1 var(--font-sans);
+	font: 500 13px/1 var(--font-mono);
 	cursor: pointer;
 	transition: background-color 0.15s, color 0.15s;
 }

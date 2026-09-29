@@ -87,6 +87,10 @@ export default defineNuxtConfig({
   app: {
     head: {
       titleTemplate: '%s | BX Team',
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+      ],
       meta: [
         {
           name: 'description',

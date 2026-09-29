@@ -302,7 +302,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	margin-bottom: 16px;
 	border: 1px solid var(--line);
 	border-radius: var(--r-lg);
-	background: color-mix(in oklab, var(--bg-1) 88%, transparent);
+	background: var(--bg-1);
 }
 
 .choice {
@@ -324,7 +324,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	border-radius: var(--r-sm);
 	background: transparent;
 	color: var(--dim);
-	font: 500 13.5px/1 var(--font-sans);
+	font: 500 13.5px/1 var(--font-mono);
 	cursor: pointer;
 	transition: background-color 0.15s, color 0.15s;
 }
@@ -342,7 +342,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 
 .choice-sum {
 	margin: 10px 2px 16px;
-	font: 400 13px/1.6 var(--font-sans);
+	font: 400 13px/1.6 var(--font-mono);
 	color: var(--mute);
 }
 
@@ -361,7 +361,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 }
 
 .label {
-	font: 600 11px/1.4 var(--font-sans);
+	font: 500 11px/1.4 var(--font-mono);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--mute);
@@ -393,7 +393,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	display: inline-flex;
 	gap: 8px;
 	align-items: center;
-	font: 400 13px/1.4 var(--font-sans);
+	font: 400 13px/1.4 var(--font-mono);
 	color: var(--dim);
 	cursor: pointer;
 	min-height: 32px;
@@ -407,7 +407,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 
 .rail-total {
 	margin-bottom: 8px;
-	font: 400 11.5px/1.5 var(--font-sans);
+	font: 400 11.5px/1.5 var(--font-mono);
 	color: var(--mute);
 }
 
@@ -428,7 +428,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	border-radius: var(--r-sm);
 	background: var(--bg-2);
 	color: var(--dim);
-	font: 500 12px/1 var(--font-sans);
+	font: 500 12px/1 var(--font-mono);
 	cursor: pointer;
 	white-space: nowrap;
 }
@@ -444,7 +444,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	flex-wrap: wrap;
 	align-items: baseline;
 	margin: 12px 2px 0;
-	font: 400 12.5px/1.5 var(--font-sans);
+	font: 400 12.5px/1.5 var(--font-mono);
 	color: var(--mute);
 }
 
@@ -475,14 +475,14 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 
 .col h2 {
 	margin: 0 0 6px;
-	font: 700 18px/1.3 var(--font-heading);
+	font: 600 18px/1.3 var(--font-heading);
 	color: var(--fg-hi);
 }
 
 .lead {
 	margin: 0 0 14px;
 	max-width: 68ch;
-	font: 400 13.5px/1.6 var(--font-sans);
+	font: 400 13.5px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 
@@ -491,7 +491,7 @@ const SOFTWARE_OPTIONS = (['paper', 'purpur', 'divinemc'] as Software[]).map(id 
 	padding: 16px;
 	border: 1px dashed var(--line-2);
 	border-radius: var(--r-lg);
-	font: 400 13.5px/1.6 var(--font-sans);
+	font: 400 13.5px/1.6 var(--font-mono);
 	color: var(--mute);
 }
 

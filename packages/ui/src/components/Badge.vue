@@ -20,60 +20,53 @@ defineProps<{
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 600 11px var(--font-sans);
-	padding: 3px 9px;
-	border-radius: var(--r-full);
+	font: 500 11px/1 var(--font-mono);
+	padding: 4px 7px;
+	border-radius: var(--r-1);
+	border: 1px solid var(--line-2);
+	background: var(--surface-1);
+	color: var(--dim);
 }
 
 .bx-badge--brand {
-	background: var(--brand);
-	color: var(--bg-0);
+	color: var(--accent);
 }
 .bx-badge--soft {
-	background: var(--brand-soft);
-	color: var(--brand);
-	border: 1px solid color-mix(in oklab, var(--brand) 40%, transparent);
+	color: var(--dim);
 }
 .bx-badge--green {
-	background: var(--brand-soft-2);
-	color: var(--brand-2);
-	border: 1px solid color-mix(in oklab, var(--brand-2) 40%, transparent);
+	background: var(--accent-wash);
+	border-color: var(--accent-wash);
+	color: var(--accent-2);
 }
 .bx-badge--warn {
-	background: color-mix(in oklab, var(--warn) 18%, transparent);
 	color: var(--warn);
-	border: 1px solid color-mix(in oklab, var(--warn) 40%, transparent);
 }
 .bx-badge--err {
-	background: color-mix(in oklab, var(--err) 18%, transparent);
 	color: var(--err);
-	border: 1px solid color-mix(in oklab, var(--err) 40%, transparent);
 }
 .bx-badge--mono {
-	font: 500 10.5px var(--font-mono);
-	background: var(--bg-3);
-	color: var(--dim);
-	border: 1px solid var(--line);
-	border-radius: var(--r-xs);
-	padding: 2px 6px;
+	color: var(--mute);
 }
 
 .bx-status-chip {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 11.5px var(--font-sans);
+	font: 500 11px/1 var(--font-mono);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
 	color: var(--dim);
 }
 
 .bx-status-chip__dot {
 	width: 6px;
 	height: 6px;
-	border-radius: 50%;
+	border-radius: var(--r-pill);
 	flex-shrink: 0;
 }
-.bx-status-chip__dot--ok   { background: var(--ok);   box-shadow: 0 0 6px var(--ok); }
-.bx-status-chip__dot--warn { background: var(--warn);  box-shadow: 0 0 6px var(--warn); }
-.bx-status-chip__dot--err  { background: var(--err);   box-shadow: 0 0 6px var(--err); }
-.bx-status-chip__dot--info { background: var(--info);  box-shadow: 0 0 6px var(--info); }
+.bx-status-chip__dot--ok   { background: var(--ok); }
+.bx-status-chip__dot--warn { background: var(--warn); }
+.bx-status-chip__dot--err  { background: var(--err); }
+.bx-status-chip__dot--info { background: var(--info); }
 </style>

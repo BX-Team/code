@@ -35,7 +35,7 @@ const open = ref(false);
 	border: 0;
 	background: transparent;
 	color: var(--dim);
-	font: 500 13px/1 var(--font-sans);
+	font: 500 13px/1 var(--font-mono);
 	cursor: pointer;
 	text-align: left;
 }

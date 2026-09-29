@@ -23,20 +23,24 @@ defineProps<{
 .bx-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	padding: 9px 18px;
-	border-radius: var(--r-full);
-	font: 500 14px/1 var(--font-sans);
-	font-family: inherit;
+	justify-content: center;
+	gap: var(--s-2);
+	height: 40px;
+	padding: 0 var(--s-4);
+	border-radius: var(--r-1);
+	font: 400 14px/1 var(--font-mono);
 	border: 1px solid transparent;
 	cursor: pointer;
-	transition: all 0.15s;
 	white-space: nowrap;
 	text-decoration: none;
+	transition:
+		background-color 0.15s ease,
+		color 0.15s ease,
+		border-color 0.15s ease;
 }
 
-.bx-btn--sm { padding: 6px 12px; font-size: 13px; }
-.bx-btn--lg { padding: 12px 22px; font-size: 15px; }
+.bx-btn--sm { height: 32px; padding: 0 var(--s-3); font-size: 13px; }
+.bx-btn--lg { height: 44px; padding: 0 var(--s-5); font-size: 15px; }
 
 .bx-btn:disabled {
 	opacity: 0.45;
@@ -45,39 +49,38 @@ defineProps<{
 }
 
 .bx-btn--primary {
-	background: var(--fg-hi);
-	color: var(--bg-0);
+	background: var(--fg);
+	color: var(--surface-deep);
 }
 .bx-btn--primary:hover {
-	background: var(--fg);
+	background: var(--fg-hi);
 }
 
 .bx-btn--accent {
-	background: var(--brand);
-	color: var(--bg-0);
+	background: var(--mute);
+	color: var(--surface-deep);
 }
 .bx-btn--accent:hover {
-	box-shadow: var(--shadow-glow);
+	background: var(--dim);
 }
 
 .bx-btn--secondary {
-	background: transparent;
+	background: var(--surface-deep);
 	color: var(--fg);
-	border-color: var(--line-2);
+	border-color: var(--edge);
 }
 .bx-btn--secondary:hover {
-	color: var(--fg-hi);
-	border-color: var(--dim);
+	border-color: var(--fg);
+	background: var(--surface-2);
 }
 
 .bx-btn--ghost {
 	background: transparent;
 	color: var(--dim);
-	padding: 9px 14px;
+	padding: 0 var(--s-3);
 }
 .bx-btn--ghost:hover {
 	color: var(--fg-hi);
-	background: var(--hover);
+	background: var(--surface-2);
 }
-.bx-btn--ghost.bx-btn--sm { padding: 5px 10px; }
 </style>

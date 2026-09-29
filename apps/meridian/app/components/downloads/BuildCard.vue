@@ -20,7 +20,7 @@ const external = computed(() => !props.project.repo);
 			<div>
 				<div class="title-row">
 					<h3>Build #{{ build.build }}</h3>
-					<span class="badge-channel" :class="getChannelColor(build.channel)">{{ build.channel }}</span>
+					<span class="bx-channel" :class="getChannelColor(build.channel)">{{ build.channel }}</span>
 				</div>
 				<div class="meta">
 					<div><Calendar :size="14" :stroke-width="1.7" /><span>{{ formatDate(build.created_at) }}</span></div>
@@ -57,12 +57,10 @@ const external = computed(() => !props.project.repo);
 <style scoped>
 .card {
 	border: 1px solid var(--line);
-	border-radius: 12px;
-	padding: 20px;
-	background: color-mix(in oklab, var(--bg-1) 55%, transparent);
-	transition: border-color .15s;
+	border-radius: var(--r-1);
+	padding: var(--s-6);
+	background: var(--surface-card);
 }
-.card:hover { border-color: var(--line-2); }
 
 .card-head {
 	display: flex;
@@ -79,25 +77,11 @@ const external = computed(() => !props.project.repo);
 	margin-bottom: 8px;
 	flex-wrap: wrap;
 }
-.title-row h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--fg-hi); }
+.title-row h3 { margin: 0; font: 600 18px/1.3 var(--font-heading); letter-spacing: -0.01em; color: var(--fg); }
 
 .meta { display: flex; gap: 16px; flex-wrap: wrap; color: var(--mute); font-size: 13px; }
 .meta div { display: inline-flex; align-items: center; gap: 6px; }
 
-.badge-channel {
-	display: inline-block;
-	padding: 2px 8px;
-	border-radius: 4px;
-	border: 1px solid;
-	font-family: var(--font-mono);
-	font-size: 11px;
-	font-weight: 600;
-	text-transform: uppercase;
-}
-.channel-stable { background: color-mix(in oklab, var(--ch-stable) 15%, transparent); color: var(--ch-stable); border-color: color-mix(in oklab, var(--ch-stable) 30%, transparent); }
-.channel-beta { background: color-mix(in oklab, var(--ch-beta) 15%, transparent); color: var(--ch-beta); border-color: color-mix(in oklab, var(--ch-beta) 30%, transparent); }
-.channel-alpha { background: color-mix(in oklab, var(--ch-alpha) 15%, transparent); color: var(--ch-alpha); border-color: color-mix(in oklab, var(--ch-alpha) 30%, transparent); }
-.channel-default { background: var(--bg-2); color: var(--dim); border-color: var(--line-2); }
 
 .section { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .section h4 {
@@ -105,10 +89,9 @@ const external = computed(() => !props.project.repo);
 	align-items: center;
 	gap: 6px;
 	margin: 0 0 10px;
-	font-size: 12px;
-	font-weight: 600;
+	font: 500 11px/1.4 var(--font-mono);
 	text-transform: uppercase;
-	letter-spacing: .07em;
+	letter-spacing: 0.1em;
 	color: var(--mute);
 }
 .section ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -120,7 +103,7 @@ const external = computed(() => !props.project.repo);
 	gap: 4px;
 	background: var(--bg-2);
 	padding: 2px 6px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	font-family: var(--font-mono);
 	font-size: 11px;
 	color: var(--dim);

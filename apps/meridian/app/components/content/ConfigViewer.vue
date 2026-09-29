@@ -191,7 +191,7 @@ function fmtVal(v: unknown): string {
 .cv {
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: var(--r-1);
 	margin: 22px 0;
 }
 
@@ -209,7 +209,7 @@ function fmtVal(v: unknown): string {
 }
 .cv-title {
 	margin: 0;
-	font: 600 15px var(--font-sans);
+	font: 600 15px var(--font-heading);
 	color: var(--fg-hi);
 	letter-spacing: -0.005em;
 }
@@ -218,9 +218,9 @@ function fmtVal(v: unknown): string {
 .cv-btn {
 	appearance: none;
 	cursor: pointer;
-	font: 500 11px var(--font-sans);
+	font: 500 11px var(--font-mono);
 	padding: 5px 10px;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	border: 1px solid var(--line);
 	background: transparent;
 	color: var(--mute);
@@ -242,18 +242,18 @@ function fmtVal(v: unknown): string {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 8px 36px 8px 34px;
-	border-radius: 8px;
+	border-radius: var(--r-1);
 	border: 1px solid var(--line);
 	background: var(--bg-0);
 	color: var(--fg);
-	font: 400 13px var(--font-sans);
+	font: 400 13px var(--font-mono);
 	outline: none;
 	transition: border-color .15s, box-shadow .15s;
 }
 .cv-input::placeholder { color: var(--mute); }
 .cv-input:focus {
 	border-color: var(--brand);
-	box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
+	box-shadow: none;
 }
 .cv-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--mute); pointer-events: none; }
 .cv-clear {
@@ -285,7 +285,7 @@ function fmtVal(v: unknown): string {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	padding-right: 12px;
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	transition: background .12s;
 	flex-wrap: wrap;
 	min-width: 0;
@@ -341,7 +341,7 @@ function fmtVal(v: unknown): string {
 	background: transparent;
 	color: var(--mute);
 	cursor: pointer;
-	font: 500 12.5px var(--font-sans);
+	font: 500 12.5px var(--font-mono);
 	padding: 2px 8px;
 	white-space: nowrap;
 	transition: color .15s;
@@ -357,8 +357,8 @@ function fmtVal(v: unknown): string {
 	padding: 8px 12px;
 	background: var(--bg-1);
 	border-left: 2px solid var(--brand);
-	border-radius: 4px;
-	font: 400 12.5px/1.6 var(--font-sans);
+	border-radius: var(--r-1);
+	font: 400 12.5px/1.6 var(--font-mono);
 	color: var(--fg);
 	white-space: pre-wrap;
 }
@@ -367,13 +367,13 @@ function fmtVal(v: unknown): string {
 	padding: 28px 16px;
 	text-align: center;
 	color: var(--mute);
-	font: 400 13px var(--font-sans);
+	font: 400 13px var(--font-mono);
 }
 
 :deep(.cv-mark) {
 	background: color-mix(in oklab, var(--brand) 28%, transparent);
 	color: var(--fg-hi);
-	border-radius: 3px;
+	border-radius: var(--r-1);
 	padding: 0 2px;
 	font-style: normal;
 }

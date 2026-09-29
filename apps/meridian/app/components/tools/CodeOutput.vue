@@ -178,7 +178,7 @@ function download() {
 
 .rail-badge {
 	flex: none;
-	font: 500 11px/1 var(--font-sans);
+	font: 500 11px/1 var(--font-mono);
 	color: var(--mute);
 	font-variant-numeric: tabular-nums;
 }
@@ -209,7 +209,7 @@ function download() {
 	gap: 12px;
 	padding: 8px 10px 8px 14px;
 	border-bottom: 1px solid var(--line);
-	background: color-mix(in oklab, var(--bg-1) 60%, transparent);
+	background: var(--bg-1);
 }
 
 .pane-title {
@@ -236,7 +236,7 @@ function download() {
 	border-radius: var(--r-sm);
 	background: var(--bg-2);
 	color: var(--dim);
-	font: 500 12px/1 var(--font-sans);
+	font: 500 12px/1 var(--font-mono);
 	cursor: pointer;
 }
 
@@ -248,7 +248,7 @@ function download() {
 .pane-empty {
 	margin: 0;
 	padding: 24px 16px;
-	font: 400 13.5px/1.6 var(--font-sans);
+	font: 400 13.5px/1.6 var(--font-mono);
 	color: var(--mute);
 }
 

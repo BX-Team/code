@@ -181,13 +181,13 @@ const headStyle = (offsetX: number) => ({
 	padding: 16px;
 	border: 1px solid var(--line);
 	border-radius: var(--r-lg);
-	background: color-mix(in oklab, var(--bg-1) 88%, transparent);
+	background: var(--bg-1);
 }
 
 .label {
 	display: block;
 	margin-bottom: 8px;
-	font: 600 11px/1.4 var(--font-sans);
+	font: 500 11px/1.4 var(--font-mono);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--mute);
@@ -228,7 +228,7 @@ const headStyle = (offsetX: number) => ({
 	border-radius: var(--r-md);
 	background: var(--bg-3);
 	color: var(--fg-hi);
-	font: 500 13.5px/1 var(--font-sans);
+	font: 500 13.5px/1 var(--font-mono);
 	cursor: pointer;
 }
 
@@ -244,7 +244,7 @@ const headStyle = (offsetX: number) => ({
 
 .hint {
 	margin: 10px 2px 0;
-	font: 400 12.5px/1.5 var(--font-sans);
+	font: 400 12.5px/1.5 var(--font-mono);
 	color: var(--mute);
 }
 
@@ -298,18 +298,18 @@ const headStyle = (offsetX: number) => ({
 }
 
 .portrait-name {
-	font: 600 14px/1.4 var(--font-sans);
+	font: 500 14px/1.4 var(--font-mono);
 	color: var(--fg-hi);
 	overflow-wrap: anywhere;
 }
 
 .portrait-note {
-	font: 400 12px/1.4 var(--font-sans);
+	font: 400 12px/1.4 var(--font-mono);
 	color: var(--mute);
 }
 
 .portrait-meta a {
-	font: 500 12px/1.6 var(--font-sans);
+	font: 500 12px/1.6 var(--font-mono);
 	color: var(--brand);
 }
 
@@ -339,7 +339,7 @@ const headStyle = (offsetX: number) => ({
 }
 
 .value-label {
-	font: 500 12px/1.5 var(--font-sans);
+	font: 500 12px/1.5 var(--font-mono);
 	color: var(--mute);
 }
 
@@ -377,7 +377,7 @@ const headStyle = (offsetX: number) => ({
 
 .section h2 {
 	margin: 0 0 14px;
-	font: 700 18px/1.3 var(--font-heading);
+	font: 600 18px/1.3 var(--font-heading);
 	color: var(--fg-hi);
 }
 
@@ -396,13 +396,13 @@ const headStyle = (offsetX: number) => ({
 
 .explain h3 {
 	margin: 0 0 6px;
-	font: 600 13px/1.4 var(--font-sans);
+	font: 500 13px/1.4 var(--font-mono);
 	color: var(--fg-hi);
 }
 
 .explain p {
 	margin: 0;
-	font: 400 13px/1.6 var(--font-sans);
+	font: 400 13px/1.6 var(--font-mono);
 	color: var(--dim);
 }
 

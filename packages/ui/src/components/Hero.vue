@@ -1,154 +1,233 @@
 <script setup lang="ts">
-defineProps<{
-  kicker?: string;
-  kickerBadge?: string;
-  lede?: string;
-  noAtmosphere?: boolean;
-}>();
+import { ref } from 'vue';
+import { MARK, type PixelGlyph, WORDMARK } from '../pixel/glyphs';
+import PixelField from './PixelField.vue';
+
+defineProps<{ lede?: string }>();
+
+const slotEl = ref<HTMLElement | null>(null);
+const markEl = ref<HTMLElement | null>(null);
+const painted = ref(false);
+
+function runsOf(glyph: PixelGlyph) {
+  return glyph.rows.flatMap((bits, y) => {
+    const out: { x: number; y: number; w: number }[] = [];
+    let start = -1;
+    for (let x = 0; x <= bits.length; x++) {
+      if (bits[x] === '1') {
+        if (start < 0) start = x;
+      } else if (start >= 0) {
+        out.push({ x: start, y, w: x - start });
+        start = -1;
+      }
+    }
+    return out;
+  });
+}
+
+const wordRuns = runsOf(WORDMARK);
+const markRuns = runsOf(MARK);
 </script>
 
 <template>
-	<div class="bx-hero-outer">
-		<div v-if="!noAtmosphere" class="bx-atmosphere" aria-hidden="true" />
+	<section class="bx-hero" data-nav-overlay>
+		<PixelField variant="hero" :slot-el="slotEl" :mark-el="markEl" @painted="painted = true" />
 
-		<section class="bx-hero">
-			<slot name="kicker">
-				<div v-if="kicker" class="bx-hero__kicker">
-					<span class="bx-hero__kicker-badge">{{ kickerBadge ?? 'NEW' }}</span>
-					{{ kicker }}
+		<div class="bx-hero__inner">
+			<div class="bx-hero__main">
+				<div
+					ref="slotEl"
+					class="bx-hero__wordmark"
+					:class="{ 'bx-hero__glyph--painted': painted }"
+					role="img"
+					aria-label="BX Team"
+				>
+					<svg
+						:viewBox="`0 0 ${WORDMARK.width} ${WORDMARK.height}`"
+						preserveAspectRatio="none"
+						shape-rendering="crispEdges"
+						aria-hidden="true"
+					>
+						<defs>
+							<linearGradient id="bx-hero-ink" gradientUnits="userSpaceOnUse" x1="0" y1="0" :x2="WORDMARK.width" y2="0">
+								<stop offset="0" style="stop-color: var(--accent)" />
+								<stop offset="1" style="stop-color: var(--accent-2)" />
+							</linearGradient>
+						</defs>
+						<rect v-for="r in wordRuns" :key="`${r.x}-${r.y}`" :x="r.x" :y="r.y" :width="r.w" height="1" fill="url(#bx-hero-ink)" />
+					</svg>
 				</div>
-			</slot>
 
-			<h1 class="bx-hero__h">
-				<slot name="title" />
-			</h1>
-
-			<p v-if="lede" class="bx-hero__lede">{{ lede }}</p>
-			<slot name="lede" />
-
-			<div class="bx-hero__cta">
-				<slot name="cta" />
+				<div class="bx-hero__copy">
+					<h1 class="bx-hero__title" data-quiet>
+						<span class="bx-hero__sr">BX Team: </span>
+						<slot name="title" />
+					</h1>
+					<p v-if="lede" class="bx-hero__lede" data-quiet>{{ lede }}</p>
+					<div v-if="$slots.cta" class="bx-hero__cta" data-quiet>
+						<slot name="cta" />
+					</div>
+				</div>
 			</div>
-		</section>
-	</div>
+
+			<div ref="markEl" class="bx-hero__mark" :class="{ 'bx-hero__glyph--painted': painted }" aria-hidden="true">
+				<svg
+					:viewBox="`0 0 ${MARK.width} ${MARK.height}`"
+					preserveAspectRatio="none"
+					shape-rendering="crispEdges"
+				>
+					<defs>
+						<linearGradient id="bx-hero-mark-ink" gradientUnits="userSpaceOnUse" x1="0" y1="0" :x2="MARK.width" y2="0">
+							<stop offset="0" style="stop-color: var(--accent)" />
+							<stop offset="1" style="stop-color: var(--accent-2)" />
+						</linearGradient>
+					</defs>
+					<rect v-for="r in markRuns" :key="`${r.x}-${r.y}`" :x="r.x" :y="r.y" :width="r.w" height="1" fill="url(#bx-hero-mark-ink)" />
+				</svg>
+			</div>
+		</div>
+	</section>
 </template>
 
 <style scoped>
-.bx-hero-outer {
-	position: relative;
-	overflow: hidden;
-}
-
-.bx-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 920px;
-	pointer-events: none;
-	z-index: 0;
-}
-
-.bx-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1200px;
-	height: 800px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(50px);
-	opacity: 0.55;
-}
-
-.bx-atmosphere::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image:
-		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-	background-size: 56px 56px;
-	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-}
-
 .bx-hero {
 	position: relative;
-	z-index: 1;
-	padding: 92px 32px 56px;
-	text-align: center;
-	max-width: 880px;
-	margin: 0 auto;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	margin-top: -56px;
+	min-height: 100svh;
+	background: var(--pixel-bg);
+	border-bottom: 1px solid var(--line);
+	user-select: none;
+	-webkit-touch-callout: none;
 }
 
-.bx-hero__kicker {
-	display: inline-flex;
+.bx-hero__inner {
+	position: relative;
+	flex: 1;
+	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 5px 12px 5px 5px;
-	background: color-mix(in oklab, var(--bg-1) 70%, transparent);
-	border: 1px solid var(--line);
-	border-radius: var(--r-full);
-	font: 500 12.5px var(--font-sans);
-	color: var(--dim);
-	margin-bottom: 28px;
+	gap: var(--s-16);
+	box-sizing: border-box;
+	width: 100%;
+	max-width: var(--container);
+	margin: 0 auto;
+	padding: calc(56px + var(--s-12)) var(--s-8) var(--s-16);
+	pointer-events: none;
 }
 
-.bx-hero__kicker-badge {
-	font: 600 10px var(--font-mono);
-	color: var(--bg-0);
-	background: var(--brand);
-	padding: 3px 8px;
-	border-radius: var(--r-full);
-	letter-spacing: 0.04em;
+.bx-hero__main {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
 }
 
-.bx-hero__h {
-	font: 600 76px/1 var(--font-sans);
-	letter-spacing: -0.04em;
-	margin: 0 0 22px;
-	color: var(--fg-hi);
+.bx-hero__wordmark {
+	width: 100%;
+	max-width: 640px;
+	aspect-ratio: 65 / 12;
+}
+
+.bx-hero__mark {
+	flex: none;
+	width: clamp(180px, 16vw, 220px);
+	aspect-ratio: 1;
+}
+
+.bx-hero__wordmark svg,
+.bx-hero__mark svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.bx-hero__glyph--painted {
+	visibility: hidden;
+}
+
+.bx-hero__copy {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	width: 100%;
+	max-width: 36rem;
+	margin-top: var(--s-12);
+	pointer-events: auto;
+	user-select: text;
+}
+
+.bx-hero__title {
+	margin: 0;
+	font: 500 26px/1.35 var(--font-mono);
+	letter-spacing: -0.01em;
+	color: var(--fg);
 	text-wrap: balance;
 }
 
+.bx-hero__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
 .bx-hero__lede {
-	font-size: 19px;
-	line-height: 1.55;
+	margin: var(--s-4) 0 0;
+	font: 400 15px/1.6 var(--font-mono);
 	color: var(--dim);
-	max-width: 60ch;
-	margin: 0 auto 34px;
 	text-wrap: pretty;
 }
 
 .bx-hero__cta {
 	display: flex;
-	gap: 12px;
-	justify-content: center;
 	flex-wrap: wrap;
+	gap: var(--s-3);
+	margin-top: var(--s-8);
+}
+
+@media (max-width: 860px) {
+	.bx-hero__mark {
+		display: none;
+	}
+
+	.bx-hero__main,
+	.bx-hero__copy {
+		align-items: center;
+		text-align: center;
+	}
+
+	.bx-hero__copy {
+		margin-inline: auto;
+	}
+
+	.bx-hero__cta {
+		justify-content: center;
+	}
 }
 
 @media (max-width: 640px) {
-	.bx-hero {
-		padding: 72px 20px 40px;
+	.bx-hero__inner {
+		padding: calc(56px + var(--s-10)) var(--s-4) var(--s-12);
 	}
 
-	.bx-hero__h {
-		font-size: 42px;
+	.bx-hero__copy {
+		margin-top: var(--s-10);
 	}
 
-	.bx-hero__lede {
-		font-size: 16px;
+	.bx-hero__title {
+		font-size: 21px;
 	}
 
 	.bx-hero__cta {
 		flex-direction: column;
-		align-items: center;
+		align-items: stretch;
+		width: 100%;
+		max-width: 20rem;
 	}
 }
 </style>
