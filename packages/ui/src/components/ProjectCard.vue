@@ -6,7 +6,6 @@ withDefaults(
     name: string;
     description: string;
     tag: string;
-    version?: string;
     archived?: boolean;
     href: string;
     linkAs?: string | Component;
@@ -24,7 +23,6 @@ withDefaults(
 		</div>
 		<p class="bx-project-card__desc">{{ description }}</p>
 		<div class="bx-project-card__foot">
-			<span v-if="version" class="bx-project-card__chip">{{ version }}</span>
 			<span class="bx-project-card__more">
 				Learn more
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">

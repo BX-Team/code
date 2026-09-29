@@ -178,7 +178,7 @@ slots: #icon
 ### `ProjectCard`
 The whole card is one link to the project's page.
 ```ts
-props: { name; description; tag; version?; archived?; href: string; linkAs?: string | Component }
+props: { name; description; tag; archived?; href: string; linkAs?: string | Component }
 ```
 
 ## Responsive design

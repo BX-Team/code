@@ -3,7 +3,6 @@ import { Button, Hero, ProjectCard, Section } from '@bx-team/ui';
 import { ArrowDown, BookOpen } from '@lucide/vue';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { PROJECTS } from '~/config/projects';
-import { useGithubRepos } from '~/lib/github';
 
 useHead({
   title: 'BX Team',
@@ -11,11 +10,6 @@ useHead({
 });
 
 const link = resolveComponent('NuxtLink');
-
-const { data: repos } = await useGithubRepos(
-  'home',
-  PROJECTS.map(p => p.repo),
-);
 
 function toProjects(event: MouseEvent) {
   const target = document.getElementById('projects');
@@ -65,7 +59,6 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 						:name="p.name"
 						:description="p.summary"
 						:tag="p.tag"
-						:version="p.githubRelease === false ? undefined : (repos[p.repo]?.version ?? undefined)"
 						:archived="p.archived"
 						:href="`/${p.slug}`"
 						:link-as="link"

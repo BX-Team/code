@@ -60,7 +60,6 @@ export interface Project {
   lede: string;
   repo: string;
   archived?: boolean;
-  githubRelease?: false;
   docs?: string;
   downloads?: string;
   channels?: { label: string; href: string }[];
@@ -79,7 +78,6 @@ export const PROJECTS: Project[] = [
     tagline: 'A Purpur fork that puts every core to work',
     lede: 'Regionized chunk ticking, parallel worlds and async everything, on top of the full Purpur configuration surface. Your Bukkit, Spigot and Paper plugins keep working.',
     repo: 'BX-Team/DivineMC',
-    githubRelease: false,
     docs: '/docs/divinemc',
     downloads: '/downloads/divinemc',
     channels: [{ label: 'MCJars', href: 'https://mcjars.app/DIVINEMC/versions' }],
