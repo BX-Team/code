@@ -12,6 +12,7 @@ import {
   DollarSign,
   Download,
   EyeOff,
+  FileCode,
   Files,
   FileText,
   FolderDot,
@@ -71,6 +72,7 @@ const iconMap: Record<string, Component> = {
   DollarSign,
   Download,
   EyeOff,
+  FileCode,
   Files,
   FileText,
   FolderDot,
@@ -113,7 +115,7 @@ const projects: Project[] = [
   {
     id: 'quark',
     title: 'Quark',
-    description: 'Runtime dependency management for plugins on Minecraft server platforms.',
+    description: 'Modular framework for plugins: runtime dependencies, configs, update checks and dev servers.',
     icon: Atom,
   },
 ];
