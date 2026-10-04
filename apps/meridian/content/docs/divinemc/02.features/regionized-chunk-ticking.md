@@ -59,8 +59,15 @@ When players are spread out, this layout needs only one phase instead of four. W
 
 #### Picking a Layout
 
-RCT starts with tiles. After every minute of parallel ticking it switches to the other layout for a few seconds, measures how long the tick takes, and keeps whichever layout was more than 5% faster.
-If the player regions collapse into a single region, RCT goes back to tiles right away.
+RCT starts with player regions. If they collapse into a single region (for example while nobody is online), it goes to tiles right away, and comes back to player regions once at least two players are online and the player count has not changed for 5 seconds.
+
+To compare the layouts, RCT briefly runs the one it is not using, measures how long the tick takes, and switches only if that layout was more than 5% faster. This check, called a probe, starts when:
+
+- the number of players in the world changed and then stayed the same for 5 seconds, or
+- the average tick time of the current layout moved more than 30% away from what it was when the layout was chosen.
+
+There is no periodic probe: while the load keeps its shape, the answer cannot change. Probes are also kept short. There are always at least 15 seconds between two probes, and a probe stops after 20 measured ticks if the other layout is more than 10% slower.
+After a switch, RCT keeps measuring for 2 more seconds and switches back if the new layout turns out to be more than 5% slower than the old one.
 
 Inside every phase, the groups that took the longest on the previous tick are started first, so the tick is not left waiting on a slow group at the end.
 
@@ -154,7 +161,7 @@ Auto allocation needs at least 6 CPU threads; on smaller machines it logs a warn
 Starting the server with `-Ddivinemc.rct.checkOwnership=true` turns on ownership checks for the tile layout. Whenever a region thread places a block or adds an entity in a different tile of the same colour, the server logs a warning with a stack trace, once per call site.
 These are exactly the writes that can race with another thread, so the flag is useful when a plugin or a mechanic misbehaves only with RCT enabled. Leave it off in production.
 
-Every 100 ticks RCT also writes the current groups, their chunk and entity counts, and the average tick time of every player in them to `tracking/<world>/region-tick-<date>.log` in the server folder. Older days are gzipped and removed after 30 days. Layout switches and fallbacks to the serial path are written there as well.
+Every 100 ticks RCT also writes the current groups, their chunk and entity counts, and the average tick time of every player in them to `tracking/<world>/region-tick-<date>.log` in the server folder. Older days are gzipped and removed after 30 days. Layout switches (`Switched to ...`), switches that were undone (`Reverted to ...`) and fallbacks to the serial path are written there as well, together with the measured tick times of both layouts.
 
 ::callout{type="warning"}
   Regionized Chunk Ticking and [Parallel World Ticking](./parallel-world-ticking) are independent features that complement each other: RCT parallelizes work **within** a world, while Parallel World Ticking parallelizes work **across** worlds. You can enable them separately or together.
