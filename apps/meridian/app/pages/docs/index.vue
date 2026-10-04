@@ -28,9 +28,9 @@ const projects = [
     id: 'quark',
     title: 'Quark',
     description:
-      'Runtime dependency management for plugins on Minecraft server platforms. Works with Bukkit, Paper, and Velocity.',
+      'Modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers. Works with Paper, Folia, Bukkit, Velocity and BungeeCord.',
     icon: Atom,
-    tag: 'Library',
+    tag: 'Framework',
   },
 ];
 </script>
