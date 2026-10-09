@@ -289,6 +289,91 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
+    slug: 'riven',
+    name: 'Riven',
+    tag: 'Desktop app',
+    summary: 'Native Minecraft launcher and modpack toolkit in pure Rust.',
+    tagline: 'A Minecraft launcher that builds packs too',
+    lede: 'Install a modpack from a link and get its updates on every launch — or build your own in the app or the CLI, publish it to GitHub Pages and run it headless on a server.',
+    repo: 'BX-Team/Riven',
+    docs: '/docs/riven',
+    features: [
+      {
+        icon: Gamepad2,
+        title: 'Full launcher',
+        body: 'Instances, Microsoft and offline accounts, automatic Java, Vanilla, Fabric, Quilt, NeoForge and Forge.',
+      },
+      {
+        icon: Download,
+        title: 'Packs from a link',
+        body: 'Modrinth modpacks, .mrpack, Prism exports and Riven packs; a pack updates itself before every launch.',
+        href: '/docs/riven/cli/installing',
+      },
+      {
+        icon: FileCode2,
+        title: 'Developer mode',
+        body: 'Content table, dependency tree, config editor, releases, git and a test instance in one window.',
+        href: '/docs/riven/getting-started/first-pack',
+      },
+      {
+        icon: ShieldCheck,
+        title: 'Signed, fast updates',
+        body: 'Release channels, a tiny pointer checked with ETag, content-addressed downloads and ed25519 signatures pinned on first install — no keys in links.',
+        href: '/docs/riven/guides/signatures',
+      },
+      {
+        icon: Server,
+        title: 'Servers',
+        body: 'riven install --side server --headless keeps a dedicated server on the latest release.',
+        href: '/docs/riven/guides/servers',
+      },
+      {
+        icon: Snowflake,
+        title: 'Nix without packHash',
+        body: 'lib.mkModpack fetches every file by the hash in riven.json — no fixed-output hash to bump.',
+        href: '/docs/riven/guides/servers',
+      },
+    ],
+    previews: [
+      {
+        src: '/projects/riven/instance.webp',
+        alt: 'A modpack instance with its mods, kept up to date by the pack.',
+        caption: 'Instances and their mods',
+      },
+      {
+        src: '/projects/riven/developer.webp',
+        alt: "Developer mode listing a pack's mods with sources, sides, groups and available updates.",
+        caption: 'Developer mode',
+      },
+      {
+        src: '/projects/riven/editor.webp',
+        alt: 'A pack config open in the built-in editor next to the overrides tree.',
+        caption: 'Config editor',
+      },
+      {
+        src: '/projects/riven/releases.webp',
+        alt: 'The releases page: version bump, signed build into a channel and the built releases.',
+        caption: 'Releases',
+      },
+    ],
+    start: [
+      {
+        label: 'Download',
+        title: 'Grab a release',
+        body: 'Installers for Windows, a DMG for macOS, AppImage, deb, rpm and Arch packages for Linux.',
+        action: { label: 'Latest release', href: 'https://github.com/BX-Team/Riven/releases/latest' },
+      },
+      {
+        label: 'CLI',
+        title: 'Build a pack',
+        body: 'The same binary works in the terminal.',
+        code: 'riven init --mc 1.21.1 --loader neoforge\nriven add sodium\nriven build && riven deploy',
+        lang: 'bash',
+        action: { label: 'CLI reference', href: '/docs/riven/cli/overview' },
+      },
+    ],
+  },
+  {
     slug: 'nyx',
     name: 'Nyx',
     tag: 'Desktop app',

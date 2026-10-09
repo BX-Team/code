@@ -37,6 +37,7 @@ import {
   SquareTerminal,
   Table,
   Torus,
+  WavesHorizontal,
   Waypoints,
   Wrench,
   X,
@@ -85,6 +86,7 @@ const iconMap: Record<string, Component> = {
   MessageCircleQuestion,
   MonitorCog,
   Package,
+  Pencil,
   Presentation,
   Radar,
   Repeat,
@@ -117,6 +119,12 @@ const projects: Project[] = [
     title: 'Quark',
     description: 'Modular framework for plugins: runtime dependencies, configs, update checks and dev servers.',
     icon: Atom,
+  },
+  {
+    id: 'riven',
+    title: 'Riven',
+    description: 'Minecraft launcher and modpack toolkit: install, build and publish packs.',
+    icon: WavesHorizontal,
   },
 ];
 
