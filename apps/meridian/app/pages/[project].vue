@@ -50,6 +50,8 @@ const benchHighlights = [
   },
 ];
 
+const zoomed = ref<number | null>(null);
+
 const { copy, copied, text: copiedText } = useClipboard({ legacy: true });
 
 const storeButtons = !project.downloads && !!project.channels?.length;
@@ -123,13 +125,14 @@ useHead({
 
 			<Section v-if="project.previews.length" title="Preview" :alt="alt('previews')">
 				<div class="proj-previews" :class="{ 'proj-previews--single': project.previews.length === 1 }">
-					<figure v-for="p in project.previews" :key="p.src" class="proj-preview">
-						<div class="proj-preview__frame">
+					<figure v-for="(p, i) in project.previews" :key="p.src" class="proj-preview">
+						<button class="proj-preview__frame" type="button" :aria-label="`Enlarge: ${p.caption ?? p.alt}`" @click="zoomed = i">
 							<img :src="p.src" :alt="p.alt" loading="lazy" decoding="async" />
-						</div>
+						</button>
 						<figcaption v-if="p.caption" class="bx-caption">{{ p.caption }}</figcaption>
 					</figure>
 				</div>
+				<PreviewLightbox v-model="zoomed" :previews="project.previews" />
 			</Section>
 
 			<Section title="Features" :lede="`What ${project.name} does, and where to read more about each part.`" :alt="alt('features')">
@@ -374,10 +377,19 @@ useHead({
 }
 
 .proj-preview__frame {
+	display: block;
+	padding: 0;
 	overflow: hidden;
 	border: 1px solid var(--line-2);
 	border-radius: var(--r-4);
 	background: var(--surface-deep);
+	cursor: zoom-in;
+	transition: border-color 0.15s ease;
+}
+
+.proj-preview__frame:hover,
+.proj-preview__frame:focus-visible {
+	border-color: var(--rule);
 }
 
 .proj-preview__frame img {

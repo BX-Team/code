@@ -88,6 +88,10 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 	gap: var(--s-6);
 }
 
+.home__grid > :last-child:nth-child(odd) {
+	grid-column: 1 / -1;
+}
+
 @media (max-width: 640px) {
 	.home__grid {
 		grid-template-columns: 1fr;

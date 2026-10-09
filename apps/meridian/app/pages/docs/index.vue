@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight, Atom, Cuboid, DollarSign } from '@lucide/vue';
+import { ArrowRight, Atom, Cuboid, DollarSign, WavesHorizontal } from '@lucide/vue';
 
 definePageMeta({ layout: 'docs' });
 
@@ -31,6 +31,14 @@ const projects = [
       'Modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers. Works with Paper, Folia, Bukkit, Velocity and BungeeCord.',
     icon: Atom,
     tag: 'Framework',
+  },
+  {
+    id: 'riven',
+    title: 'Riven',
+    description:
+      'Native Minecraft launcher and modpack toolkit in Rust. Install packs from a link, build and publish your own from the app or the CLI.',
+    icon: WavesHorizontal,
+    tag: 'Launcher',
   },
 ];
 </script>
