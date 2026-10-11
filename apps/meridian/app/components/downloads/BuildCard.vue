@@ -57,7 +57,7 @@ const external = computed(() => !props.project.repo);
 <style scoped>
 .card {
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	padding: var(--s-6);
 	background: var(--surface-card);
 }

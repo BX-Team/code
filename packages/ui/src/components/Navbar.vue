@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { type Component, computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import BrandMark from './BrandMark.vue';
 
 export interface NavLink {
@@ -57,7 +57,25 @@ const clear = computed(() => props.overlay && overBand.value && !menuOpen.value)
 const kbdLabel = computed(() => (isMac.value ? '⌘K' : 'Ctrl K'));
 
 const header = ref<HTMLElement | null>(null);
+const linksEl = ref<HTMLElement | null>(null);
+const hovered = ref<string | null>(null);
+const pillBox = ref<{ x: number; w: number } | null>(null);
+const pillReady = ref(false);
 let observer: IntersectionObserver | undefined;
+let resizer: ResizeObserver | undefined;
+
+/** The highlight under the links glides to the hovered one and rests on the active one, like Riven's tabs. */
+function placePill() {
+  const id = hovered.value ?? props.active;
+  const el = id ? linksEl.value?.querySelector<HTMLElement>(`[data-nav-id="${id}"]`) : null;
+  pillBox.value = el ? { x: el.offsetLeft, w: el.offsetWidth } : null;
+}
+
+const pill = computed(() =>
+  pillBox.value ? { transform: `translateX(${pillBox.value.x}px)`, width: `${pillBox.value.w}px` } : null,
+);
+
+watch([hovered, () => props.active], placePill);
 
 const onKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') menuOpen.value = false;
@@ -66,6 +84,12 @@ const onKey = (e: KeyboardEvent) => {
 onMounted(() => {
   isMac.value = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
   window.addEventListener('keydown', onKey);
+  placePill();
+  requestAnimationFrame(() => (pillReady.value = true));
+  if (linksEl.value) {
+    resizer = new ResizeObserver(placePill);
+    resizer.observe(linksEl.value);
+  }
 
   const band = props.overlay ? document.querySelector('[data-nav-overlay]') : null;
   if (!band || !header.value) {
@@ -81,6 +105,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   observer?.disconnect();
+  resizer?.disconnect();
   window.removeEventListener('keydown', onKey);
 });
 
@@ -113,7 +138,8 @@ function openSearch() {
 				<span v-if="tag" class="bx-nav__tag">{{ tag }}</span>
 			</component>
 
-			<nav class="bx-nav__links" aria-label="Main">
+			<nav ref="linksEl" class="bx-nav__links" :class="{ 'bx-nav__links--ready': pillReady }" aria-label="Main" @mouseleave="hovered = null">
+				<span class="bx-nav__pill" :class="{ 'bx-nav__pill--shown': pill }" :style="pill ?? undefined" aria-hidden="true" />
 				<component
 					:is="linkAs"
 					v-for="link in links"
@@ -122,6 +148,10 @@ function openSearch() {
 					class="bx-nav__link"
 					:class="{ 'bx-nav__link--active': active === link.id }"
 					:aria-current="active === link.id ? 'page' : undefined"
+					:data-nav-id="link.id"
+					@mouseenter="hovered = link.id"
+					@focus="hovered = link.id"
+					@blur="hovered = null"
 					@click="emit('navigate', link.id)"
 				>
 					{{ link.label }}
@@ -259,40 +289,70 @@ function openSearch() {
 }
 
 .bx-nav__tag {
-	font: 500 10.5px/1 var(--font-mono);
+	font: 500 10.5px/1 var(--font-sans);
 	letter-spacing: 0.08em;
 	color: var(--mute);
-	background: var(--surface-1);
-	border: 1px solid var(--line-2);
+	background: var(--surface-3);
 	border-radius: var(--r-1);
-	padding: 4px 7px;
+	padding: 5px 7px;
 }
 
 .bx-nav__links {
+	position: relative;
 	display: flex;
-	gap: var(--s-1);
+	gap: 2px;
 	margin-left: -12px;
 }
 
+.bx-nav__pill {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	border-radius: var(--r-1);
+	background: var(--surface-2);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.bx-nav__links--ready .bx-nav__pill {
+	transition:
+		transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+		width 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+		opacity 0.15s ease;
+}
+
+.bx-nav__pill--shown {
+	opacity: 1;
+}
+
 .bx-nav__link {
+	position: relative;
 	padding: 8px var(--s-3);
 	border-radius: var(--r-1);
-	font: 400 14px/1 var(--font-mono);
-	color: var(--dim);
+	font: 500 14px/1 var(--font-sans);
+	color: var(--mute);
 	text-decoration: none;
-	transition:
-		color 0.15s ease,
-		background-color 0.15s ease;
+	transition: color 0.15s ease;
 }
 
 .bx-nav__link:hover {
-	color: var(--fg-hi);
-	background: var(--surface-2);
+	color: var(--fg);
 }
 
 .bx-nav__link--active {
 	color: var(--fg);
-	background: var(--surface-2);
+	font-weight: 600;
+}
+
+.bx-nav--clear .bx-nav__pill {
+	background: var(--surface-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bx-nav__links--ready .bx-nav__pill {
+		transition: opacity 0.15s ease;
+	}
 }
 
 .bx-nav__right {
@@ -308,13 +368,13 @@ function openSearch() {
 	gap: var(--s-2);
 	height: 32px;
 	min-width: 230px;
-	padding: 0 var(--s-2) 0 var(--s-3);
+	padding: 0 var(--s-1) 0 var(--s-3);
 	margin-right: var(--s-1);
-	background: var(--surface-2);
+	background: var(--surface-1);
 	border: 1px solid var(--line-2);
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	color: var(--mute);
-	font: 400 13px/1 var(--font-mono);
+	font: 400 13px/1 var(--font-sans);
 	cursor: pointer;
 	transition:
 		border-color 0.15s ease,
@@ -324,7 +384,12 @@ function openSearch() {
 
 .bx-nav__search:hover {
 	border-color: var(--rule);
-	background: var(--surface-3);
+	color: var(--dim);
+}
+
+.bx-nav__search:focus-visible {
+	outline: none;
+	border-color: var(--edge);
 	color: var(--dim);
 }
 
@@ -341,7 +406,7 @@ function openSearch() {
 	font: 500 11px/1 var(--font-mono);
 	color: var(--mute);
 	background: var(--surface-3);
-	border-radius: var(--r-1);
+	border-radius: var(--r-xs);
 	padding: 4px 6px;
 }
 
@@ -355,7 +420,7 @@ function openSearch() {
 	padding: 0;
 	background: transparent;
 	border: none;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	color: var(--dim);
 	cursor: pointer;
 	transition: color 0.15s ease;
@@ -424,7 +489,7 @@ function openSearch() {
 
 .bx-nav__menu-link {
 	padding: var(--s-3) 0;
-	font: 400 15px/1.4 var(--font-mono);
+	font: 500 15px/1.4 var(--font-sans);
 	color: var(--dim);
 	text-decoration: none;
 	transition: color 0.15s ease;
@@ -436,7 +501,7 @@ function openSearch() {
 }
 
 .bx-nav__menu-link--active {
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .bx-nav__menu-search {
@@ -448,7 +513,7 @@ function openSearch() {
 	border: 0;
 	border-top: 1px solid var(--line);
 	background: none;
-	font: 400 15px/1.4 var(--font-mono);
+	font: 500 15px/1.4 var(--font-sans);
 	color: var(--dim);
 	text-align: left;
 	cursor: pointer;
@@ -474,9 +539,9 @@ function openSearch() {
 	justify-content: center;
 	gap: var(--s-2);
 	height: 44px;
-	border: 1px solid var(--edge);
-	border-radius: var(--r-1);
-	font: 400 14px/1 var(--font-mono);
+	border: 1px solid var(--line-2);
+	border-radius: var(--r-2);
+	font: 500 14px/1 var(--font-sans);
 	color: var(--fg);
 	text-decoration: none;
 	transition:
@@ -485,7 +550,6 @@ function openSearch() {
 }
 
 .bx-nav__menu-btn:hover {
-	border-color: var(--fg);
 	background: var(--surface-2);
 }
 

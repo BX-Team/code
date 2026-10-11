@@ -102,7 +102,7 @@ const projects = [
 }
 
 .lede {
-	font: 400 16px/1.55 var(--font-mono);
+	font: 400 16px/1.55 var(--font-sans);
 	color: var(--dim);
 	margin: 0;
 	text-wrap: pretty;
@@ -128,7 +128,7 @@ const projects = [
 	padding: 20px;
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	text-decoration: none;
 	color: inherit;
 	transition: border-color 0.15s, background 0.15s;
@@ -150,14 +150,14 @@ const projects = [
 	place-items: center;
 	width: 34px;
 	height: 34px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	background: color-mix(in oklab, var(--brand-soft) 80%, transparent);
 	border: 1px solid color-mix(in oklab, var(--brand) 25%, var(--line));
 	color: var(--brand);
 }
 
 .tag {
-	font: 500 11px var(--font-mono);
+	font: 500 11px var(--font-sans);
 	color: var(--mute);
 	background: var(--bg-2);
 	border: 1px solid var(--line);
@@ -174,7 +174,7 @@ const projects = [
 }
 
 .card-desc {
-	font: 400 13px/1.55 var(--font-mono);
+	font: 400 13px/1.55 var(--font-sans);
 	color: var(--dim);
 	margin: 0;
 	flex: 1;
@@ -184,7 +184,7 @@ const projects = [
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 12.5px var(--font-mono);
+	font: 500 12.5px var(--font-sans);
 	color: var(--brand);
 	margin-top: 4px;
 }

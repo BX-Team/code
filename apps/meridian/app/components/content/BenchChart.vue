@@ -223,8 +223,8 @@ onMounted(() => {
 	padding: var(--s-6);
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
-	font: 400 13px/1.4 var(--font-mono);
+	border-radius: var(--r-3);
+	font: 400 13px/1.4 var(--font-sans);
 	color: var(--dim);
 }
 
@@ -291,7 +291,7 @@ onMounted(() => {
 	display: grid;
 	grid-column: 1 / -1;
 	grid-template-columns: subgrid;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	cursor: default;
 	transition: background-color 0.15s ease;
 }

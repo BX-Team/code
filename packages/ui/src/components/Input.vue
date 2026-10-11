@@ -28,21 +28,19 @@ defineProps<{
 }
 
 .bx-input-label {
-	font: 500 11px/1.4 var(--font-mono);
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	color: var(--mute);
+	font: 500 13px/1.4 var(--font-sans);
+	color: var(--dim);
 }
 
 .bx-input {
 	width: 100%;
-	height: 40px;
+	height: 38px;
 	padding: 0 var(--s-3);
-	background: var(--surface-3);
-	border: 1px solid var(--edge);
+	background: var(--surface-deep);
+	border: 1px solid var(--line-2);
 	border-radius: var(--r-2);
 	color: var(--fg);
-	font: 400 14px var(--font-mono);
+	font: 400 14px var(--font-sans);
 	transition: border-color 0.15s ease;
 	box-sizing: border-box;
 }
@@ -52,11 +50,11 @@ defineProps<{
 }
 
 .bx-input:hover {
-	border-color: var(--fg);
+	border-color: var(--rule);
 }
 
 .bx-input:focus-visible {
-	outline: 2px solid var(--ring);
-	outline-offset: 2px;
+	outline: none;
+	border-color: var(--edge);
 }
 </style>

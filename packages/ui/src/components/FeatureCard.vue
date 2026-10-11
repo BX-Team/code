@@ -30,7 +30,7 @@ withDefaults(
 	padding: var(--s-6);
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 }
 
 .bx-feature-card--link {
@@ -65,7 +65,7 @@ withDefaults(
 
 .bx-feature-card__body {
 	margin: 0;
-	font: 400 13.5px/1.6 var(--font-mono);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 </style>

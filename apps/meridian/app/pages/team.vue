@@ -183,7 +183,7 @@ useHead({
   display: flex; align-items: center; gap: 14px;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-3);
   background: var(--bg-1);
   text-decoration: none;
   color: inherit;
@@ -208,7 +208,7 @@ a.member-card:hover {
   overflow: hidden;
   background: var(--bg-3);
   display: flex; align-items: center; justify-content: center;
-  font: 500 13px var(--font-mono);
+  font: 500 13px var(--font-sans);
   color: var(--fg-hi);
   flex-shrink: 0;
 }

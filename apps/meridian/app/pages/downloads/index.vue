@@ -164,7 +164,7 @@ useHead({
   padding: var(--s-6);
   background: var(--surface-card);
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-3);
 }
 
 .dl-card__head {
@@ -189,7 +189,7 @@ useHead({
 .dl-card__desc {
   max-width: 44rem;
   margin: 0;
-  font: 400 13.5px/1.6 var(--font-mono);
+  font: 400 13.5px/1.6 var(--font-sans);
   color: var(--dim);
 }
 
@@ -235,7 +235,7 @@ useHead({
   gap: var(--s-3);
   padding: var(--s-2) 0;
   border-bottom: 1px solid var(--line);
-  font: 400 13.5px/1.5 var(--font-mono);
+  font: 400 13.5px/1.5 var(--font-sans);
   color: var(--dim);
 }
 

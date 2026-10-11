@@ -1,9 +1,10 @@
 # packages/ui — BX Team Design System
 
 Shared Vue 3 component library for the BX Team monorepo, on the **BX Team Omarchy** design system
-(Basalt palette — the previous site's warm `#12100d` ground under the system's Meridian accents): dark warm surfaces, JetBrains Mono for everything but headings, Inter for
-headings only, 2px corners, borders instead of shadows, no blur and no glow, and a pixel field on the
-hero and the footer. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation
+(Basalt palette — the previous site's warm `#12100d` ground under the system's Meridian accents) in its
+v1.3 "Riven shell", matching the Riven Launcher: dark warm surfaces, Inter for the interface and
+JetBrains Mono for data (code, versions, hashes, file names, kbd, uppercase labels), soft 6–12px
+corners, borders instead of shadows, no blur and no glow, and a pixel field on the hero and the footer. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation
 via `build.transpile: ['@bx-team/ui']`.
 
 The mark is the design system's 11-cell pixel mark (`BrandMark`, monochrome, `currentColor`), and the
@@ -37,28 +38,29 @@ All tokens are CSS custom properties on `:root`. Never hard-code colours — alw
 | Category | Variables |
 |---|---|
 | Surfaces | `--surface-deep` (bar, hero, footer) `--surface-0` (alt band) `--surface-1` (page) `--surface-card` `--surface-2` (hover) `--surface-3` (inset) |
-| Lines | `--line` (cards) `--line-2` (nested) `--rule` (dividers, decorative) `--edge` (control borders — the only one on anything focusable) |
+| Lines | `--line` (cards) `--line-2` (nested, resting border of buttons and fields) `--rule` (dividers, field hover) `--edge` (field focus border) |
 | Text | `--mute` `--dim` `--fg` `--fg-hi` |
 | Accent | `--accent` (cyan) `--accent-2` (green) `--accent-wash` (tag chip fill) `--ring` |
 | Pixel field | `--pixel-bg` `--pixel-dim` `--pixel-mid` `--pixel-lit` `--pixel-hover` `--pixel-crest` |
 | Status | `--ok` `--warn` `--err` `--info` `--exp`, channels `--ch-stable` `--ch-beta` `--ch-alpha` `--ch-experimental` |
-| Radii | `--r-1` 2px (buttons, cards) `--r-2` 3px (inputs) `--r-3` 4px (code) `--r-4` 6px (modals) `--r-pill` (dots only) |
+| Radii | `--r-xs` 4px (inline code, kbd) `--r-1` 6px (small controls, chips, nav) `--r-2` 8px (buttons, inputs, rows) `--r-3` 10px (cards, callouts, panels) `--r-4` 12px (modals) `--r-pill` (dots, scrollbar thumbs) |
 | Spacing | `--s-1` … `--s-32`, `--container` |
 | Shadows | `--shadow-panel` `--shadow-modal` — floating things only; cards never get one |
-| Fonts | `--font-mono` (default) `--font-heading` / `--font-sans` (headings only) |
+| Fonts | `--font-sans` (default: body, UI, headings) `--font-mono` (code, versions, hashes, file names, kbd, uppercase labels) |
 
-The pre-redesign names (`--bg-0…3`, `--brand*`, `--hover*`, `--r-xs…xl`, `--r-full`, `--shadow-card`)
+The pre-redesign names (`--bg-0…3`, `--brand*`, `--hover*`, `--r-sm…2xl`, `--r-full`, `--shadow-card`)
 still resolve, as aliases onto the tokens above, so older pages read the new palette. Prefer the new
 names in anything you write.
 
-The accent is rationed: focus ring, link hover, active markers, the one `bx-accent` phrase in the hero,
-and `--accent-wash` tag chips. Buttons, borders and body text never take it.
+The accent is rationed: focus ring on buttons and links, link hover, active markers, the one `bx-accent`
+phrase in the hero, and `--accent-wash` tag chips. Buttons, borders, fields and body text never take it:
+the primary button is the white `--fg` plate, and fields focus with a grey `--edge` border, not the ring.
 
 Utility classes: `.bx-h1`–`.bx-h5`, `.bx-hero-lede`, `.bx-lede`, `.bx-body`, `.bx-body-sm`,
 `.bx-caption`, `.bx-micro` (`.bx-eyebrow`), `.bx-link`, `.bx-accent`, `.bx-text-grad`,
 `.bx-code-inline`, `.bx-container`, `.bx-channel` (+ `--stable`/`--beta`/`--alpha`/`--experimental`: a
 release-channel chip with a dot) and `.bx-callout` (+ `--note`/`--warn`/`--err`/`--exp`, with a
-`.bx-callout__mark` label: a notice with a coloured left edge, never a tinted fill).
+`.bx-callout__mark` label: a rounded panel whose mark word carries the colour — no coloured edge, no tinted fill).
 
 ## Components
 
@@ -71,7 +73,7 @@ props: { size?: number }  // default 22
 ```
 
 ### `Button`
-Renders `<a>` when `href` is provided, otherwise `<button>`. 40px tall, mono, `--r-1`.
+Renders `<a>` when `href` is provided, otherwise `<button>`. Riven sizes: 38px (`sm` 30px, `lg` 44px), Inter, `--r-2`.
 ```ts
 props: {
   variant?: 'primary' | 'accent' | 'secondary' | 'ghost'  // default: primary
@@ -80,19 +82,19 @@ props: {
   disabled?: boolean
 }
 ```
-- `primary` — `fg` plate, the one loud action on a page
-- `accent` — `mute` plate, section-level actions (a download)
-- `secondary` — outline on `edge`
-- `ghost` — no border, `dim` text
+- `primary` — white `fg` plate, bold; hover dims it to 88%. The one loud action on a page
+- `accent` — tonal `surface-3` plate, section-level actions (a download)
+- `secondary` — outline on `line-2`, `surface-2` on hover
+- `ghost` — no border, `mute` text, `surface-2` on hover
 
 ### `Badge`
-A mono chip; with `dot`, an uppercase status label with a flat dot.
+A `surface-3` chip; with `dot`, an uppercase mono status label with a flat dot.
 ```ts
 props: { variant?: 'brand' | 'soft' | 'green' | 'warn' | 'err' | 'mono'; dot?: 'ok' | 'warn' | 'err' | 'info' }
 ```
 
 ### `Input`
-Controlled via `v-model`. `surface-3` fill, `edge` border.
+Controlled via `v-model`. `surface-deep` inset, `line-2` border, `rule` on hover, `edge` on focus (no ring).
 ```ts
 props: { label?: string; placeholder?: string; type?: string }
 ```
@@ -106,7 +108,8 @@ props: { featured?: boolean; padding?: 'sm' | 'md' | 'lg' }
 The site-wide bar: full width, 56px, sticky, **opaque** `surface-deep` with a bottom rule — nothing
 here uses `backdrop-filter`. Its row follows the page's own container (`maxWidth` / `gutter`) so the
 lockup sits above the left edge of the content; shells that lay out edge to edge pass `maxWidth: 'none'`.
-`#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box. With
+`#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box. The links
+share one highlight plate that glides to the hovered link and rests on the active one, like Riven's tabs. With
 `overlay` the bar is transparent while the page's `[data-nav-overlay]` band (the hero, pulled up 56px
 under it) is in view and turns opaque once it scrolls away; on a phone it then shows only the mark.
 Under 1023px the links, search and socials move into a sheet that drops under the bar, as on omarchy.org. Nothing else may make a bar of its own — `meridian` wires this one through
@@ -131,7 +134,7 @@ emits: { painted: [] }
 ### `Hero`
 The home page's opening band: full viewport height, pulled up under an `overlay` bar, `PixelField` in `hero` mode.
 Left-aligned in the container: the pixel "BX Team" wordmark drawn into the field, then the headline in
-mono, a lede and two buttons. On the right the BrandMark, drawn into the same lattice at a whole-cell
+Inter 600, a lede and two buttons. On the right the BrandMark, drawn into the same lattice at a whole-cell
 scale, so the glow and the stamps light it like the word. Below 860px the mark is dropped and the
 column centres. Both glyphs have an
 SVG copy server-rendered in their boxes and hidden once the canvas paints.
@@ -143,7 +146,7 @@ slots: #title (the h1, mono), #cta
 ### `PageHero`
 The top band of every inner page that has one (project pages, downloads): `PixelField` on
 `surface-deep`, pulled up under an `overlay` bar (`PageShell overlay`), then crumbs, a sans title with an
-optional badge, mono tagline and lede, actions, a meta line and a four-cell stat strip; `#aside` adds a
+optional badge, tagline and lede, actions, a meta line and a four-cell stat strip in one rounded panel; `#aside` adds a
 340px panel to the right of the text (a changelog, say), which drops under it below 1024px.
 ```ts
 interface PageHeroStat { label: string; value: string; channel?: 'stable' | 'beta' | 'alpha' | 'experimental' }
@@ -161,7 +164,7 @@ props: { columns: FooterColumn[]; blurb?: string; githubHref?: string; discordHr
 ```
 
 ### `Section`
-A full-width band: left-aligned sans `h2`, mono lede, an optional `#action` link pushed right.
+A full-width band: left-aligned sans `h2`, a lede, an optional `#action` link pushed right.
 `alt` moves it onto `surface-0`; stacked sections alternate so two bands never read as one.
 ```ts
 props: { id?: string; eyebrow?: string; title?: string; lede?: string; alt?: boolean }

@@ -243,7 +243,7 @@ useHead({
 
 .proj-tag,
 .proj-chip {
-	font: 500 11px/1 var(--font-mono);
+	font: 500 12px/1 var(--font-sans);
 	padding: 5px 8px;
 	border-radius: var(--r-1);
 }
@@ -254,8 +254,7 @@ useHead({
 }
 
 .proj-chip {
-	border: 1px solid var(--line-2);
-	background: var(--surface-1);
+	background: var(--surface-3);
 	color: var(--warn);
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -283,10 +282,9 @@ useHead({
 	margin: 0;
 	padding: var(--s-4);
 	border: 1px solid var(--line);
-	border-left: 2px solid var(--rule);
-	border-radius: var(--r-1);
-	background: var(--surface-0);
-	font: 400 13.5px/1.6 var(--font-mono);
+	border-radius: var(--r-3);
+	background: var(--surface-card);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 
@@ -298,16 +296,8 @@ useHead({
 	text-transform: uppercase;
 }
 
-.proj-callout--note {
-	border-left-color: var(--info);
-}
-
 .proj-callout--note .proj-callout__mark {
 	color: var(--info);
-}
-
-.proj-callout--warn {
-	border-left-color: var(--warn);
 }
 
 .proj-callout--warn .proj-callout__mark {
@@ -340,7 +330,7 @@ useHead({
 }
 
 .proj-bench__label {
-	font: 400 14px/1.5 var(--font-mono);
+	font: 400 14px/1.5 var(--font-sans);
 	color: var(--fg);
 }
 
@@ -422,7 +412,7 @@ useHead({
 	padding: var(--s-6);
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 }
 
 .proj-card__title {
@@ -434,7 +424,7 @@ useHead({
 
 .proj-card__body {
 	margin: 0;
-	font: 400 13.5px/1.6 var(--font-mono);
+	font: 400 13.5px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 

@@ -140,7 +140,7 @@ withDefaults(
 .bx-footer__blurb {
 	margin: var(--s-4) 0 0;
 	max-width: 36ch;
-	font: 400 13.5px/1.6 var(--font-mono);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--mute);
 	text-wrap: pretty;
 }
@@ -157,7 +157,7 @@ withDefaults(
 	place-items: center;
 	width: 36px;
 	height: 36px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	color: var(--mute);
 	transition:
 		color 0.15s ease,
@@ -200,7 +200,7 @@ withDefaults(
 
 .bx-footer__col a,
 .bx-footer__end a {
-	font: 400 13.5px/1.4 var(--font-mono);
+	font: 400 14px/1.4 var(--font-sans);
 	color: var(--dim);
 	text-decoration: underline;
 	text-decoration-color: transparent;
@@ -227,7 +227,7 @@ withDefaults(
 
 .bx-footer__end p {
 	margin: 0;
-	font: 400 12.5px/1.5 var(--font-mono);
+	font: 400 12.5px/1.5 var(--font-sans);
 	color: var(--mute);
 }
 

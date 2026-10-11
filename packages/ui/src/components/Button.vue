@@ -25,10 +25,10 @@ defineProps<{
 	align-items: center;
 	justify-content: center;
 	gap: var(--s-2);
-	height: 40px;
+	height: 38px;
 	padding: 0 var(--s-4);
-	border-radius: var(--r-1);
-	font: 400 14px/1 var(--font-mono);
+	border-radius: var(--r-2);
+	font: 500 14px/1 var(--font-sans);
 	border: 1px solid transparent;
 	cursor: pointer;
 	white-space: nowrap;
@@ -36,14 +36,15 @@ defineProps<{
 	transition:
 		background-color 0.15s ease,
 		color 0.15s ease,
-		border-color 0.15s ease;
+		border-color 0.15s ease,
+		opacity 0.15s ease;
 }
 
-.bx-btn--sm { height: 32px; padding: 0 var(--s-3); font-size: 13px; }
-.bx-btn--lg { height: 44px; padding: 0 var(--s-5); font-size: 15px; }
+.bx-btn--sm { height: 30px; padding: 0 var(--s-3); border-radius: var(--r-1); font-size: 13px; }
+.bx-btn--lg { height: 44px; padding: 0 30px; font-size: 15px; }
 
 .bx-btn:disabled {
-	opacity: 0.45;
+	opacity: 0.5;
 	cursor: not-allowed;
 	pointer-events: none;
 }
@@ -51,36 +52,42 @@ defineProps<{
 .bx-btn--primary {
 	background: var(--fg);
 	color: var(--surface-deep);
+	font-weight: 700;
+}
+.bx-btn--lg.bx-btn--primary {
+	font-weight: 800;
 }
 .bx-btn--primary:hover {
-	background: var(--fg-hi);
+	opacity: 0.88;
+}
+.bx-btn--primary:active {
+	opacity: 0.8;
 }
 
 .bx-btn--accent {
-	background: var(--mute);
-	color: var(--surface-deep);
+	background: var(--surface-3);
+	color: var(--fg);
 }
 .bx-btn--accent:hover {
-	background: var(--dim);
+	background: var(--line-2);
 }
 
 .bx-btn--secondary {
-	background: var(--surface-deep);
+	background: transparent;
 	color: var(--fg);
-	border-color: var(--edge);
+	border-color: var(--line-2);
 }
 .bx-btn--secondary:hover {
-	border-color: var(--fg);
 	background: var(--surface-2);
 }
 
 .bx-btn--ghost {
 	background: transparent;
-	color: var(--dim);
+	color: var(--mute);
 	padding: 0 var(--s-3);
 }
 .bx-btn--ghost:hover {
-	color: var(--fg-hi);
+	color: var(--fg);
 	background: var(--surface-2);
 }
 </style>

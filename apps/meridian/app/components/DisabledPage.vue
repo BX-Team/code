@@ -49,7 +49,7 @@ defineProps<{
 	max-width: 560px;
 	text-align: center;
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	padding: 48px 40px;
 	background: var(--bg-1);
 	box-shadow: var(--shadow-pop);
@@ -60,14 +60,14 @@ defineProps<{
 	place-items: center;
 	width: 64px;
 	height: 64px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	background: var(--brand-soft);
 	color: var(--brand);
 	margin-bottom: 20px;
 }
 
 .disabled-label {
-	font: 600 14px var(--font-mono);
+	font: 600 14px var(--font-sans);
 	color: var(--brand);
 	letter-spacing: 0.12em;
 	margin-bottom: 8px;

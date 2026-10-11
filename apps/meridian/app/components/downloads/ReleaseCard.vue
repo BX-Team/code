@@ -59,7 +59,7 @@ const external = computed(() => !props.project.repo);
 <style scoped>
 .card {
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	padding: var(--s-6);
 	background: var(--surface-card);
 }
@@ -130,12 +130,12 @@ const external = computed(() => !props.project.repo);
 	font-size: 12.5px;
 	background: var(--bg-2);
 	padding: 1px 5px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-xs);
 }
 .notes :deep(pre) {
 	background: var(--bg-2);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	padding: 12px;
 	overflow-x: auto;
 	margin: 0 0 10px;

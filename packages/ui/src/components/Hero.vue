@@ -161,8 +161,8 @@ const markRuns = runsOf(MARK);
 
 .bx-hero__title {
 	margin: 0;
-	font: 500 26px/1.35 var(--font-mono);
-	letter-spacing: -0.01em;
+	font: 600 32px/1.2 var(--font-sans);
+	letter-spacing: -0.02em;
 	color: var(--fg);
 	text-wrap: balance;
 }
@@ -178,7 +178,7 @@ const markRuns = runsOf(MARK);
 
 .bx-hero__lede {
 	margin: var(--s-4) 0 0;
-	font: 400 15px/1.6 var(--font-mono);
+	font: 400 17px/1.6 var(--font-sans);
 	color: var(--dim);
 	text-wrap: pretty;
 }
@@ -220,7 +220,7 @@ const markRuns = runsOf(MARK);
 	}
 
 	.bx-hero__title {
-		font-size: 21px;
+		font-size: 25px;
 	}
 
 	.bx-hero__cta {

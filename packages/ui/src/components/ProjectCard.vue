@@ -41,7 +41,7 @@ withDefaults(
 	padding: var(--s-6);
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	color: inherit;
 	text-decoration: none;
 	transition:
@@ -74,8 +74,8 @@ withDefaults(
 
 .bx-project-card__tag {
 	flex-shrink: 0;
-	font: 500 11px/1 var(--font-mono);
-	padding: 4px 7px;
+	font: 500 12px/1 var(--font-sans);
+	padding: 5px 8px;
 	border-radius: var(--r-1);
 	background: var(--accent-wash);
 	color: var(--accent-2);
@@ -84,7 +84,7 @@ withDefaults(
 .bx-project-card__desc {
 	flex: 1;
 	margin: 0;
-	font: 400 13.5px/1.6 var(--font-mono);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 
@@ -98,12 +98,10 @@ withDefaults(
 
 .bx-project-card__chip {
 	flex-shrink: 0;
-	font: 500 11px/1 var(--font-mono);
-	letter-spacing: 0.04em;
-	padding: 4px 7px;
-	border: 1px solid var(--line-2);
+	font: 500 12px/1 var(--font-sans);
+	padding: 5px 8px;
 	border-radius: var(--r-1);
-	background: var(--surface-1);
+	background: var(--surface-3);
 	color: var(--mute);
 }
 
@@ -112,7 +110,7 @@ withDefaults(
 	align-items: center;
 	gap: 6px;
 	margin-left: auto;
-	font: 400 13px/1 var(--font-mono);
+	font: 500 13px/1 var(--font-sans);
 	color: var(--mute);
 	transition: color 0.15s ease;
 }

@@ -91,7 +91,7 @@ defineProps<{
 	margin-top: var(--s-8);
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 }
 
 .bx-page-hero__crumbs {
@@ -99,7 +99,7 @@ defineProps<{
 	flex-wrap: wrap;
 	gap: var(--s-2);
 	width: fit-content;
-	font: 400 13px/1.4 var(--font-mono);
+	font: 400 13px/1.4 var(--font-sans);
 	color: var(--mute);
 }
 
@@ -135,7 +135,7 @@ defineProps<{
 .bx-page-hero__tagline {
 	max-width: 40rem;
 	margin: var(--s-5) 0 0;
-	font: 400 24px/1.35 var(--font-mono);
+	font: 400 22px/1.4 var(--font-sans);
 	color: var(--fg);
 	text-wrap: balance;
 }
@@ -143,7 +143,7 @@ defineProps<{
 .bx-page-hero__lede {
 	max-width: 40rem;
 	margin: var(--s-4) 0 0;
-	font: 400 15px/1.6 var(--font-mono);
+	font: 400 16px/1.6 var(--font-sans);
 	color: var(--dim);
 	text-wrap: pretty;
 }
@@ -159,23 +159,24 @@ defineProps<{
 .bx-page-hero__meta {
 	width: fit-content;
 	margin-top: var(--s-4);
-	font: 400 13px/1.5 var(--font-mono);
+	font: 400 13px/1.5 var(--font-sans);
 	color: var(--mute);
 }
 
 .bx-page-hero__stats {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1px;
 	margin: var(--s-12) 0 0;
-	border-top: 1px solid var(--line);
-	border-left: 1px solid var(--line);
-	background: var(--surface-deep);
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: var(--r-3);
+	background: var(--line);
 }
 
 .bx-page-hero__stat {
 	padding: var(--s-5) var(--s-6);
-	border-right: 1px solid var(--line);
-	border-bottom: 1px solid var(--line);
+	background: var(--surface-deep);
 }
 
 .bx-page-hero__stat dt {
@@ -223,7 +224,7 @@ defineProps<{
 	}
 
 	.bx-page-hero__tagline {
-		font-size: 19px;
+		font-size: 18px;
 	}
 }
 </style>

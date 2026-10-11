@@ -18,8 +18,8 @@
   --scalar-button-1: var(--brand);
   --scalar-button-1-hover: var(--brand-2);
   --scalar-button-1-color: var(--bg-0);
-  --scalar-font: var(--font-mono);
-  --scalar-font-code: var(--font-mono);
+  --scalar-font: var(--font-sans);
+  --scalar-font-code: var(--font-sans);
   --scalar-radius: var(--r-md);
   --scalar-radius-lg: var(--r-lg);
   --scalar-radius-xl: var(--r-xl);

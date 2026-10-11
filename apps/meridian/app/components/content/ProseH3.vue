@@ -21,7 +21,7 @@ h3 {
 	color: var(--mute);
 	opacity: 0;
 	transition: opacity 0.15s;
-	font: 500 14px var(--font-mono);
+	font: 500 14px var(--font-sans);
 	text-decoration: none;
 }
 h3:hover .anchor {

@@ -21,11 +21,11 @@ defineProps<{
 .bx-card {
 	background: var(--surface-card);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 }
 
 .bx-card--featured {
-	border-color: var(--edge);
+	border-color: var(--line-2);
 }
 
 .bx-card--pad-sm { padding: var(--s-3); }

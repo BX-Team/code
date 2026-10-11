@@ -263,7 +263,7 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
   gap: 2px;
   padding: var(--s-3) 0;
   border-bottom: 1px solid var(--line);
-  font: 400 13px/1.5 var(--font-mono);
+  font: 400 13px/1.5 var(--font-sans);
   color: var(--dim);
 }
 

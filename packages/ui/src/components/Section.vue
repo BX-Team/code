@@ -75,7 +75,7 @@ defineProps<{
 
 .bx-section__lede {
 	margin: 0;
-	font: 400 15px/1.6 var(--font-mono);
+	font: 400 16px/1.6 var(--font-sans);
 	color: var(--dim);
 	text-wrap: pretty;
 }

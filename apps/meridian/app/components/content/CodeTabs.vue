@@ -159,7 +159,7 @@ function stripTags(html: string) {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 11px var(--font-mono);
+	font: 500 11px var(--font-sans);
 	color: var(--mute);
 	padding: 4px 9px;
 	border: 1px solid var(--line);

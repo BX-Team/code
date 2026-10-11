@@ -126,7 +126,7 @@ const breadcrumbs = computed(() => {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 12.5px var(--font-mono);
+	font: 500 12.5px var(--font-sans);
 	color: var(--mute);
 	margin-bottom: 12px;
 	flex-wrap: wrap;
@@ -157,7 +157,7 @@ const breadcrumbs = computed(() => {
 	margin: 0 0 14px;
 }
 .doc-lede {
-	font: 400 16px/1.55 var(--font-mono);
+	font: 400 16px/1.55 var(--font-sans);
 	color: var(--dim);
 	margin: 0 0 32px;
 	text-wrap: pretty;
@@ -215,12 +215,12 @@ const breadcrumbs = computed(() => {
 	background: var(--bg-2);
 	border: 1px solid var(--line);
 	padding: 1px 6px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-xs);
 }
 .doc-body :deep(pre) {
 	background: var(--bg-deep);
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	padding: 16px 18px;
 	margin: 22px 0;
 	overflow-x: auto;
@@ -251,7 +251,7 @@ const breadcrumbs = computed(() => {
 .doc-body :deep(.highlighted-word) {
 	background: color-mix(in oklab, var(--brand) 20%, transparent);
 	border: 1px solid color-mix(in oklab, var(--brand) 40%, transparent);
-	border-radius: var(--r-1);
+	border-radius: var(--r-xs);
 	padding: 0 2px;
 }
 
@@ -300,7 +300,7 @@ const breadcrumbs = computed(() => {
 	top: 7px;
 	width: 24px;
 	text-align: right;
-	font: 600 13px var(--font-mono);
+	font: 600 13px var(--font-sans);
 	color: var(--brand);
 }
 .doc-body :deep(li strong) {
@@ -348,7 +348,7 @@ const breadcrumbs = computed(() => {
 }
 .doc-body :deep(img) {
 	max-width: 100%;
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	border: 1px solid var(--line);
 	margin: 16px 0;
 }
@@ -366,7 +366,7 @@ const breadcrumbs = computed(() => {
 	display: block;
 	padding: 14px 16px;
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	background: var(--bg-1);
 	transition: border-color 0.15s;
 	text-decoration: none;
@@ -382,7 +382,7 @@ const breadcrumbs = computed(() => {
 	display: block;
 }
 .doc-footer-nav .ttl {
-	font: 500 14px var(--font-mono);
+	font: 500 14px var(--font-sans);
 	color: var(--fg-hi);
 	margin-top: 3px;
 	display: block;
@@ -398,7 +398,7 @@ const breadcrumbs = computed(() => {
 	gap: 14px;
 	padding: 16px 18px;
 	border: 1px solid var(--line);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
 	background: var(--bg-1);
 	margin: 22px 0;
 	font-size: 14px;

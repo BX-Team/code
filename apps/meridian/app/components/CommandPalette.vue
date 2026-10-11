@@ -286,7 +286,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	background: transparent;
 	border: none;
 	outline: none;
-	font: 500 14.5px var(--font-mono);
+	font: 500 14.5px var(--font-sans);
 	color: var(--fg-hi);
 	caret-color: var(--brand);
 }
@@ -302,7 +302,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	border-bottom-width: 2px;
-	border-radius: var(--r-1);
+	border-radius: var(--r-xs);
 	padding: 2px 6px;
 	min-width: 22px;
 	display: inline-grid;
@@ -329,7 +329,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 
 .cmdk-list::-webkit-scrollbar-thumb {
 	background: var(--line-2);
-	border-radius: var(--r-1);
+	border-radius: var(--r-pill);
 }
 
 .cmdk-group-label {
@@ -353,7 +353,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	padding: 9px 10px;
 	background: transparent;
 	border: none;
-	border-radius: var(--r-1);
+	border-radius: var(--r-2);
 	cursor: pointer;
 	text-align: left;
 	color: inherit;
@@ -382,7 +382,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__title {
-	font: 500 13.5px var(--font-mono);
+	font: 500 13.5px var(--font-sans);
 	color: var(--fg-hi);
 	min-width: 0;
 	white-space: nowrap;
@@ -391,7 +391,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__subtitle {
-	font: 400 12px var(--font-mono);
+	font: 400 12px var(--font-sans);
 	color: var(--mute);
 	max-width: 240px;
 	white-space: nowrap;
@@ -401,7 +401,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__hint {
-	font: 600 10.5px var(--font-mono);
+	font: 600 11px var(--font-sans);
 	color: var(--warn);
 	background: color-mix(in oklab, var(--warn) 14%, transparent);
 	border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--line));
@@ -428,7 +428,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 .cmdk-state {
 	padding: 28px 12px;
 	text-align: center;
-	font: 400 13px var(--font-mono);
+	font: 400 13px var(--font-sans);
 	color: var(--mute);
 }
 
@@ -439,7 +439,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	padding: 9px 14px;
 	border-top: 1px solid var(--line);
 	background: color-mix(in oklab, var(--bg-0) 60%, transparent);
-	font: 500 11.5px var(--font-mono);
+	font: 500 11.5px var(--font-sans);
 	color: var(--mute);
 }
 

@@ -20,11 +20,10 @@ defineProps<{
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 11px/1 var(--font-mono);
-	padding: 4px 7px;
+	font: 500 12px/1 var(--font-sans);
+	padding: 5px 8px;
 	border-radius: var(--r-1);
-	border: 1px solid var(--line-2);
-	background: var(--surface-1);
+	background: var(--surface-3);
 	color: var(--dim);
 }
 
@@ -36,7 +35,6 @@ defineProps<{
 }
 .bx-badge--green {
 	background: var(--accent-wash);
-	border-color: var(--accent-wash);
 	color: var(--accent-2);
 }
 .bx-badge--warn {
@@ -46,6 +44,8 @@ defineProps<{
 	color: var(--err);
 }
 .bx-badge--mono {
+	font-family: var(--font-mono);
+	font-size: 11px;
 	color: var(--mute);
 }
 

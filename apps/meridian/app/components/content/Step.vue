@@ -64,7 +64,7 @@ const num = computed(() => props.n ?? claimed.value ?? 1);
 	background: var(--bg-1);
 	border: 1px solid var(--line);
 	color: var(--fg-hi);
-	font: 600 12px var(--font-mono);
+	font: 600 12px var(--font-sans);
 	letter-spacing: 0;
 	flex-shrink: 0;
 }
@@ -104,7 +104,7 @@ const num = computed(() => props.n ?? claimed.value ?? 1);
 .step-content :deep(h2),
 .step-content :deep(h3),
 .step-content :deep(h4) {
-	font: 500 14px/1.4 var(--font-mono);
+	font: 500 14px/1.4 var(--font-sans);
 	color: var(--fg-hi);
 	margin: 14px 0 6px;
 	letter-spacing: -0.005em;

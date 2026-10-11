@@ -106,9 +106,9 @@ function pick(v: string) {
 
 .toggle-exp {
 	color: var(--dim);
-	border: 1px solid var(--edge);
+	border: 1px solid var(--line-2);
 }
-.toggle-exp:hover { border-color: var(--fg); }
+.toggle-exp:hover { background: var(--surface-2); }
 .toggle-exp.on { color: var(--ch-experimental); border-color: var(--ch-experimental); background: var(--surface-2); }
 
 .vs-dropdown {
@@ -121,19 +121,23 @@ function pick(v: string) {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	height: 40px;
+	height: 38px;
 	padding: 0 var(--s-3);
-	background: var(--surface-3);
-	border: 1px solid var(--edge);
+	background: var(--surface-deep);
+	border: 1px solid var(--line-2);
 	border-radius: var(--r-2);
 	color: var(--fg);
 	cursor: pointer;
 	transition: border-color .15s, background .15s;
 	font-family: inherit;
 }
-.trigger:hover,
-.trigger.open {
-	border-color: var(--fg);
+.trigger:hover {
+	border-color: var(--rule);
+}
+.trigger.open,
+.trigger:focus-visible {
+	outline: none;
+	border-color: var(--edge);
 }
 
 .val {
@@ -153,7 +157,8 @@ function pick(v: string) {
 	right: 0;
 	background: var(--bg-1);
 	border: 1px solid var(--line-2);
-	border-radius: var(--r-1);
+	border-radius: var(--r-3);
+	padding: 4px;
 	overflow: hidden;
 	z-index: 50;
 	box-shadow: var(--shadow-panel);
@@ -163,6 +168,7 @@ function pick(v: string) {
 
 .menu-item {
 	width: 100%;
+	border-radius: var(--r-1);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
