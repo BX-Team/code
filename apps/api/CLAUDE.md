@@ -33,13 +33,18 @@ reused rather than replaced because it was empty.
 
 The layers are not interchangeable:
 
-- `routes/` — HTTP handlers, one file per resource, plus `internal.ts` for the service
-  endpoints. `routes/index.ts` is the whole route table.
-- `models/downloads.ts` — the API contract: what gets serialised into a response.
+- `@bx-team/types/api` — **the contract**: every route with its parameters, body and
+  responses, as `@hono/zod-openapi` route definitions. Change an endpoint there first.
+- `routes/` — the handlers, one file per resource plus `internal.ts` for the service
+  endpoints, each registered with `.openapi(route, handler)` so a response that does not
+  match the contract is a type error. `routes/index.ts` mounts them, applies the edge
+  cache and renders `/v1/openapi.json` from the same definitions.
+- `router.ts` — the route group every file starts from; a failed validation throws
+  `badRequest` into `app.onError` like any other error.
+- `models/downloads.ts` — rows into the contract's response types.
 - `database/downloads.ts` (reads) and `database/publish.ts` (writes) — rows and the SQL
   against them. No ORM: the schema is fixed and every query here is known.
 - `util/` — the edge cache, the token guard, version ordering, the publish webhook.
-- `openapi.ts` — the hand-authored OpenAPI 3.1 document `web` renders at `/docs/api`.
 
 `models/` and `database/` are separate on purpose. Mixing them is what turns a schema
 refactor into a breaking API change.
@@ -61,8 +66,13 @@ refactor into a breaking API change.
 - **The build number comes from `/v1/publish/next`, not from `github.run_number`.** That
   endpoint is behind the token and never cached, so a failed run does not burn a number
   and the sequence stays gapless.
-- Requests are parsed through the Zod schemas in `@bx-team/types/schema/downloads`,
-  never read off an untyped object.
+- Requests are validated by the contract before a handler runs; read them with
+  `c.req.valid('param' | 'query' | 'json' | 'form')`, never off the raw request. The
+  multipart `metadata` part is a JSON string, so it is parsed with `PublishBuildSchema` /
+  `PublishReleaseSchema` in the handler.
+- **Consumers type themselves off the contract, not off this app.** `web` and `bot` use
+  `hc<ApiContract>` from `hono/client`, importing only the type, so they never compile or
+  bundle anything from here.
 - **D1 binds at most 100 parameters per statement.** Commit inserts and `in (…)` lookups
   are chunked for that reason; keep it that way when adding a query.
 - D1 has no interactive transactions. `db.batch()` is the atomic unit, and a publish

@@ -5,7 +5,7 @@ export const RESOURCES = {
   docs: 'https://bxteam.org/docs',
   downloads: 'https://bxteam.org/downloads',
   /** The downloads API this bot reads a publish back from. */
-  api: 'https://api.bxteam.org/v1',
+  api: 'https://api.bxteam.org',
   github: 'https://github.com/BX-Team',
 } as const;
 

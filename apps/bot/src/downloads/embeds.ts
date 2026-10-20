@@ -3,8 +3,8 @@ import { RESOURCES } from '../config/resources';
 import { COLORS, createEmbed } from '../discord/embeds';
 import {
   type Build,
-  type BuildCommit,
   type Channel,
+  type Commit,
   type Download,
   type ProjectSummary,
   primaryDownload,
@@ -79,7 +79,7 @@ function downloadFields(downloads: Record<string, Download>) {
 }
 
 /** A project without a repository of its own is upstream, so its commits get no link. */
-function commitLines(project: ProjectSummary, commits: BuildCommit[]): string | undefined {
+function commitLines(project: ProjectSummary, commits: Commit[]): string | undefined {
   if (commits.length === 0) return undefined;
 
   const lines = commits.slice(0, MAX_COMMITS_SHOWN).map(commit => {

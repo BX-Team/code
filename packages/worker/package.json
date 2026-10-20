@@ -8,6 +8,6 @@
     "./signature": "./src/signature.ts"
   },
   "dependencies": {
-    "hono": "^4.12.23"
+    "hono": "^4.13.13"
   }
 }

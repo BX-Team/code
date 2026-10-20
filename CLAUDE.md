@@ -30,7 +30,7 @@ The packages are consumed from source inside the workspace and are never publish
 | `apps/api` | The downloads API on `api.bxteam.org`. Hono; D1, R2, publish tokens. |
 | `apps/bot` | The GitHub App and Discord bot on `bot.bxteam.org`. Hono; release PRs, `/release` commands, board, title check, announcements, slash commands. |
 | `packages/projects` | The project registry: key, name, repository, docs, Discord thread, release setup. |
-| `packages/types` | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks. |
+| `packages/types` | Shared Zod schemas, and the downloads API contract (`@bx-team/types/api`) that `api` implements and `web` and `bot` call through `hc`. |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
 | `packages/worker` | What every Worker shares: the error type and handlers, hex, `sha256=` HMAC signatures. |
 
