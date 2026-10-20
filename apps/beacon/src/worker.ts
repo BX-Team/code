@@ -1,9 +1,9 @@
+import { errorHandler, notFoundHandler } from '@bx-team/worker/error';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
 import type { BeaconEnv } from './context';
 import type { Env } from './env';
 import { routes } from './routes';
-import { errorHandler, notFoundHandler } from './util/error';
 
 const app = new Hono<BeaconEnv>();
 

@@ -1,3 +1,4 @@
+import { errorHandler, notFoundHandler } from '@bx-team/worker/error';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -5,7 +6,6 @@ import { trimTrailingSlash } from 'hono/trailing-slash';
 import type { AppEnv } from './context';
 import type { Env } from './env';
 import { routes } from './routes';
-import { errorHandler, notFoundHandler } from './util/error';
 
 const app = new Hono<AppEnv>();
 

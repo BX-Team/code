@@ -1,8 +1,8 @@
 import type { ProjectKind } from '@bx-team/types/schema/downloads';
+import { notFound } from '@bx-team/worker/error';
 import type { D1Database } from '@cloudflare/workers-types';
 import { type ProjectRow, project, type VersionRow, version } from './database/downloads';
 import type { Env } from './env';
-import { notFound } from './util/error';
 
 export type AppEnv = { Bindings: Env; Variables: { project: ProjectRow } };
 

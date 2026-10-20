@@ -1,4 +1,5 @@
 import { PageQuerySchema } from '@bx-team/types/schema/downloads';
+import { badRequest, notFound } from '@bx-team/worker/error';
 import { Hono } from 'hono';
 import { type AppEnv, requireKind, requireProject, requireVersion } from '../context';
 import {
@@ -12,7 +13,6 @@ import {
   versions,
 } from '../database/downloads';
 import { type Build, buildResponse, type Page, versionSummary } from '../models/downloads';
-import { badRequest, notFound } from '../util/error';
 import { newestFirst } from '../util/versions';
 
 export const buildRoutes = new Hono<AppEnv>();

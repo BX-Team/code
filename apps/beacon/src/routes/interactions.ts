@@ -1,3 +1,4 @@
+import { unauthorized } from '@bx-team/worker/error';
 import {
   type APIChatInputApplicationCommandInteraction,
   type APIInteraction,
@@ -11,7 +12,6 @@ import type { BeaconEnv } from '../context';
 import { errorEmbed } from '../discord/embeds';
 import { reply } from '../discord/respond';
 import { verifyInteraction } from '../discord/verify';
-import { unauthorized } from '../util/error';
 
 export const interactions = new Hono<BeaconEnv>();
 

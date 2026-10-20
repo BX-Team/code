@@ -1,10 +1,10 @@
+import { badRequest, unauthorized } from '@bx-team/worker/error';
+import { verifySignature } from '@bx-team/worker/signature';
 import { Hono } from 'hono';
 import { type GithubEvent, githubRoutesFor } from '../config/routing';
 import type { BeaconEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { type GithubPayload, renderEvent } from '../github/events';
-import { badRequest, unauthorized } from '../util/error';
-import { verifySignature } from '../util/signature';
 
 export const github = new Hono<BeaconEnv>();
 

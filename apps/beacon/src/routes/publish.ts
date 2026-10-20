@@ -1,4 +1,6 @@
 import { type PublishEvent, PublishEventSchema } from '@bx-team/types/schema/downloads';
+import { badRequest, unauthorized } from '@bx-team/worker/error';
+import { verifySignature } from '@bx-team/worker/signature';
 import type { EmbedBuilder } from '@discordjs/builders';
 import { Hono } from 'hono';
 import { publishRoutesFor } from '../config/routing';
@@ -6,8 +8,6 @@ import type { BeaconEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { getBuild, getProject, getRelease, type Project } from '../downloads/client';
 import { buildPublishedEmbed, releasePublishedEmbed } from '../downloads/embeds';
-import { badRequest, unauthorized } from '../util/error';
-import { verifySignature } from '../util/signature';
 
 export const publish = new Hono<BeaconEnv>();
 
