@@ -91,12 +91,6 @@ export const PROJECTS: Project[] = [
     repo: 'BX-Team/Nyx',
     discord: '1515539407862632640',
   },
-  {
-    key: 'irori',
-    name: 'irori',
-    repo: 'BX-Team/irori',
-    discord: '1535312108210618468',
-  },
 ];
 
 export function findProject(key: string): Project | undefined {
