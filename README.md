@@ -3,8 +3,8 @@
 # code
 
 The BX Team web platform in one repository — the site and documentation at
-[bxteam.org](https://bxteam.org), the downloads API behind it, and the Discord bot that
-announces what we publish. TypeScript end to end, running entirely on Cloudflare Workers.
+[bxteam.org](https://bxteam.org), the downloads API behind it, the Discord bot that
+announces what we publish, and the GitHub App that cuts our releases. TypeScript end to end, running entirely on Cloudflare Workers.
 
 [![Chat on Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/qNyybSSPm5)
 [![documentation](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg)](https://bxteam.org)
@@ -28,10 +28,11 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 | [`apps/meridian`](apps/meridian) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
 | [`apps/azimuth`](apps/azimuth) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
 | [`apps/beacon`](apps/beacon) | `beacon.bxteam.org` | The Discord bot — Hono, GitHub and publish webhooks, release announcements |
+| [`apps/helm`](apps/helm) | `helm.bxteam.org` | The GitHub App — Hono, release PRs and `/release` commands, the organisation board, PR title checks |
 
 | Package | What it is |
 | ------- | ---------- |
-| [`packages/types`](packages/types) | Shared Zod schemas for the downloads API and the publish notification |
+| [`packages/types`](packages/types) | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks |
 | [`packages/ui`](packages/ui) | Shared Vue 3 components and design tokens |
 
 `azimuth` is the only app that stores anything — every project, version, build and
@@ -56,9 +57,10 @@ bun dev             # everything in parallel
 bun dev:meridian    # the site, on nuxt dev
 bun dev:beacon      # the bot, on wrangler dev
 bun dev:azimuth     # the downloads API, on wrangler dev
+bun dev:helm        # the GitHub App, on wrangler dev
 ```
 
-`azimuth` and `beacon` read local secrets from a `.dev.vars` — copy the
+`azimuth`, `beacon` and `helm` read local secrets from a `.dev.vars` — copy the
 `.dev.vars.example` next to each as a starting point. Per-app notes live in each
 project's `CLAUDE.md`.
 
@@ -77,6 +79,7 @@ bun run build       # every app
 bun build:meridian  # nuxt generate
 bun build:beacon    # wrangler deploy --dry-run
 bun build:azimuth   # wrangler deploy --dry-run
+bun build:helm      # wrangler deploy --dry-run
 bunx biome check .  # formatting and lint, the source of truth
 ```
 

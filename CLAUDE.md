@@ -7,13 +7,15 @@ there is no VPS, no Docker and no runtime Nitro server.
 
 ## Architecture
 
-Three Workers, each on its own custom domain. `azimuth` is the only one with storage: it
+Four Workers, each on its own custom domain. `azimuth` is the only one with storage: it
 owns every project, version, build, release and artifact, on D1 and R2. `meridian` is a
 `nuxt generate` build served as Workers Static Assets; its `/downloads` section is
 client-rendered and reads azimuth's public JSON API at `https://api.bxteam.org/v1` like
 any other consumer. `beacon` has no storage at all: it learns that something happened
 from a webhook — GitHub's organisation webhook, or azimuth's after a publish — and
-answers Discord interactions.
+answers Discord interactions. `helm` has no storage either: it is the BX Team GitHub App,
+acting on the repositories from its webhook — release PRs, release commands, the
+organisation board and pull request titles.
 
 **Code lives on GitHub.** Repositories, pull requests and issues are in the
 [BX-Team](https://github.com/BX-Team) organisation, and a release workflow in a project's
@@ -26,11 +28,12 @@ The packages are consumed from source inside the workspace and are never publish
 | `apps/meridian` | The website and documentation. Nuxt 4, Vue 3, Tailwind v4, fully static. |
 | `apps/azimuth` | The downloads API on `api.bxteam.org`. Hono; D1, R2, publish tokens. |
 | `apps/beacon` | The Discord bot on `beacon.bxteam.org`. Hono; GitHub and publish webhooks, slash commands. |
-| `packages/types` | Shared Zod schemas for the downloads API and the publish notification. |
+| `apps/helm` | The GitHub App on `helm.bxteam.org`. Hono; release PRs, `/release` commands, board, title check. |
+| `packages/types` | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks. |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
 
 Each has its own `CLAUDE.md` — [`apps/azimuth`](apps/azimuth/CLAUDE.md),
-[`apps/beacon`](apps/beacon/CLAUDE.md), [`apps/meridian`](apps/meridian/CLAUDE.md),
+[`apps/beacon`](apps/beacon/CLAUDE.md), [`apps/helm`](apps/helm/CLAUDE.md), [`apps/meridian`](apps/meridian/CLAUDE.md),
 [`packages/ui`](packages/ui/CLAUDE.md). Read the one you are about to edit; they hold the
 rules that actually bite.
 
@@ -43,8 +46,8 @@ rules that actually bite.
   workflows here: every pull request gets a preview deployment and its build is the
   required check, so a workflow running the same install and build would only be a slower
   duplicate.
-- **azimuth owns the data, and it is the only app that may.** meridian and beacon are
-  read-only consumers of `api.bxteam.org/v1`; do not give either of them storage.
+- **azimuth owns the data, and it is the only app that may.** meridian, beacon and helm
+  are read-only consumers of `api.bxteam.org/v1`; do not give either of them storage.
 - **Nothing in this repository builds anything.** An artifact is produced by a release
   workflow in the project's own repository and uploaded through azimuth's publish
   endpoints with a project token. See [`apps/azimuth/CLAUDE.md`](apps/azimuth/CLAUDE.md).
@@ -61,6 +64,7 @@ bun dev                         # every app in parallel
 bun dev:meridian                # the site; the user starts this themselves
 bun dev:beacon                  # the bot, on wrangler dev
 bun dev:azimuth                 # the downloads API, on wrangler dev
+bun dev:helm                    # the GitHub App, on wrangler dev
 bun run build                   # build every app
 bunx biome check .              # formatting and lint
 bun run --filter '*' typecheck  # tsc / nuxt typecheck per app

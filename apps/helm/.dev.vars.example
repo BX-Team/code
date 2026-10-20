@@ -1,0 +1,5 @@
+# Local secrets/vars for `wrangler dev`
+GITHUB_APP_ID=
+# PKCS#8 PEM: openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem
+GITHUB_APP_PRIVATE_KEY=
+GITHUB_WEBHOOK_SECRET=

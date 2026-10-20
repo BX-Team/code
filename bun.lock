@@ -37,6 +37,19 @@
         "wrangler": "^4.93.0",
       },
     },
+    "apps/helm": {
+      "name": "@bx-team/helm",
+      "dependencies": {
+        "@bx-team/types": "workspace:*",
+        "hono": "^4.12.23",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@cloudflare/workers-types": "^4.20260312.0",
+        "typescript": "^7.0.0",
+        "wrangler": "^4.93.0",
+      },
+    },
     "apps/meridian": {
       "name": "@bx-team/meridian",
       "dependencies": {
@@ -167,6 +180,8 @@
     "@bx-team/azimuth": ["@bx-team/azimuth@workspace:apps/azimuth"],
 
     "@bx-team/beacon": ["@bx-team/beacon@workspace:apps/beacon"],
+
+    "@bx-team/helm": ["@bx-team/helm@workspace:apps/helm"],
 
     "@bx-team/meridian": ["@bx-team/meridian@workspace:apps/meridian"],
 
