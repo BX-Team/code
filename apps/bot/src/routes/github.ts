@@ -17,7 +17,7 @@ import { postEmbeds } from '../discord/rest';
 import { installationClient } from '../github/app';
 import { mergedEmbed, pushEmbed, releaseEmbed } from '../github/embeds';
 import { onComment } from '../handlers/commands';
-import { addToProject } from '../handlers/project';
+import { addToProject, moveClosed } from '../handlers/project';
 import { onPush, onReleaseMerged } from '../handlers/release';
 import { checkTitle } from '../handlers/title';
 
@@ -62,19 +62,28 @@ github.post('/webhook', async c => {
         tracked:
           payload.action === 'opened' &&
           (await addToProject(gh, payload.repository.owner.login, pull.user, pull.node_id)),
+        moved:
+          payload.action === 'closed' &&
+          !pull.merged &&
+          (await moveClosed(gh, payload.repository.owner.login, pull.node_id, false)),
         announced: await announce(rest, payload.repository.full_name, mergedEmbed(payload)),
       });
     }
 
     case 'issues': {
       const payload = parse(IssuesEventSchema, json);
-      if (payload.action !== 'opened') return c.json({ ok: true, skipped: payload.action });
-      const gh = await client(payload.installation);
+      const owner = payload.repository.owner.login;
       const { issue } = payload;
-      return c.json({
-        ok: true,
-        tracked: await addToProject(gh, payload.repository.owner.login, issue.user, issue.node_id),
-      });
+      if (payload.action === 'opened') {
+        const gh = await client(payload.installation);
+        return c.json({ ok: true, tracked: await addToProject(gh, owner, issue.user, issue.node_id) });
+      }
+      if (payload.action === 'closed') {
+        const gh = await client(payload.installation);
+        const completed = issue.state_reason === 'completed';
+        return c.json({ ok: true, moved: await moveClosed(gh, owner, issue.node_id, completed) });
+      }
+      return c.json({ ok: true, skipped: payload.action });
     }
 
     case 'issue_comment': {
