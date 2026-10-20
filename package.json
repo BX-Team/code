@@ -20,7 +20,7 @@
     "lint": "biome check ."
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.6"
+    "@biomejs/biome": "^2.5.15"
   },
   "workspaces": [
     "apps/*",
