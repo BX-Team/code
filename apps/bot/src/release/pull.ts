@@ -16,10 +16,10 @@ import {
 } from './version';
 
 export const RELEASE_BRANCH = 'release/next';
-const GENERATED = '<!-- helm:generated -->';
-const PIN = /<!-- helm:pin (\S+) -->/;
+const GENERATED = '<!-- release:generated -->';
+const PIN = /<!-- release:pin (\S+) -->/;
 const INTRO_HINT =
-  '<!-- Write here, above the helm:generated marker, to open the release notes with a summary. Everything below the marker is rewritten on every push. -->';
+  '<!-- Write here, above the release:generated marker, to open the release notes with a summary. Everything below the marker is rewritten on every push. -->';
 const COMPARE_LIMIT = 250;
 
 export interface RepoRef {
@@ -86,7 +86,7 @@ export async function syncReleasePull(
     summaryLine(version, pin ? null : bump, commits.length, baseTag),
     'Comment `/release` to merge this once CI is green and ship it, `/version <x.y.z>` to release another version, or `/version auto` to go back to the computed one.',
     `### Release notes preview\n\n${preview}`,
-    ...(pin ? [`<!-- helm:pin ${formatSemver(pin)} -->`] : []),
+    ...(pin ? [`<!-- release:pin ${formatSemver(pin)} -->`] : []),
   ].join('\n\n');
 
   if (existing) {

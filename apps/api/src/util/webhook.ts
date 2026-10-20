@@ -2,7 +2,7 @@ import type { PublishEvent } from '@bx-team/types/schema/downloads';
 import { sign } from '@bx-team/worker/signature';
 
 /**
- * Tells beacon what was published. A failure is logged and swallowed: the artifact and
+ * Tells the bot what was published. A failure is logged and swallowed: the artifact and
  * its row are already committed, and a missing Discord message is not worth a 500 that
  * would make a workflow retry the whole upload.
  */
@@ -16,7 +16,7 @@ export async function announcePublish(url: string, secret: string, event: Publis
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Azimuth-Signature': await sign(secret, body),
+        'X-Api-Signature': await sign(secret, body),
       },
       body,
     });

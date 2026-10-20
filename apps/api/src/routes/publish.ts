@@ -98,7 +98,7 @@ publishRoutes.post('/publish/builds/:project/:version', requireToken, async c =>
       `/v1/builds/${project.key}/${version.key}/latest`,
       `/v1/builds/${project.key}/${version.key}/${number}`,
     ]).then(() =>
-      announcePublish(c.env.BEACON_PUBLISH_URL, c.env.BEACON_WEBHOOK_SECRET, {
+      announcePublish(c.env.BOT_WEBHOOK_URL, c.env.BOT_WEBHOOK_SECRET, {
         event: 'publish',
         kind: 'build',
         project: project.key,
@@ -150,7 +150,7 @@ publishRoutes.post('/publish/releases/:project/:tag', requireToken, async c => {
       `/v1/releases/${project.key}/latest`,
       `/v1/releases/${project.key}/${tag}`,
     ]).then(() =>
-      announcePublish(c.env.BEACON_PUBLISH_URL, c.env.BEACON_WEBHOOK_SECRET, {
+      announcePublish(c.env.BOT_WEBHOOK_URL, c.env.BOT_WEBHOOK_SECRET, {
         event: 'publish',
         kind: 'release',
         project: project.key,

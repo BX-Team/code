@@ -22,28 +22,14 @@
         "wrangler": "^4.93.0",
       },
     },
-    "apps/beacon": {
-      "name": "@bx-team/beacon",
+    "apps/bot": {
+      "name": "@bx-team/bot",
       "dependencies": {
         "@bx-team/types": "workspace:*",
         "@bx-team/worker": "workspace:*",
         "@discordjs/builders": "^1.14.1",
         "@discordjs/rest": "^2.6.3",
         "discord-api-types": "^0.38.53",
-        "hono": "^4.12.23",
-        "zod": "^4.4.3",
-      },
-      "devDependencies": {
-        "@cloudflare/workers-types": "^4.20260312.0",
-        "typescript": "^7.0.0",
-        "wrangler": "^4.93.0",
-      },
-    },
-    "apps/helm": {
-      "name": "@bx-team/helm",
-      "dependencies": {
-        "@bx-team/types": "workspace:*",
-        "@bx-team/worker": "workspace:*",
         "hono": "^4.12.23",
         "zod": "^4.4.3",
       },
@@ -188,9 +174,7 @@
 
     "@bx-team/api": ["@bx-team/api@workspace:apps/api"],
 
-    "@bx-team/beacon": ["@bx-team/beacon@workspace:apps/beacon"],
-
-    "@bx-team/helm": ["@bx-team/helm@workspace:apps/helm"],
+    "@bx-team/bot": ["@bx-team/bot@workspace:apps/bot"],
 
     "@bx-team/types": ["@bx-team/types@workspace:packages/types"],
 

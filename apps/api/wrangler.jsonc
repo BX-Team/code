@@ -11,10 +11,10 @@
   },
   "vars": {
     "R2_PUBLIC_URL": "https://files.bxteam.org",
-    "BEACON_PUBLISH_URL": "https://beacon.bxteam.org/hooks/publish"
+    "BOT_WEBHOOK_URL": "https://bot.bxteam.org/api/webhook"
   },
   "secrets": {
-    "required": ["BEACON_WEBHOOK_SECRET"]
+    "required": ["BOT_WEBHOOK_SECRET"]
   },
   "d1_databases": [
     {

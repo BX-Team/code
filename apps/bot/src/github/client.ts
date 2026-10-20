@@ -54,7 +54,7 @@ export class Github {
       headers: {
         Accept: accept,
         Authorization: `Bearer ${this.token}`,
-        'User-Agent': 'bx-team-helm',
+        'User-Agent': 'bx-team-bot',
         'X-GitHub-Api-Version': '2022-11-28',
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },

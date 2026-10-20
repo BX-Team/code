@@ -73,7 +73,7 @@ export const ReleasePublishedSchema = z.object({
 });
 
 /**
- * What azimuth tells beacon after a publish. It carries the identity and nothing else —
+ * What the API tells the bot after a publish. It carries the identity and nothing else —
  * the embed is rendered off a read-back, so a correction to the row shows up in Discord
  * without the notification having to grow a copy of it.
  */
