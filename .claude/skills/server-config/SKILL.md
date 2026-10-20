@@ -33,7 +33,7 @@ they appear in the files.
    error, so a wrong path is worse than no advice. Every key the rules below write is
    verified in [reference/defaults.md](reference/defaults.md), together with the value it
    ships with. For a `divinemc.yml` key outside that list, read
-   `apps/meridian/app/lib/divinemc/defaults.ts` and `descriptions.ts` in this repository:
+   `apps/web/app/lib/divinemc/defaults.ts` and `descriptions.ts` in this repository:
    they are the source of the published configuration reference. For anything else, check
    the upstream reference (links at the end) before writing it, and say plainly when you
    could not verify a key.
@@ -153,7 +153,7 @@ The full list of keys, their values per profile and the reason for each is in
   and `misc.lag-compensation.enabled`).
 - **Parallel features need thread-safe plugins.** Before recommending regionized chunk
   ticking or parallel world ticking, read the caveats in
-  `apps/meridian/content/docs/divinemc/02.features/` and pass them on.
+  `apps/web/content/docs/divinemc/02.features/` and pass them on.
 
 ## What to answer with
 

@@ -11,7 +11,7 @@ const app = new Hono<AppEnv>();
 
 app.use(trimTrailingSlash());
 
-// The read surface is public and credential-less, and meridian is a static site calling
+// The read surface is public and credential-less, and the site is static calling
 // it cross-origin; a publish authenticates with a bearer token, never with a cookie.
 app.use('*', cors({ allowHeaders: ['Content-Type', 'Authorization', 'Cache-Control'] }));
 

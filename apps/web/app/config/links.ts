@@ -7,7 +7,7 @@ const DOCS_GITHUB_REPO = 'code';
 const DOCS_GITHUB_BRANCH = 'master';
 
 export function docsEditUrl(stem: string, extension = 'md'): string {
-  return `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/edit/${DOCS_GITHUB_BRANCH}/apps/meridian/content/${stem}.${extension}`;
+  return `https://github.com/${DOCS_GITHUB_ORG}/${DOCS_GITHUB_REPO}/edit/${DOCS_GITHUB_BRANCH}/apps/web/content/${stem}.${extension}`;
 }
 
 export function docsIssueUrl(title?: string): string {

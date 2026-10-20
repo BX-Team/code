@@ -1,10 +1,10 @@
-# Meridian Content
+# Website content
 
-Source content for the [BX Team website](https://bxteam.org) — the documentation pages. Pages are written in Markdown with [MDC](https://content.nuxt.com/docs/files/markdown) (Markdown Components) and rendered by the `meridian` Nuxt 4 app via [Nuxt Content](https://content.nuxt.com).
+Source content for the [BX Team website](https://bxteam.org) — the documentation pages. Pages are written in Markdown with [MDC](https://content.nuxt.com/docs/files/markdown) (Markdown Components) and rendered by the `web` Nuxt 4 app via [Nuxt Content](https://content.nuxt.com).
 
 ## Collections
 
-Content lives in a single collection, declared in [`apps/meridian/content.config.ts`](../content.config.ts):
+Content lives in a single collection, declared in [`apps/web/content.config.ts`](../content.config.ts):
 
 | Collection | Source           | Rendered at        |
 |------------|------------------|--------------------|
@@ -48,7 +48,7 @@ Icons are bundled explicitly, so a new one also has to be imported and added to 
 
 All components use the `::ComponentName` / `::` block syntax. **Do not use the HTML-like `<Component />` self-closing syntax** — the MDC parser may swallow content that follows it.
 
-Component implementations live in [`apps/meridian/app/components/content/`](../app/components/content/).
+Component implementations live in [`apps/web/app/components/content/`](../app/components/content/).
 
 ---
 
