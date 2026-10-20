@@ -1,3 +1,5 @@
+import { PROJECTS } from '@bx-team/projects';
+
 export const RESOURCES = {
   website: 'https://bxteam.org',
   docs: 'https://bxteam.org/docs',
@@ -8,8 +10,7 @@ export const RESOURCES = {
 } as const;
 
 /** Projects that have a documentation section under `apps/web/content/docs`. */
-export const DOC_PROJECTS = [
-  { name: 'DivineMC', value: 'divinemc' },
-  { name: 'Quark', value: 'quark' },
-  { name: 'NDailyRewards', value: 'ndailyrewards' },
-] as const;
+export const DOC_PROJECTS = PROJECTS.filter(project => project.docs).map(project => ({
+  name: project.name,
+  value: project.key,
+}));

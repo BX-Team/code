@@ -1,7 +1,7 @@
-import type { ReleaseConfig } from '../config/repositories';
+import type { ReleaseConfig } from '../config/organisation';
 import { type Github, GithubApiError } from '../github/client';
 import { CommandError } from '../util/error';
-import type { FileBump } from './files';
+import { type FileBump, fileBump } from './files';
 import { type Commit, previewNotes } from './notes';
 import {
   type Bump,
@@ -77,7 +77,7 @@ export async function syncReleasePull(
 
   const version = pin ?? nextVersion(base, bump!);
   const title = releaseTitle(version);
-  await writeReleaseBranch(gh, repo, config.files, head, version, title);
+  await writeReleaseBranch(gh, repo, config.files.map(fileBump), head, version, title);
 
   const preview = previewNotes(commits, await gh.file(repo.full, '.github/changelog_configuration.json', head));
   const body = [

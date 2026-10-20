@@ -1,4 +1,4 @@
-import type { ReleaseConfig } from '../config/repositories';
+import type { ReleaseConfig } from '../config/organisation';
 import { type Github, GithubApiError } from '../github/client';
 import { CommandError } from '../util/error';
 import { type PullRequest, type RepoRef, releaseIntro } from './pull';

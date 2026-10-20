@@ -14,8 +14,7 @@ each named after who calls it:
 
 The bot has **no storage**. Everything it needs to remember lives on GitHub: the pinned
 version and the release summary are read back from the release PR body, the installation
-token is minted per isolate. Which repository announces into which channel is a config
-change, reviewed in a PR.
+token is minted per isolate.
 
 There is no gateway connection and there cannot be one: Workers do not hold a WebSocket
 open, so anything that needs `messageCreate`, reactions or bot presence is out of scope.
@@ -23,10 +22,10 @@ Everything here is request-driven.
 
 ## What it does
 
-- **Release PR.** A push to the default branch of a repository in `config/repositories.ts`
-  recomputes the next version from the Conventional Commit titles since the newest stable
-  `v*` tag, rewrites every file listed for it on the `release/next` branch and opens or
-  updates the `chore(release): <version>` PR. Nothing releasable — the PR is closed.
+- **Release PR.** A push to the default branch of a repository with a `release` entry in
+  `@bx-team/projects` recomputes the next version from the Conventional Commit titles since
+  the newest stable `v*` tag, rewrites every file listed for it on the `release/next` branch
+  and opens or updates the `chore(release): <version>` PR. Nothing releasable — the PR is closed.
 - **Shipping.** Merging that PR dispatches the repository's release workflow with
   `version`, `sha` (the merge commit), `description` (the text above the generated marker)
   and `prerelease`. The workflow keeps tagging, building and publishing as before.
@@ -67,10 +66,11 @@ openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem | bunx wrangler secret put
 ## Layout
 
 - `routes/` — one file per caller: `github.ts`, `discord.ts`, `api.ts`.
-- `config/repositories.ts` — the organisation, the board number, the allowed title types
-  and the release table: which repositories get a release PR, their workflow, and the
-  files carrying the version.
-- `config/routing.ts` — the Discord channels: a thread per repository, the releases channel.
+- `@bx-team/projects` — which repositories get a release PR, their workflow and the files
+  carrying the version, and the Discord thread each repository's activity goes to. Adding
+  a repository is a change there, reviewed in a PR.
+- `config/organisation.ts` — the organisation, the board number, the allowed title types.
+- `config/routing.ts` — the releases channel, and the per-repository thread lookup.
 - `config/resources.ts` — public BX Team URLs and the API base.
 - `release/` — `version.ts` (semver, Conventional Commits, bump rules), `files.ts`
   (`cargoManifest`, `cargoLock`, marker-scoped `replace`), `notes.ts` (the notes preview,
@@ -126,7 +126,8 @@ bun --env-file=.dev.vars run register   # publish command definitions to Discord
 ```
 
 Copy `.dev.vars.example` to `.dev.vars` for local secrets. Command definitions are only
-published by `register` — deploying the Worker does not update them. To feed it real
+published by `register` — deploying the Worker does not update them, so a project gaining
+docs in the registry reaches `/docs` only after `register` runs again. To feed it real
 GitHub deliveries, point a throwaway app's webhook at a tunnel
 (`cloudflared tunnel --url http://localhost:8787`), or redeliver one from the app's
 Advanced settings.

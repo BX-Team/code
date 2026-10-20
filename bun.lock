@@ -25,6 +25,7 @@
     "apps/bot": {
       "name": "@bx-team/bot",
       "dependencies": {
+        "@bx-team/projects": "workspace:*",
         "@bx-team/types": "workspace:*",
         "@bx-team/worker": "workspace:*",
         "@discordjs/builders": "^1.14.1",
@@ -42,6 +43,7 @@
     "apps/web": {
       "name": "@bx-team/web",
       "dependencies": {
+        "@bx-team/projects": "workspace:*",
         "@bx-team/ui": "workspace:*",
         "@lucide/vue": "^1.37.0",
         "@nuxt/content": "^3.16.0",
@@ -64,6 +66,9 @@
         "typescript": "^7.0.2",
         "wrangler": "^4.127.1",
       },
+    },
+    "packages/projects": {
+      "name": "@bx-team/projects",
     },
     "packages/types": {
       "name": "@bx-team/types",
@@ -175,6 +180,8 @@
     "@bx-team/api": ["@bx-team/api@workspace:apps/api"],
 
     "@bx-team/bot": ["@bx-team/bot@workspace:apps/bot"],
+
+    "@bx-team/projects": ["@bx-team/projects@workspace:packages/projects"],
 
     "@bx-team/types": ["@bx-team/types@workspace:packages/types"],
 

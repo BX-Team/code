@@ -29,6 +29,7 @@ The packages are consumed from source inside the workspace and are never publish
 | `apps/web` | The website and documentation. Nuxt 4, Vue 3, Tailwind v4, fully static. |
 | `apps/api` | The downloads API on `api.bxteam.org`. Hono; D1, R2, publish tokens. |
 | `apps/bot` | The GitHub App and Discord bot on `bot.bxteam.org`. Hono; release PRs, `/release` commands, board, title check, announcements, slash commands. |
+| `packages/projects` | The project registry: key, name, repository, docs, Discord thread, release setup. |
 | `packages/types` | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks. |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
 | `packages/worker` | What every Worker shares: the error type and handlers, hex, `sha256=` HMAC signatures. |
@@ -52,6 +53,10 @@ rules that actually bite.
 - **Nothing in this repository builds anything.** An artifact is produced by a release
   workflow in the project's own repository and uploaded through `api`'s publish
   endpoints with a project token. See [`apps/api/CLAUDE.md`](apps/api/CLAUDE.md).
+- **A project is declared once, in `@bx-team/projects`.** The site's project pages, the
+  docs sections, the bot's release PRs, Discord threads and `/docs` command all read it;
+  the web build fails when a docs section and the registry disagree. Its downloads are
+  still a row in `api`'s D1 — the key is what ties the two together.
 - **A build number comes from the API, not from the CI run.** A workflow asks
   `/v1/publish/next/{project}/{version}` before it builds, so a failed run does not leave
   a gap in the published sequence.

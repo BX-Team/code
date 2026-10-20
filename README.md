@@ -31,6 +31,7 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 
 | Package | What it is |
 | ------- | ---------- |
+| [`packages/projects`](packages/projects) | The project registry every app reads — key, name, repository, docs, Discord thread, release setup |
 | [`packages/types`](packages/types) | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks |
 | [`packages/worker`](packages/worker) | What every Worker shares — the error type and handlers, hex, HMAC signatures |
 | [`packages/ui`](packages/ui) | Shared Vue 3 components and design tokens |

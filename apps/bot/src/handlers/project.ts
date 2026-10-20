@@ -1,4 +1,4 @@
-import { ORGANISATION, PROJECT_NUMBER } from '../config/repositories';
+import { ORGANISATION, PROJECT_NUMBER } from '../config/organisation';
 import type { Github } from '../github/client';
 
 let projectId: string | null = null;

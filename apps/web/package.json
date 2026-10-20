@@ -15,6 +15,7 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@bx-team/projects": "workspace:*",
     "@bx-team/ui": "workspace:*",
     "@lucide/vue": "^1.37.0",
     "@nuxt/content": "^3.16.0",

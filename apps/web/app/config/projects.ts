@@ -1,3 +1,4 @@
+import { findProject as findRegistered } from '@bx-team/projects';
 import {
   Bell,
   Blocks,
@@ -67,16 +68,25 @@ export interface Project {
   benchmarks?: 'pending' | { docs: string };
 }
 
+/** Identity comes from the shared registry, so the site, the bot and the API agree on it. */
+function site(key: string): Pick<Project, 'slug' | 'name' | 'repo' | 'docs'> {
+  const project = findRegistered(key);
+  if (!project) throw new Error(`'${key}' is not in @bx-team/projects`);
+  return {
+    slug: project.key,
+    name: project.name,
+    repo: project.repo,
+    docs: project.docs ? `/docs/${project.key}` : undefined,
+  };
+}
+
 export const PROJECTS: Project[] = [
   {
-    slug: 'divinemc',
-    name: 'DivineMC',
+    ...site('divinemc'),
     tag: 'Server software',
     summary: 'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization.',
     tagline: 'A Purpur fork that puts every core to work',
     lede: 'Regionized chunk ticking, parallel worlds and async everything, on top of the full Purpur configuration surface. Your Bukkit, Spigot and Paper plugins keep working.',
-    repo: 'BX-Team/DivineMC',
-    docs: '/docs/divinemc',
     downloads: '/downloads/divinemc',
     channels: [{ label: 'MCJars', href: 'https://mcjars.app/DIVINEMC/versions' }],
     features: [
@@ -154,15 +164,12 @@ export const PROJECTS: Project[] = [
     benchmarks: { docs: '/docs/divinemc/benchmarks' },
   },
   {
-    slug: 'quark',
-    name: 'Quark',
+    ...site('quark'),
     tag: 'Framework',
     summary:
       'Small modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers.',
     tagline: 'The parts every plugin needs, as modules you pick',
     lede: 'Download dependencies when the plugin starts, keep configs in annotated classes, check for updates and run a test server straight from Gradle. Every module is optional and relocated into your own package.',
-    repo: 'BX-Team/Quark',
-    docs: '/docs/quark',
     channels: [{ label: 'Gradle Plugin Portal', href: 'https://plugins.gradle.org/plugin/org.bxteam.quark' }],
     features: [
       {
@@ -223,15 +230,12 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
-    slug: 'ndailyrewards',
-    name: 'NDailyRewards',
+    ...site('ndailyrewards'),
     tag: 'Plugin',
     summary:
       'Simple and lightweight plugin that allows you to reward your players for playing on your server every day.',
     tagline: 'Reward players for coming back every day',
     lede: 'A daily reward streak with a GUI you can reshape completely, MariaDB or SQLite storage, and actions for anything a reward should do.',
-    repo: 'BX-Team/NDailyRewards',
-    docs: '/docs/ndailyrewards',
     channels: [
       { label: 'Modrinth', href: 'https://modrinth.com/plugin/ndailyrewards' },
       { label: 'Hangar', href: 'https://hangar.papermc.io/BX-Team/NDailyRewards' },
@@ -289,14 +293,11 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
-    slug: 'riven',
-    name: 'Riven',
+    ...site('riven'),
     tag: 'Desktop app',
     summary: 'Native Minecraft launcher and modpack toolkit in pure Rust.',
     tagline: 'A Minecraft launcher that builds packs too',
     lede: 'Install a modpack from a link and get its updates on every launch — or build your own in the app or the CLI, publish it to GitHub Pages and run it headless on a server.',
-    repo: 'BX-Team/Riven',
-    docs: '/docs/riven',
     features: [
       {
         icon: Gamepad2,
@@ -374,13 +375,11 @@ export const PROJECTS: Project[] = [
     ],
   },
   {
-    slug: 'nyx',
-    name: 'Nyx',
+    ...site('nyx'),
     tag: 'Desktop app',
     summary: 'Modern, lightweight desktop GUI for the Mihomo proxy core.',
     tagline: 'A desktop client for Mihomo, in pure Rust',
     lede: 'Manage profiles, proxy groups, rules and connections from a clean interface — with system proxy and TUN mode, a connection inspector and a built-in profile editor.',
-    repo: 'BX-Team/Nyx',
     features: [
       {
         icon: Network,

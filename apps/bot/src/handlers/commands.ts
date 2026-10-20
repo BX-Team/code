@@ -1,5 +1,5 @@
 import type { IssueCommentEvent } from '@bx-team/types/schema/github';
-import { RELEASES } from '../config/repositories';
+import { releaseConfig } from '../config/organisation';
 import type { Github } from '../github/client';
 import { type PullRequest, RELEASE_BRANCH, syncReleasePull } from '../release/pull';
 import { mergeRelease } from '../release/ship';
@@ -17,7 +17,7 @@ type Reaction = '+1' | 'rocket' | 'confused';
  * is answered on the PR rather than failing the delivery — nothing a redelivery would fix.
  */
 export async function onComment(gh: Github, event: IssueCommentEvent): Promise<boolean> {
-  const config = RELEASES[event.repository.full_name];
+  const config = releaseConfig(event.repository.full_name);
   if (!config || event.action !== 'created' || !event.issue.pull_request || event.comment.user.type === 'Bot') {
     return false;
   }
