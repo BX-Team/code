@@ -1,8 +1,8 @@
+import { notFound } from '@bx-team/worker/error';
 import { Hono } from 'hono';
 import { type AppEnv, requireKind, requireProject } from '../context';
 import { commitsOf, downloadsOf, latestRelease, type ReleaseRow, release, releases } from '../database/downloads';
 import { type Release, releaseResponse } from '../models/downloads';
-import { notFound } from '../util/error';
 
 export const releaseRoutes = new Hono<AppEnv>();
 

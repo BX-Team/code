@@ -1,8 +1,8 @@
+import { forbidden, unauthorized } from '@bx-team/worker/error';
+import { sha256Hex } from '@bx-team/worker/hex';
 import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../context';
 import { findToken, project, touchToken } from '../database/downloads';
-import { forbidden, unauthorized } from './error';
-import { sha256Hex } from './hex';
 
 /**
  * A publish token belongs to one project and is stored only as a hash. It authenticates

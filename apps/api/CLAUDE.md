@@ -38,7 +38,7 @@ The layers are not interchangeable:
 - `models/downloads.ts` — the API contract: what gets serialised into a response.
 - `database/downloads.ts` (reads) and `database/publish.ts` (writes) — rows and the SQL
   against them. No ORM: the schema is fixed and every query here is known.
-- `util/` — the shared error type, the edge cache, the token guard, version ordering.
+- `util/` — the edge cache, the token guard, version ordering, the publish webhook.
 - `openapi.ts` — the hand-authored OpenAPI 3.1 document `web` renders at `/docs/api`.
 
 `models/` and `database/` are separate on purpose. Mixing them is what turns a schema
@@ -46,7 +46,7 @@ refactor into a breaking API change.
 
 ## Rules
 
-- One error type (`util/error.ts`) and one error shape (`{ ok, error, message }`).
+- One error type (`@bx-team/worker/error`) and one error shape (`{ ok, error, message }`).
   Handlers `throw badRequest()` / `notFound()` / …; `app.onError` renders it. Never
   hand-roll `try`/`catch` plus `c.json({ ok: false, ... })` in a handler.
 - **A project answers under its own tree and 404s under the other.** A versioned project

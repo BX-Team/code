@@ -1,0 +1,13 @@
+{
+  "name": "@bx-team/worker",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "exports": {
+    "./error": "./src/error.ts",
+    "./hex": "./src/hex.ts",
+    "./signature": "./src/signature.ts"
+  },
+  "dependencies": {
+    "hono": "^4.12.23"
+  }
+}

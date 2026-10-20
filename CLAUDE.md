@@ -31,6 +31,7 @@ The packages are consumed from source inside the workspace and are never publish
 | `apps/helm` | The GitHub App on `helm.bxteam.org`. Hono; release PRs, `/release` commands, board, title check. |
 | `packages/types` | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks. |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
+| `packages/worker` | What every Worker shares: the error type and handlers, hex, `sha256=` HMAC signatures. |
 
 Each has its own `CLAUDE.md` — [`apps/api`](apps/api/CLAUDE.md),
 [`apps/beacon`](apps/beacon/CLAUDE.md), [`apps/helm`](apps/helm/CLAUDE.md), [`apps/web`](apps/web/CLAUDE.md),
@@ -96,7 +97,7 @@ failed Cloudflare build minutes later.
   `apps/web/app/components/`.
 - Anything crossing the wire — request bodies, query strings, webhook payloads — is
   parsed through a Zod schema in `@bx-team/types`, never read off an untyped object.
-- In `beacon`, one error type and one error shape for the whole Worker (`util/error.ts`);
+- One error type and one error shape for every Worker (`@bx-team/worker/error`);
   handlers `throw`, they never hand-roll `try`/`catch` plus `c.json({ ok: false })`.
 
 ### Language of user-facing strings

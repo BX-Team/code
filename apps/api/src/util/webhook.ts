@@ -1,5 +1,5 @@
 import type { PublishEvent } from '@bx-team/types/schema/downloads';
-import { toHex } from './hex';
+import { sign } from '@bx-team/worker/signature';
 
 /**
  * Tells beacon what was published. A failure is logged and swallowed: the artifact and
@@ -24,16 +24,4 @@ export async function announcePublish(url: string, secret: string, event: Publis
   } catch (error) {
     console.error('Failed to announce publish', error);
   }
-}
-
-async function sign(secret: string, body: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-
-  return `sha256=${toHex(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)))}`;
 }

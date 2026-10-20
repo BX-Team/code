@@ -1,4 +1,4 @@
-import { hexToBytes } from '../util/hex';
+import { hexToBytes } from '@bx-team/worker/hex';
 
 /* Verifies the Ed25519 signature Discord puts on every interaction request */
 export async function verifyInteraction(
