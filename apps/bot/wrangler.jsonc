@@ -1,19 +1,26 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "beacon",
+  "name": "bot",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-03-12",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
-  "routes": [{ "pattern": "beacon.bxteam.org", "custom_domain": true }],
+  "routes": [{ "pattern": "bot.bxteam.org", "custom_domain": true }],
   "observability": {
     "enabled": true
   },
   "vars": {
     "DISCORD_APPLICATION_ID": "1014467419181436928",
-    "GUILD_ID": "931595732752953375"
+    "GUILD_ID": "931595732752953375",
+    "GITHUB_APP_ID": ""
   },
   "secrets": {
-    "required": ["DISCORD_BOT_TOKEN", "DISCORD_PUBLIC_KEY", "GITHUB_WEBHOOK_SECRET", "AZIMUTH_WEBHOOK_SECRET"]
+    "required": [
+      "DISCORD_BOT_TOKEN",
+      "DISCORD_PUBLIC_KEY",
+      "GITHUB_APP_PRIVATE_KEY",
+      "GITHUB_WEBHOOK_SECRET",
+      "API_WEBHOOK_SECRET"
+    ]
   }
 }

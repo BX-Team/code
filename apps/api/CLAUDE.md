@@ -5,12 +5,12 @@ versions, builds, releases and the artifacts behind them. Reads are public and
 credential-less; a publish authenticates with a token that belongs to one project.
 
 **This is the only app in the repository with storage.** `web`'s `/downloads` reads
-it, beacon reads a publish back from it, and a release workflow in a project's own
+it, `bot` reads a publish back from it, and a release workflow in a project's own
 repository is what writes to it.
 
 | Path | Who calls it |
 | --- | --- |
-| `GET /v1/projects`, `/v1/builds/…`, `/v1/releases/…` | web, beacon, anyone |
+| `GET /v1/projects`, `/v1/builds/…`, `/v1/releases/…` | web, bot, anyone |
 | `GET /v1/publish/next/{project}/{version}` | a release workflow, before it builds |
 | `POST /v1/publish/builds\|releases/…` | a release workflow, after it builds |
 | `PATCH`/`DELETE /v1/publish/…` | maintenance, by hand |
@@ -23,8 +23,8 @@ repository is what writes to it.
 | `DB` | D1 `atlas-db` | projects, tokens, versions, builds, releases and their children |
 | `BUCKET` | R2 `builds` | the published artifacts |
 | `R2_PUBLIC_URL` | var | public origin the bucket is served from (`files.bxteam.org`) |
-| `BEACON_PUBLISH_URL` | var | where a publish is announced; empty leaves it silent |
-| `BEACON_WEBHOOK_SECRET` | secret | keys the `X-Azimuth-Signature` HMAC beacon verifies |
+| `BOT_WEBHOOK_URL` | var | where a publish is announced; empty leaves it silent |
+| `BOT_WEBHOOK_SECRET` | secret | keys the `X-Api-Signature` HMAC the bot verifies |
 
 The database name is historical — `atlas-db` is the D1 instance the old Atlas API used,
 reused rather than replaced because it was empty.
@@ -71,7 +71,7 @@ refactor into a breaking API change.
 - Public GETs go through `edgeCache`. It is a no-op on `*.workers.dev` — real hits need
   the custom domain. A publish purges the exact URLs it invalidated; a deeper page of
   builds can be up to `max-age` stale. `Cache-Control: no-cache` bypasses it, which is
-  how beacon reads a publish back the instant it is told about one.
+  how the bot reads a publish back the instant it is told about one.
 
 ## Publishing
 

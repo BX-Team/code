@@ -3,8 +3,8 @@
 # code
 
 The BX Team web platform in one repository — the site and documentation at
-[bxteam.org](https://bxteam.org), the downloads API behind it, the Discord bot that
-announces what we publish, and the GitHub App that cuts our releases. TypeScript end to end, running entirely on Cloudflare Workers.
+[bxteam.org](https://bxteam.org), the downloads API behind it, and the bot that cuts our
+releases on GitHub and announces what we publish in Discord. TypeScript end to end, running entirely on Cloudflare Workers.
 
 [![Chat on Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/qNyybSSPm5)
 [![documentation](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg)](https://bxteam.org)
@@ -27,8 +27,7 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 | --- | ------ | ---------- |
 | [`apps/web`](apps/web) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
 | [`apps/api`](apps/api) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
-| [`apps/beacon`](apps/beacon) | `beacon.bxteam.org` | The Discord bot — Hono, GitHub and publish webhooks, release announcements |
-| [`apps/helm`](apps/helm) | `helm.bxteam.org` | The GitHub App — Hono, release PRs and `/release` commands, the organisation board, PR title checks |
+| [`apps/bot`](apps/bot) | `bot.bxteam.org` | The GitHub App and Discord bot — Hono, release PRs and `/release` commands, the organisation board, PR title checks, announcements, slash commands |
 
 | Package | What it is |
 | ------- | ---------- |
@@ -38,7 +37,7 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 
 `api` is the only app that stores anything — every project, version, build and
 release, with the artifacts in R2 and the download URLs pointing straight at the bucket.
-`web` reads it for `/downloads`, and `beacon` reads a publish back from it to
+`web` reads it for `/downloads`, and `bot` reads a publish back from it to
 announce. Nothing here builds an artifact: that happens in a release workflow in the
 project's own repository, which uploads through `api` with a project token.
 
@@ -56,12 +55,11 @@ Then run whichever app you are working on:
 ```bash
 bun dev             # everything in parallel
 bun dev:web         # the site, on nuxt dev
-bun dev:beacon      # the bot, on wrangler dev
 bun dev:api         # the downloads API, on wrangler dev
-bun dev:helm        # the GitHub App, on wrangler dev
+bun dev:bot         # the GitHub App and Discord bot, on wrangler dev
 ```
 
-`api`, `beacon` and `helm` read local secrets from a `.dev.vars` — copy the
+`api` and `bot` read local secrets from a `.dev.vars` — copy the
 `.dev.vars.example` next to each as a starting point. Per-app notes live in each
 project's `CLAUDE.md`.
 
@@ -78,9 +76,8 @@ one project.
 ```bash
 bun run build       # every app
 bun build:web       # nuxt generate
-bun build:beacon    # wrangler deploy --dry-run
 bun build:api       # wrangler deploy --dry-run
-bun build:helm      # wrangler deploy --dry-run
+bun build:bot       # wrangler deploy --dry-run
 bunx biome check .  # formatting and lint, the source of truth
 ```
 

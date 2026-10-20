@@ -1,21 +1,22 @@
 # code
 
 The BX Team web platform in one repository: the `bxteam.org` site and its documentation,
-the downloads API behind it, and the Discord bot that announces releases. TypeScript
+the downloads API behind it, and the bot that runs releases on GitHub and announces them
+in Discord. TypeScript
 throughout, a bun workspaces monorepo, and every deployable is a Cloudflare Worker —
 there is no VPS, no Docker and no runtime Nitro server.
 
 ## Architecture
 
-Four Workers, each on its own custom domain. `api` is the only one with storage: it
+Three Workers, each on its own custom domain. `api` is the only one with storage: it
 owns every project, version, build, release and artifact, on D1 and R2. `web` is a
 `nuxt generate` build served as Workers Static Assets; its `/downloads` section is
 client-rendered and reads `api`'s public JSON API at `https://api.bxteam.org/v1` like
-any other consumer. `beacon` has no storage at all: it learns that something happened
-from a webhook — GitHub's organisation webhook, or `api`'s after a publish — and
-answers Discord interactions. `helm` has no storage either: it is the BX Team GitHub App,
-acting on the repositories from its webhook — release PRs, release commands, the
-organisation board and pull request titles.
+any other consumer. `bot` has no storage at all: it is both the BX Team GitHub App and
+the Discord bot. It learns that something happened from a webhook — the GitHub App's, or
+`api`'s after a publish — acts on the repositories (release PRs, release commands, the
+organisation board, pull request titles), announces in Discord and answers Discord
+interactions.
 
 **Code lives on GitHub.** Repositories, pull requests and issues are in the
 [BX-Team](https://github.com/BX-Team) organisation, and a release workflow in a project's
@@ -27,14 +28,13 @@ The packages are consumed from source inside the workspace and are never publish
 | ------- | -------------- |
 | `apps/web` | The website and documentation. Nuxt 4, Vue 3, Tailwind v4, fully static. |
 | `apps/api` | The downloads API on `api.bxteam.org`. Hono; D1, R2, publish tokens. |
-| `apps/beacon` | The Discord bot on `beacon.bxteam.org`. Hono; GitHub and publish webhooks, slash commands. |
-| `apps/helm` | The GitHub App on `helm.bxteam.org`. Hono; release PRs, `/release` commands, board, title check. |
+| `apps/bot` | The GitHub App and Discord bot on `bot.bxteam.org`. Hono; release PRs, `/release` commands, board, title check, announcements, slash commands. |
 | `packages/types` | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks. |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
 | `packages/worker` | What every Worker shares: the error type and handlers, hex, `sha256=` HMAC signatures. |
 
 Each has its own `CLAUDE.md` — [`apps/api`](apps/api/CLAUDE.md),
-[`apps/beacon`](apps/beacon/CLAUDE.md), [`apps/helm`](apps/helm/CLAUDE.md), [`apps/web`](apps/web/CLAUDE.md),
+[`apps/bot`](apps/bot/CLAUDE.md), [`apps/web`](apps/web/CLAUDE.md),
 [`packages/ui`](packages/ui/CLAUDE.md). Read the one you are about to edit; they hold the
 rules that actually bite.
 
@@ -47,7 +47,7 @@ rules that actually bite.
   workflows here: every pull request gets a preview deployment and its build is the
   required check, so a workflow running the same install and build would only be a slower
   duplicate.
-- **`api` owns the data, and it is the only app that may.** web, beacon and helm
+- **`api` owns the data, and it is the only app that may.** `web` and `bot`
   are read-only consumers of `api.bxteam.org/v1`; do not give either of them storage.
 - **Nothing in this repository builds anything.** An artifact is produced by a release
   workflow in the project's own repository and uploaded through `api`'s publish
@@ -63,9 +63,8 @@ rules that actually bite.
 bun install                     # once, from the repository root
 bun dev                         # every app in parallel
 bun dev:web                     # the site; the user starts this themselves
-bun dev:beacon                  # the bot, on wrangler dev
 bun dev:api                     # the downloads API, on wrangler dev
-bun dev:helm                    # the GitHub App, on wrangler dev
+bun dev:bot                     # the GitHub App and Discord bot, on wrangler dev
 bun run build                   # build every app
 bunx biome check .              # formatting and lint
 bun run --filter '*' typecheck  # tsc / nuxt typecheck per app
@@ -117,7 +116,7 @@ ships as-is to every reader.
 - **Numeric prefixes order the docs tree** (`01.getting-started/`) and are stripped from
   the URL. Renaming a file changes its URL; nothing redirects the old one.
 - **A webhook body is verified before it is parsed**, on the raw bytes: GitHub signs
-  `X-Hub-Signature-256` and azimuth signs `X-Azimuth-Signature`, both `sha256=<hex>`
+  `X-Hub-Signature-256` and `api` signs `X-Api-Signature`, both `sha256=<hex>`
   HMACs.
 - **Discord interactions must be answered within 3 seconds**, and nothing here defers —
   a deferred reply would need the Worker to outlive its response.
@@ -132,6 +131,6 @@ preview deployment. Say in the pull request what you actually exercised.
 ## Bash Guidelines
 
 - Don't pipe output through `head`/`tail`/`less` to truncate — use tool-native flags
-  (`git log -n 10`, `bun run --filter @bx-team/beacon typecheck`). Read the full output.
+  (`git log -n 10`, `bun run --filter @bx-team/bot typecheck`). Read the full output.
 - Don't create scratch files (scripts, notes) unless asked.
 - When given failures, just fix them — don't argue about who introduced them.

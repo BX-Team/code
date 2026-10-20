@@ -1,4 +1,4 @@
 # Local secrets/vars for `wrangler dev`
 R2_PUBLIC_URL=https://files.bxteam.org
-BEACON_PUBLISH_URL=
-BEACON_WEBHOOK_SECRET=
+BOT_WEBHOOK_URL=
+BOT_WEBHOOK_SECRET=

@@ -1,11 +1,11 @@
 import { errorHandler, notFoundHandler } from '@bx-team/worker/error';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { Hono } from 'hono';
-import type { HelmEnv } from './context';
+import type { BotEnv } from './context';
 import type { Env } from './env';
 import { routes } from './routes';
 
-const app = new Hono<HelmEnv>();
+const app = new Hono<BotEnv>();
 
 app.route('/', routes);
 

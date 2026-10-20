@@ -57,7 +57,7 @@ export interface Release {
 }
 
 /**
- * `no-cache` matters on the read-back after a publish: azimuth edge-caches its public
+ * `no-cache` matters on the read-back after a publish: the API edge-caches its public
  * GETs, and an announcement must not describe the build before this one.
  */
 async function get<T>(path: string): Promise<T | null> {

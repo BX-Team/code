@@ -8,14 +8,14 @@ import {
 } from 'discord-api-types/v10';
 import { Hono } from 'hono';
 import { findCommand } from '../commands';
-import type { BeaconEnv } from '../context';
+import type { BotEnv } from '../context';
 import { errorEmbed } from '../discord/embeds';
 import { reply } from '../discord/respond';
 import { verifyInteraction } from '../discord/verify';
 
-export const interactions = new Hono<BeaconEnv>();
+export const discord = new Hono<BotEnv>();
 
-interactions.post('/interactions', async c => {
+discord.post('/interactions', async c => {
   const body = await c.req.text();
   const valid = await verifyInteraction(
     c.env.DISCORD_PUBLIC_KEY,

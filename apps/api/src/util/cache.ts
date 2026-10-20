@@ -8,7 +8,7 @@ const CACHE_CONTROL = 'public, max-age=60, stale-while-revalidate=60';
  * URL, and on a miss store the response with a Cache-Control header via waitUntil. The
  * Cache API is a no-op on *.workers.dev — real HITs need a custom domain.
  *
- * `Cache-Control: no-cache` on the request bypasses it, which is how beacon reads a
+ * `Cache-Control: no-cache` on the request bypasses it, which is how the bot reads a
  * publish back the instant it is told about one.
  */
 export const edgeCache = createMiddleware(async (c, next) => {
