@@ -10,10 +10,10 @@ interface ChangelogConfig {
 }
 
 /**
- * Groups commits the way `release-changelog-builder-action` will in the real notes, from the
- * repository's own `changelog_configuration.json`, so the release PR previews what ships.
+ * The changelog part of the release notes, grouped by the repository's own changelog
+ * configuration. The release PR shows exactly this text and the draft release copies it.
  */
-export function previewNotes(commits: Commit[], configText: string | null): string {
+export function releaseNotes(commits: Commit[], configText: string | null): string {
   const lines = (list: Commit[]) => list.map(line).join('\n');
   const config = parseConfig(configText);
   if (!config?.categories?.length) return lines(commits);
@@ -37,7 +37,7 @@ export function previewNotes(commits: Commit[], configText: string | null): stri
 
   return [...groups]
     .filter(([, list]) => list.length > 0)
-    .map(([category, list]) => `${category.title.replace(/^#+ /, '#### ')}\n\n${lines(list)}`)
+    .map(([category, list]) => `${category.title}\n\n${lines(list)}`)
     .join('\n\n');
 }
 

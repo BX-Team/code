@@ -1,8 +1,8 @@
-import type { ReleaseConfig } from '../config/organisation';
+import { CHANGELOG_PATHS, RELEASE_LABEL, type ReleaseConfig } from '../config/organisation';
 import { type Github, GithubApiError } from '../github/client';
 import { CommandError } from '../util/error';
 import { type FileBump, fileBump } from './files';
-import { type Commit, previewNotes } from './notes';
+import { type Commit, releaseNotes } from './notes';
 import {
   type Bump,
   bumpFor,
@@ -18,6 +18,8 @@ import {
 export const RELEASE_BRANCH = 'release/next';
 const GENERATED = '<!-- release:generated -->';
 const PIN = /<!-- release:pin (\S+) -->/;
+const NOTES_OPEN = '<!-- release:notes -->';
+const NOTES_CLOSE = '<!-- /release:notes -->';
 const INTRO_HINT =
   '<!-- Write here, above the release:generated marker, to open the release notes with a summary. Everything below the marker is rewritten on every push. -->';
 const COMPARE_LIMIT = 250;
@@ -79,28 +81,34 @@ export async function syncReleasePull(
   const title = releaseTitle(version);
   await writeReleaseBranch(gh, repo, config.files.map(fileBump), head, version, title);
 
-  const preview = previewNotes(commits, await gh.file(repo.full, '.github/changelog_configuration.json', head));
+  const notes = releaseNotes(commits, await changelogConfig(gh, repo, head));
   const body = [
     introFrom(existing?.body) || INTRO_HINT,
     GENERATED,
     summaryLine(version, pin ? null : bump, commits.length, baseTag),
-    'Comment `/release` to merge this once CI is green and ship it, `/version <x.y.z>` to release another version, or `/version auto` to go back to the computed one.',
-    `### Release notes preview\n\n${preview}`,
+    'Comment `/release` to merge this once CI is green and ship it, `/version <x.y.z>` to release another version, or `/version auto` to go back to the computed one. Below the line is the release text as it will be published, after the summary above.',
+    '---',
+    `${NOTES_OPEN}\n\n${notes}\n\n${NOTES_CLOSE}`,
     ...(pin ? [`<!-- release:pin ${formatSemver(pin)} -->`] : []),
   ].join('\n\n');
 
+  let number: number;
   if (existing) {
     await gh.request('PATCH', `/repos/${repo.full}/pulls/${existing.number}`, { title, body });
-    return { state: 'open', number: existing.number, version: formatSemver(version) };
+    number = existing.number;
+  } else {
+    const created = await gh.request<PullRequest>('POST', `/repos/${repo.full}/pulls`, {
+      title,
+      body,
+      head: RELEASE_BRANCH,
+      base: repo.defaultBranch,
+    });
+    number = created.number;
   }
 
-  const created = await gh.request<PullRequest>('POST', `/repos/${repo.full}/pulls`, {
-    title,
-    body,
-    head: RELEASE_BRANCH,
-    base: repo.defaultBranch,
-  });
-  return { state: 'open', number: created.number, version: formatSemver(version) };
+  // Adding a label the PR already carries is a no-op, so this also repairs one removed by hand.
+  await gh.request('POST', `/repos/${repo.full}/issues/${number}/labels`, { labels: [RELEASE_LABEL] });
+  return { state: 'open', number, version: formatSemver(version) };
 }
 
 export async function findReleasePull(gh: Github, repo: RepoRef): Promise<PullRequest | null> {
@@ -114,6 +122,22 @@ export async function findReleasePull(gh: Github, repo: RepoRef): Promise<PullRe
 /** The summary written above the generated marker, without the hint comment; empty when unset. */
 export function releaseIntro(body: string | null | undefined): string {
   return (introFrom(body) ?? '').replace(/<!--[\s\S]*?-->/g, '').trim();
+}
+
+/** The changelog text of a merged release PR, exactly as its body showed it. */
+export function releaseNotesFrom(body: string | null | undefined): string {
+  if (!body) return '';
+  const start = body.indexOf(NOTES_OPEN);
+  const end = body.indexOf(NOTES_CLOSE, start);
+  return start === -1 || end === -1 ? '' : body.slice(start + NOTES_OPEN.length, end).trim();
+}
+
+async function changelogConfig(gh: Github, repo: RepoRef, head: string): Promise<string | null> {
+  for (const path of CHANGELOG_PATHS) {
+    const text = await gh.file(repo.full, path, head);
+    if (text !== null) return text;
+  }
+  return null;
 }
 
 /** Commits on the default branch after the last stable release, oldest first. */
