@@ -27,8 +27,11 @@ export interface Project {
   docs?: boolean;
   /** The Discord channel — usually a GitHub forum thread — repository activity is posted into. */
   discord?: string;
-  /** The bot keeps a release PR open for the repository and dispatches `workflow` when it is merged. */
-  release?: { workflow: string; files: VersionFile[] };
+  /**
+   * The bot keeps a release PR open for the repository and, when it is merged, tags the merge
+   * and opens the draft release; the repository's workflow builds from the tag push.
+   */
+  release?: { files: VersionFile[] };
 }
 
 /** Every BX Team project the site, the bot and the API agree on. Adding one starts here. */
@@ -59,8 +62,8 @@ export const PROJECTS: Project[] = [
     name: 'Riven',
     repo: 'BX-Team/Riven',
     docs: true,
+    discord: '1560609756736127006',
     release: {
-      workflow: 'release.yml',
       files: [
         { kind: 'cargo-manifest' },
         { kind: 'cargo-lock' },

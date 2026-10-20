@@ -25,10 +25,12 @@ Everything here is request-driven.
 - **Release PR.** A push to the default branch of a repository with a `release` entry in
   `@bx-team/projects` recomputes the next version from the Conventional Commit titles since
   the newest stable `v*` tag, rewrites every file listed for it on the `release/next` branch
-  and opens or updates the `chore(release): <version>` PR. Nothing releasable — the PR is closed.
-- **Shipping.** Merging that PR dispatches the repository's release workflow with
-  `version`, `sha` (the merge commit), `description` (the text above the generated marker)
-  and `prerelease`. The workflow keeps tagging, building and publishing as before.
+  and opens or updates the `chore(release): <version>` PR, labelled `🚀 release`. Its body
+  carries the release text as it will be published. Nothing releasable — the PR is closed.
+- **Shipping.** Merging that PR opens the draft release — the text above the generated
+  marker, then the notes between the `release:notes` markers — and pushes the annotated
+  `v<version>` tag on the merge commit. That tag push starts the repository's release
+  workflow, which builds onto the draft and publishes it.
 - **Commands** on the release PR, from anyone with write access: `/release` merges it, or
   turns on auto-merge while checks run; `/version <x.y.z>` pins a version, pre-releases
   included; `/version auto` drops the pin.
@@ -66,16 +68,16 @@ openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem | bunx wrangler secret put
 ## Layout
 
 - `routes/` — one file per caller: `github.ts`, `discord.ts`, `api.ts`.
-- `@bx-team/projects` — which repositories get a release PR, their workflow and the files
-  carrying the version, and the Discord thread each repository's activity goes to. Adding
+- `@bx-team/projects` — which repositories get a release PR and the files carrying the version, and the Discord thread each repository's activity goes to. Adding
   a repository is a change there, reviewed in a PR.
-- `config/organisation.ts` — the organisation, the board number, the allowed title types.
+- `config/organisation.ts` — the organisation, the board number, the allowed title types,
+  the release label and where the changelog configuration is read from.
 - `config/routing.ts` — the releases channel, and the per-repository thread lookup.
 - `config/resources.ts` — public BX Team URLs and the API base.
 - `release/` — `version.ts` (semver, Conventional Commits, bump rules), `files.ts`
   (`cargoManifest`, `cargoLock`, marker-scoped `replace`), `notes.ts` (the notes preview,
-  grouped by the repository's own `changelog_configuration.json`), `pull.ts` (syncing the
-  release PR) and `ship.ts` (merge and dispatch).
+  grouped by the repository's `.github/release/changelog.json`), `pull.ts` (syncing the
+  release PR) and `ship.ts` (merge, draft and tag).
 - `handlers/` — one file per GitHub behaviour.
 - `github/` — the app JWT and installation tokens, a small REST/GraphQL client, and the
   activity embeds.
@@ -101,8 +103,13 @@ openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem | bunx wrangler secret put
 - The base version is the newest **stable** tag. A merged release commit whose tag is not
   pushed yet counts as released, so the push of that merge does not reopen the PR.
 - A failed command is answered on the PR with a 😕 reaction and a reply.
-- A repository's release workflow must accept a `sha` input and tag that commit, and skip
-  its own version bump when the files already carry the version.
+- **The bot tags, the workflow builds.** A repository's release workflow runs on `push: tags:
+  ['v*']`, never bumps or commits, and finds the draft by its tag. The app is in the bypass
+  list of the repository's `v*` tag ruleset; nobody else but organisation admins may create
+  those tags. The draft is created before the tag, so the workflow always finds it.
+- Shipping is idempotent, because a redelivery reruns it: an existing draft is rewritten, a
+  tag already on the merge commit is kept, and a tag on another commit is reported on the PR
+  instead of being moved.
 - Every channel id is just a channel id — **a forum thread is a channel**.
 - Interactions must be answered within 3 seconds. Commands respond directly; nothing
   here defers, because a deferred reply needs the Worker to outlive its response.

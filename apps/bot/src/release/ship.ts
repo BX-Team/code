@@ -1,36 +1,105 @@
 import type { ReleaseConfig } from '../config/organisation';
 import { type Github, GithubApiError } from '../github/client';
 import { CommandError } from '../util/error';
-import { type PullRequest, type RepoRef, releaseIntro } from './pull';
+import { type PullRequest, type RepoRef, releaseIntro, releaseNotesFrom } from './pull';
 import { formatSemver, releaseTitleVersion } from './version';
 
+interface MergedPull {
+  number: number;
+  title: string;
+  body?: string | null;
+  merge_commit_sha?: string | null;
+}
+
+interface Release {
+  id: number;
+  tag_name: string;
+  draft: boolean;
+  html_url: string;
+}
+
 /**
- * Starts the repository's release workflow for a merged release PR. The workflow tags
- * `sha`, the merge commit, so a push landing in between cannot end up in the release.
+ * Ships a merged release PR: the draft release first, then the `v*` tag on the merge commit.
+ * The tag push, made with the app's token, is what starts the repository's release workflow.
+ * Safe to redeliver: an existing draft is updated, and a tag already on the merge commit is kept.
  */
-export async function dispatchRelease(
-  gh: Github,
-  repo: RepoRef,
-  config: ReleaseConfig,
-  pull: { number: number; title: string; body?: string | null; merge_commit_sha?: string | null },
-): Promise<void> {
+export async function tagRelease(gh: Github, repo: RepoRef, config: ReleaseConfig, pull: MergedPull): Promise<void> {
   const version = releaseTitleVersion(pull.title);
   if (!version || !pull.merge_commit_sha) throw new Error(`${repo.full}#${pull.number} is not a release merge`);
 
   const tag = `v${formatSemver(version)}`;
-  await gh.request('POST', `/repos/${repo.full}/actions/workflows/${config.workflow}/dispatches`, {
-    ref: repo.defaultBranch,
-    inputs: {
-      version: formatSemver(version),
-      sha: pull.merge_commit_sha,
-      description: releaseIntro(pull.body),
-      prerelease: String(version.pre !== null),
-    },
+  const name = `${config.name} ${formatSemver(version)}`;
+  const body = [releaseIntro(pull.body), releaseNotesFrom(pull.body)].filter(Boolean).join('\n\n');
+
+  // The draft goes first, so the workflow the tag starts always finds it.
+  const draft = await ensureDraft(gh, repo, {
+    tag_name: tag,
+    target_commitish: pull.merge_commit_sha,
+    name,
+    body,
+    prerelease: version.pre !== null,
   });
 
-  await gh.request('POST', `/repos/${repo.full}/issues/${pull.number}/comments`, {
-    body: `🚀 Started [the release workflow](https://github.com/${repo.full}/actions/workflows/${config.workflow}) for **${tag}**.`,
+  const tagged = await ensureTag(gh, repo, tag, pull.merge_commit_sha, name);
+  const message = tagged
+    ? `🏷️ Tagged **${tag}** on ${pull.merge_commit_sha.slice(0, 7)}. The release workflow builds from the tag and publishes [the draft](${draft.html_url}) once every file is attached.`
+    : `⚠️ **${tag}** already exists on another commit, so nothing was tagged. Delete the stray tag and redeliver this webhook, or release under another version.`;
+
+  await gh.request('POST', `/repos/${repo.full}/issues/${pull.number}/comments`, { body: message });
+}
+
+/** Creates the draft for `tag`, or rewrites it when a redelivery or the workflow made it first. */
+async function ensureDraft(
+  gh: Github,
+  repo: RepoRef,
+  release: { tag_name: string; target_commitish: string; name: string; body: string; prerelease: boolean },
+): Promise<Release> {
+  // Drafts are invisible to `/releases/tags/{tag}`, so they are found by listing.
+  const recent = await gh.request<Release[]>('GET', `/repos/${repo.full}/releases?per_page=30`);
+  const existing = recent.find(candidate => candidate.tag_name === release.tag_name);
+
+  if (!existing) {
+    return gh.request<Release>('POST', `/repos/${repo.full}/releases`, { ...release, draft: true });
+  }
+  if (!existing.draft) return existing;
+  return gh.request<Release>('PATCH', `/repos/${repo.full}/releases/${existing.id}`, {
+    name: release.name,
+    body: release.body,
+    prerelease: release.prerelease,
   });
+}
+
+/** Creates the annotated tag; false when the name is already taken by another commit. */
+async function ensureTag(gh: Github, repo: RepoRef, tag: string, sha: string, message: string): Promise<boolean> {
+  const current = await taggedCommit(gh, repo, tag);
+  if (current !== null) return current === sha;
+
+  const object = await gh.request<{ sha: string }>('POST', `/repos/${repo.full}/git/tags`, {
+    tag,
+    message,
+    object: sha,
+    type: 'commit',
+  });
+  await gh.request('POST', `/repos/${repo.full}/git/refs`, { ref: `refs/tags/${tag}`, sha: object.sha });
+  return true;
+}
+
+async function taggedCommit(gh: Github, repo: RepoRef, tag: string): Promise<string | null> {
+  try {
+    const ref = await gh.request<{ object: { sha: string; type: string } }>(
+      'GET',
+      `/repos/${repo.full}/git/ref/tags/${encodeURIComponent(tag)}`,
+    );
+    if (ref.object.type === 'commit') return ref.object.sha;
+    const annotated = await gh.request<{ object: { sha: string } }>(
+      'GET',
+      `/repos/${repo.full}/git/tags/${ref.object.sha}`,
+    );
+    return annotated.object.sha;
+  } catch (error) {
+    if (error instanceof GithubApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 /**

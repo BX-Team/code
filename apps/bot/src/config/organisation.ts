@@ -4,12 +4,20 @@ import { type Project, projectByRepo } from '@bx-team/projects';
 export const ORGANISATION = 'BX-Team';
 export const PROJECT_NUMBER = 12;
 
-/** Types a pull request title may start with — the `label_extractor` of `changelog_configuration.json`. */
+/** Types a pull request title may start with — the `label_extractor` of the changelog configuration. */
 export const TITLE_TYPES = ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style'];
 
-export type ReleaseConfig = NonNullable<Project['release']>;
+/** Put on every release PR; the same entry is in the organisation's `labels.json`. */
+export const RELEASE_LABEL = '🚀 release';
+
+/** Where the changelog grouping lives; the second path is the layout before `.github/release/`. */
+export const CHANGELOG_PATHS = ['.github/release/changelog.json', '.github/changelog_configuration.json'];
+
+/** A project's release setup plus its display name, which titles the tag and the release. */
+export type ReleaseConfig = NonNullable<Project['release']> & { name: string };
 
 /** The release setup of an `owner/name` repository, when the bot keeps a release PR for it. */
 export function releaseConfig(repo: string): ReleaseConfig | undefined {
-  return projectByRepo(repo)?.release;
+  const project = projectByRepo(repo);
+  return project?.release ? { ...project.release, name: project.name } : undefined;
 }
