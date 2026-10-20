@@ -67,7 +67,7 @@ release-channel chip with a dot) and `.bx-callout` (+ `--note`/`--warn`/`--err`/
 ### `BrandMark`
 The pixel mark: an 11-cell frame with the top-left and bottom-right corners opened around a solid core,
 `fg` by default. Keep sizes on whole 2px multiples (22, 44, 66) so the cells stay square. The field
-stamps the same glyph (`MARK` in `src/pixel/glyphs.ts`); `public/favicon.svg`/`.ico` in meridian are it too.
+stamps the same glyph (`MARK` in `src/pixel/glyphs.ts`); `public/favicon.svg`/`.ico` in `apps/web` are it too.
 ```ts
 props: { size?: number }  // default 22
 ```
@@ -112,7 +112,7 @@ lockup sits above the left edge of the content; shells that lay out edge to edge
 share one highlight plate that glides to the hovered link and rests on the active one, like Riven's tabs. With
 `overlay` the bar is transparent while the page's `[data-nav-overlay]` band (the hero, pulled up 56px
 under it) is in view and turns opaque once it scrolls away; on a phone it then shows only the mark.
-Under 1023px the links, search and socials move into a sheet that drops under the bar, as on omarchy.org. Nothing else may make a bar of its own — `meridian` wires this one through
+Under 1023px the links, search and socials move into a sheet that drops under the bar, as on omarchy.org. Nothing else may make a bar of its own — `apps/web` wires this one through
 `app/components/SiteNav.vue`.
 ```ts
 props: { active?, links?: NavLink[], brandHref?, tag?, githubHref?, discordHref?, overlay?, searchEnabled?, searchLabel?, maxWidth?, gutter?, linkAs? }
@@ -156,7 +156,7 @@ slots: #crumbs, #badge, #cta, #meta, #aside
 
 ### `Footer`
 `surface-deep` with a `PixelField`, the BrandMark lockup, blurb and social icons on the left, link
-columns on the right, legal line under a rule. Columns come from the app (`SiteFooter.vue` in meridian).
+columns on the right, legal line under a rule. Columns come from the app (`SiteFooter.vue` in `apps/web`).
 ```ts
 interface FooterLink   { label: string; href: string; external?: boolean }
 interface FooterColumn { title: string; links: FooterLink[] }
@@ -194,6 +194,6 @@ All components must work on both desktop and mobile. Use Tailwind responsive pre
 - **Styles:** `<style scoped>` on every component. Use `var(--*)` tokens — never raw hex or `oklch()` literals unless a one-off UI detail (e.g. channel badge colours inside a page).
 - **No comments** unless the why is non-obvious.
 - **Props** — always typed with `defineProps<{...}>()`. Use `withDefaults` only when defaults are non-trivial.
-- **No shadcn-vue.** Pages and components in `apps/meridian` must import from `@bx-team/ui`, not from `@/components/ui/*`.
+- **No shadcn-vue.** Pages and components in `apps/web` must import from `@bx-team/ui`, not from `@/components/ui/*`.
 - **Icons** come from `@lucide/vue`. Standard props: `:size="16" :stroke-width="1.7"`.
 - **Adding a component:** create `src/components/MyComponent.vue`, add a named export to `src/index.ts`.

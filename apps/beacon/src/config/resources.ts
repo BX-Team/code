@@ -7,7 +7,7 @@ export const RESOURCES = {
   github: 'https://github.com/BX-Team',
 } as const;
 
-/** Projects that have a documentation section under `apps/meridian/content/docs`. */
+/** Projects that have a documentation section under `apps/web/content/docs`. */
 export const DOC_PROJECTS = [
   { name: 'DivineMC', value: 'divinemc' },
   { name: 'Quark', value: 'quark' },

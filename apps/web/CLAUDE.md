@@ -1,9 +1,9 @@
-# apps/meridian - BX Team website
+# apps/web - BX Team website
 
 Nuxt 4 application serving the main BX Team website. Uses Vue 3, Tailwind CSS v4, and file-based routing.
 
 ## Architecture
-Nuxt 4, **fully static** — the site is built with `nuxt generate` and deployed as Cloudflare Workers Static Assets (`wrangler.jsonc` + `worker.ts`, which only serves assets and the `200.html` SPA fallback). There is no runtime Nitro server and there are no user accounts. Content pages (docs, landing) are prerendered; the data-driven `/downloads` section is client-rendered (`ssr: false` route rules) and reads azimuth's public JSON API at `https://api.bxteam.org/v1` — `API_BASE` and every call live in `app/lib/builds.ts`. In dev a Nitro `devProxy` maps `/v1` onto it, so the browser stays same-origin. Tailwind CSS for styling.
+Nuxt 4, **fully static** — the site is built with `nuxt generate` and deployed as Cloudflare Workers Static Assets (`wrangler.jsonc` + `worker.ts`, which only serves assets and the `200.html` SPA fallback). There is no runtime Nitro server and there are no user accounts. Content pages (docs, landing) are prerendered; the data-driven `/downloads` section is client-rendered (`ssr: false` route rules) and reads the downloads API (`apps/api`) at `https://api.bxteam.org/v1` — `API_BASE` and every call live in `app/lib/builds.ts`. In dev a Nitro `devProxy` maps `/v1` onto it, so the browser stays same-origin. Tailwind CSS for styling.
 
 ## Key Directories
 - **`app/pages/`** — file-based routing

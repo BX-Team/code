@@ -1,16 +1,16 @@
-# apps/azimuth — BX Team downloads API
+# apps/api — BX Team downloads API
 
 Hono Worker serving `api.bxteam.org`. It owns everything BX Team publishes: projects,
 versions, builds, releases and the artifacts behind them. Reads are public and
 credential-less; a publish authenticates with a token that belongs to one project.
 
-**This is the only app in the repository with storage.** meridian's `/downloads` reads
+**This is the only app in the repository with storage.** `web`'s `/downloads` reads
 it, beacon reads a publish back from it, and a release workflow in a project's own
 repository is what writes to it.
 
 | Path | Who calls it |
 | --- | --- |
-| `GET /v1/projects`, `/v1/builds/…`, `/v1/releases/…` | meridian, beacon, anyone |
+| `GET /v1/projects`, `/v1/builds/…`, `/v1/releases/…` | web, beacon, anyone |
 | `GET /v1/publish/next/{project}/{version}` | a release workflow, before it builds |
 | `POST /v1/publish/builds\|releases/…` | a release workflow, after it builds |
 | `PATCH`/`DELETE /v1/publish/…` | maintenance, by hand |
@@ -39,7 +39,7 @@ The layers are not interchangeable:
 - `database/downloads.ts` (reads) and `database/publish.ts` (writes) — rows and the SQL
   against them. No ORM: the schema is fixed and every query here is known.
 - `util/` — the shared error type, the edge cache, the token guard, version ordering.
-- `openapi.ts` — the hand-authored OpenAPI 3.1 document meridian renders at `/docs/api`.
+- `openapi.ts` — the hand-authored OpenAPI 3.1 document `web` renders at `/docs/api`.
 
 `models/` and `database/` are separate on purpose. Mixing them is what turns a schema
 refactor into a breaking API change.
@@ -101,8 +101,8 @@ sets a support status and a Java floor afterwards, and
 ## Development
 
 ```bash
-bun dev:azimuth      # wrangler dev
-bun build:azimuth    # wrangler deploy --dry-run
+bun dev:api      # wrangler dev
+bun build:api    # wrangler deploy --dry-run
 bunx wrangler d1 migrations apply atlas-db --remote
 ```
 

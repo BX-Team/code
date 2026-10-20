@@ -25,8 +25,8 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 
 | App | Domain | What it is |
 | --- | ------ | ---------- |
-| [`apps/meridian`](apps/meridian) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
-| [`apps/azimuth`](apps/azimuth) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
+| [`apps/web`](apps/web) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
+| [`apps/api`](apps/api) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
 | [`apps/beacon`](apps/beacon) | `beacon.bxteam.org` | The Discord bot — Hono, GitHub and publish webhooks, release announcements |
 | [`apps/helm`](apps/helm) | `helm.bxteam.org` | The GitHub App — Hono, release PRs and `/release` commands, the organisation board, PR title checks |
 
@@ -35,11 +35,11 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 | [`packages/types`](packages/types) | Shared Zod schemas for the downloads API, the publish notification and GitHub webhooks |
 | [`packages/ui`](packages/ui) | Shared Vue 3 components and design tokens |
 
-`azimuth` is the only app that stores anything — every project, version, build and
+`api` is the only app that stores anything — every project, version, build and
 release, with the artifacts in R2 and the download URLs pointing straight at the bucket.
-`meridian` reads it for `/downloads`, and `beacon` reads a publish back from it to
+`web` reads it for `/downloads`, and `beacon` reads a publish back from it to
 announce. Nothing here builds an artifact: that happens in a release workflow in the
-project's own repository, which uploads through azimuth with a project token.
+project's own repository, which uploads through `api` with a project token.
 
 ## 🚀 Getting started
 
@@ -54,13 +54,13 @@ Then run whichever app you are working on:
 
 ```bash
 bun dev             # everything in parallel
-bun dev:meridian    # the site, on nuxt dev
+bun dev:web         # the site, on nuxt dev
 bun dev:beacon      # the bot, on wrangler dev
-bun dev:azimuth     # the downloads API, on wrangler dev
+bun dev:api         # the downloads API, on wrangler dev
 bun dev:helm        # the GitHub App, on wrangler dev
 ```
 
-`azimuth`, `beacon` and `helm` read local secrets from a `.dev.vars` — copy the
+`api`, `beacon` and `helm` read local secrets from a `.dev.vars` — copy the
 `.dev.vars.example` next to each as a starting point. Per-app notes live in each
 project's `CLAUDE.md`.
 
@@ -76,9 +76,9 @@ one project.
 
 ```bash
 bun run build       # every app
-bun build:meridian  # nuxt generate
+bun build:web       # nuxt generate
 bun build:beacon    # wrangler deploy --dry-run
-bun build:azimuth   # wrangler deploy --dry-run
+bun build:api       # wrangler deploy --dry-run
 bun build:helm      # wrangler deploy --dry-run
 bunx biome check .  # formatting and lint, the source of truth
 ```
@@ -94,8 +94,8 @@ and keep a pull request to one subject. The organization-wide guidelines are in
 [CONTRIBUTING.md](https://github.com/BX-Team/.github/blob/master/CONTRIBUTING.md).
 
 The documentation for every BX Team project lives here too, under
-[`apps/meridian/content/docs`](apps/meridian/content/docs). Read
-[`apps/meridian/content/README.md`](apps/meridian/content/README.md) first — it documents
+[`apps/web/content/docs`](apps/web/content/docs). Read
+[`apps/web/content/README.md`](apps/web/content/README.md) first — it documents
 the frontmatter, the MDC components and the icon set the pages are written against, and
 review the result on the pull request's preview deployment rather than in the Markdown
 source.
