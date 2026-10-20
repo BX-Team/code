@@ -35,7 +35,10 @@ Everything here is request-driven.
   turns on auto-merge while checks run; `/version <x.y.z>` pins a version, pre-releases
   included; `/version auto` drops the pin.
 - **Board.** Every issue and pull request opened by a person is added to the organisation
-  project (`PROJECT_NUMBER`). Bots — Renovate, this one — are left off.
+  project (`PROJECT_NUMBER`). Bots — Renovate, this one — are left off. A closed item
+  moves to Done when completed and to Closed/Rejected when closed as not planned or a
+  duplicate, or a pull request closed unmerged; a merged one is the board's own workflow.
+  The board's built-in "Item closed" workflow stays off, since it cannot tell them apart.
 - **Title check.** A `Conventional title` check run on every pull request, since the title
   becomes the squash commit and so a line of the release notes.
 - **Activity.** Pushes, merged pull requests and published releases are posted into the

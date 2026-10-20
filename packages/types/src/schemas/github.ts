@@ -55,6 +55,7 @@ export const IssuesEventSchema = z.object({
   action: z.string(),
   issue: z.object({
     node_id: z.string(),
+    state_reason: z.string().nullish(),
     user: UserSchema,
   }),
 });

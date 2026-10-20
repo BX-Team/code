@@ -4,6 +4,10 @@ import { type Project, projectByRepo } from '@bx-team/projects';
 export const ORGANISATION = 'BX-Team';
 export const PROJECT_NUMBER = 12;
 
+/** The board's Status options for closed items: finished work, and everything closed without it. */
+export const STATUS_DONE = 'Done';
+export const STATUS_REJECTED = 'Closed/Rejected';
+
 /** Types a pull request title may start with — the `label_extractor` of the changelog configuration. */
 export const TITLE_TYPES = ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style'];
 
