@@ -1,0 +1,8 @@
+{
+  "name": "@bx-team/projects",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

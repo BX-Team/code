@@ -1,5 +1,8 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { PROJECTS } from '@bx-team/projects';
 import tailwindcss from '@tailwindcss/vite';
+
+checkDocsAgainstRegistry();
 
 const api = process.env.VITE_API_BASE || 'https://api.bxteam.org';
 const apiBase = process.env.NODE_ENV !== 'production' && !process.env.VITE_API_BASE ? '' : api;
@@ -122,3 +125,19 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-01-01',
 });
+
+/** A docs section and a registry entry are the same fact twice; fail the build when they drift. */
+function checkDocsAgainstRegistry() {
+  const sections = readdirSync(new URL('./content/docs', import.meta.url), { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name.replace(/^\d+\./, ''));
+  const registered = PROJECTS.filter(project => project.docs).map(project => project.key);
+
+  const unregistered = sections.filter(key => !registered.includes(key));
+  const missing = registered.filter(key => !sections.includes(key));
+  if (unregistered.length || missing.length) {
+    throw new Error(
+      `Docs and @bx-team/projects disagree — without \`docs: true\`: ${unregistered.join(', ') || 'none'}; without a docs section: ${missing.join(', ') || 'none'}`,
+    );
+  }
+}

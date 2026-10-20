@@ -11,7 +11,7 @@ import type { EmbedBuilder } from '@discordjs/builders';
 import type { REST } from '@discordjs/rest';
 import { Hono } from 'hono';
 import type { z } from 'zod';
-import { ACTIVITY_CHANNELS } from '../config/routing';
+import { activityChannel } from '../config/routing';
 import type { BotEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { installationClient } from '../github/app';
@@ -97,7 +97,7 @@ github.post('/webhook', async c => {
 
 /** Posts into the repository's activity thread; a Discord failure is logged, not thrown. */
 async function announce(rest: REST, repository: string, embed: EmbedBuilder | null) {
-  const channel = ACTIVITY_CHANNELS[repository];
+  const channel = activityChannel(repository);
   if (!embed || !channel) return false;
 
   try {

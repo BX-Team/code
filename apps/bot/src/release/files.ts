@@ -1,3 +1,4 @@
+import type { VersionFile } from '@bx-team/projects';
 import { formatSemver, type Semver } from './version';
 
 export interface BumpContext {
@@ -95,4 +96,16 @@ export function replace(
       return text.slice(0, start) + region + text.slice(end);
     },
   };
+}
+
+/** The rewrite a registry entry describes. */
+export function fileBump(file: VersionFile): FileBump {
+  switch (file.kind) {
+    case 'cargo-manifest':
+      return cargoManifest(file.path);
+    case 'cargo-lock':
+      return cargoLock(file.path);
+    case 'replace':
+      return replace(file.path, file.replacements, { between: file.between, stableOnly: file.stableOnly });
+  }
 }

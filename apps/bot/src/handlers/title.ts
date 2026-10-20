@@ -1,5 +1,5 @@
 import type { PullRequestEvent } from '@bx-team/types/schema/github';
-import { TITLE_TYPES } from '../config/repositories';
+import { TITLE_TYPES } from '../config/organisation';
 import type { Github } from '../github/client';
 import { isConventionalTitle } from '../release/version';
 
