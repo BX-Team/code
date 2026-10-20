@@ -12,7 +12,7 @@
   "vars": {
     "DISCORD_APPLICATION_ID": "1014467419181436928",
     "GUILD_ID": "931595732752953375",
-    "GITHUB_APP_ID": ""
+    "GITHUB_APP_ID": "5401177"
   },
   "secrets": {
     "required": [
