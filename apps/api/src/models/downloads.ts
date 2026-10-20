@@ -1,77 +1,14 @@
-import type { Channel, ProjectKind, Support } from '@bx-team/types/schema/downloads';
+import type {
+  Build,
+  Commit,
+  Download,
+  Project,
+  ProjectSummary,
+  Release,
+  VersionSummary,
+} from '@bx-team/types/schema/downloads';
 import type { BuildRow, CommitRow, DownloadRow, ProjectRow, ReleaseRow, VersionRow } from '../database/downloads';
 import { groupVersions, sortNewestFirst } from '../util/versions';
-
-/** `url` points at the bucket, never at this Worker. */
-export interface Download {
-  name: string;
-  size: number;
-  sha256: string;
-  url: string;
-}
-
-export interface BuildCommit {
-  sha: string;
-  summary: string;
-  at: string;
-}
-
-export interface ProjectSummary {
-  key: string;
-  name: string;
-  kind: ProjectKind;
-  description: string | null;
-  repo: string | null;
-  latest: string | null;
-  experimental: string | null;
-  updated_at: string | null;
-}
-
-/** `kind` says which half is present; the other is absent rather than null. */
-export interface Project extends ProjectSummary {
-  versions?: string[];
-  version_groups?: Record<string, string[]>;
-  releases?: string[];
-}
-
-export interface VersionSummary {
-  version: string;
-  support: Support;
-  java_min: number | null;
-  latest_build: number | null;
-  build_count: number;
-}
-
-export interface Version extends VersionSummary {
-  builds: Page<Build>;
-}
-
-export interface Build {
-  build: number;
-  project: string;
-  version: string;
-  channel: Channel;
-  created_at: string;
-  commit: string | null;
-  commits: BuildCommit[];
-  downloads: Record<string, Download>;
-}
-
-export interface Release {
-  tag: string;
-  project: string;
-  channel: Channel;
-  created_at: string;
-  commit: string | null;
-  notes: string | null;
-  commits: BuildCommit[];
-  downloads: Record<string, Download>;
-}
-
-export interface Page<T> {
-  items: T[];
-  next: string | null;
-}
 
 /**
  * A versioned project without an explicit `latest_version` falls back to its newest
@@ -152,7 +89,7 @@ export function releaseResponse(
   };
 }
 
-function commitResponse(row: CommitRow): BuildCommit {
+function commitResponse(row: CommitRow): Commit {
   return { sha: row.sha, summary: row.summary, at: row.at };
 }
 

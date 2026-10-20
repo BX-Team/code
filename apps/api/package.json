@@ -15,7 +15,8 @@
   "dependencies": {
     "@bx-team/types": "workspace:*",
     "@bx-team/worker": "workspace:*",
-    "hono": "^4.12.23",
+    "@hono/zod-openapi": "^1.6.3",
+    "hono": "^4.13.13",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@hono/zod-openapi';
 
 export const ChannelSchema = z.enum(['alpha', 'beta', 'stable']);
 export const SupportSchema = z.enum(['supported', 'deprecated', 'unsupported']);
@@ -79,6 +79,91 @@ export const ReleasePublishedSchema = z.object({
  */
 export const PublishEventSchema = z.discriminatedUnion('kind', [BuildPublishedSchema, ReleasePublishedSchema]);
 
+/** `url` points at the bucket, never at the API. */
+export const DownloadSchema = z
+  .object({
+    name: z.string().openapi({ example: 'divinemc-26.2-11.jar' }),
+    size: z.number().int(),
+    sha256: z.string(),
+    url: z.string().openapi({ format: 'uri' }),
+  })
+  .openapi('Download', { description: 'A published file. `url` points at the bucket, never at this API.' });
+
+export const CommitSchema = z
+  .object({
+    sha: z.string(),
+    summary: z.string(),
+    at: z.string().openapi({ format: 'date-time' }),
+  })
+  .openapi('Commit');
+
+export const ProjectSummarySchema = z
+  .object({
+    key: z.string().openapi({ example: 'divinemc' }),
+    name: z.string().openapi({ example: 'DivineMC' }),
+    kind: ProjectKindSchema,
+    description: z.string().nullable(),
+    /** The GitHub repository the project is built from, when it has one. */
+    repo: z.string().nullable(),
+    latest: z.string().nullable(),
+    experimental: z.string().nullable(),
+    updated_at: z.string().nullable().openapi({ format: 'date-time' }),
+  })
+  .openapi('ProjectSummary');
+
+/** `kind` says which half is present; the other is absent rather than null. */
+export const ProjectSchema = ProjectSummarySchema.extend({
+  versions: z.array(z.string()).optional(),
+  version_groups: z.record(z.string(), z.array(z.string())).optional(),
+  releases: z.array(z.string()).optional(),
+}).openapi('Project', { description: '`kind` says which half is present; the other is absent rather than null.' });
+
+export const VersionSummarySchema = z
+  .object({
+    version: z.string().openapi({ example: '26.2' }),
+    support: SupportSchema,
+    java_min: z.number().int().nullable(),
+    latest_build: z.number().int().nullable(),
+    build_count: z.number().int(),
+  })
+  .openapi('VersionSummary');
+
+export const BuildSchema = z
+  .object({
+    build: z.number().int(),
+    project: z.string(),
+    version: z.string(),
+    channel: ChannelSchema,
+    created_at: z.string().openapi({ format: 'date-time' }),
+    commit: z.string().nullable(),
+    commits: z.array(CommitSchema),
+    downloads: z.record(z.string(), DownloadSchema),
+  })
+  .openapi('Build');
+
+export const VersionSchema = VersionSummarySchema.extend({
+  builds: z.object({ items: z.array(BuildSchema), next: z.string().nullable() }),
+}).openapi('Version');
+
+export const ReleaseSchema = z
+  .object({
+    tag: z.string(),
+    project: z.string(),
+    channel: ChannelSchema,
+    created_at: z.string().openapi({ format: 'date-time' }),
+    commit: z.string().nullable(),
+    notes: z.string().nullable(),
+    commits: z.array(CommitSchema),
+    downloads: z.record(z.string(), DownloadSchema),
+  })
+  .openapi('Release');
+
+export const NextBuildSchema = z.object({ project: z.string(), version: z.string(), next: z.number().int() });
+
+export const OkSchema = z.object({ ok: z.boolean() }).openapi('Ok');
+
+export const ErrorSchema = z.object({ ok: z.literal(false), error: z.string(), message: z.string() }).openapi('Error');
+
 export type Channel = z.infer<typeof ChannelSchema>;
 export type Support = z.infer<typeof SupportSchema>;
 export type ProjectKind = z.infer<typeof ProjectKindSchema>;
@@ -89,3 +174,11 @@ export type VersionPatch = z.infer<typeof VersionPatchSchema>;
 export type ProjectPatch = z.infer<typeof ProjectPatchSchema>;
 export type PageQuery = z.infer<typeof PageQuerySchema>;
 export type PublishEvent = z.infer<typeof PublishEventSchema>;
+export type Download = z.infer<typeof DownloadSchema>;
+export type Commit = z.infer<typeof CommitSchema>;
+export type ProjectSummary = z.infer<typeof ProjectSummarySchema>;
+export type Project = z.infer<typeof ProjectSchema>;
+export type VersionSummary = z.infer<typeof VersionSummarySchema>;
+export type Version = z.infer<typeof VersionSchema>;
+export type Build = z.infer<typeof BuildSchema>;
+export type Release = z.infer<typeof ReleaseSchema>;

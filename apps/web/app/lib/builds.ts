@@ -1,137 +1,73 @@
+import type { ApiContract } from '@bx-team/types/api';
+import type { Download, ProjectSummary } from '@bx-team/types/schema/downloads';
+import { hc, parseResponse } from 'hono/client';
 import { GITHUB_URL } from '~/config/links';
+
+export type {
+  Build,
+  Channel,
+  Commit as BuildCommit,
+  Download,
+  Project,
+  ProjectKind,
+  ProjectSummary,
+  Release,
+  Support,
+  Version,
+  VersionSummary,
+} from '@bx-team/types/schema/downloads';
 
 const API_ORIGIN = 'https://api.bxteam.org';
 
 export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.dev ? '' : API_ORIGIN);
 
-const API = `${API_BASE}/v1`;
-
-/** Absolute so a query string can be built before `$fetch` sees it. */
-function apiUrl(href: string): URL {
-  return new URL(href, import.meta.client ? location.origin : API_ORIGIN);
-}
-
-/** The discriminator on `Project`. */
-export type ProjectKind = 'versioned' | 'release';
-export type Channel = 'alpha' | 'beta' | 'stable';
-export type Support = 'supported' | 'deprecated' | 'unsupported';
-
-export interface Page<T> {
-  items: T[];
-  next: string | null;
-}
-
-/** `url` points at the bucket, never at the API. */
-export interface Download {
-  name: string;
-  size: number;
-  sha256: string;
-  url: string;
-}
-
-export interface BuildCommit {
-  sha: string;
-  summary: string;
-  at: string;
-}
-
-export interface ProjectSummary {
-  key: string;
-  name: string;
-  kind: ProjectKind;
-  description: string | null;
-  repo: string | null;
-  latest: string | null;
-  experimental: string | null;
-  updated_at: string | null;
-}
-
-/** `kind` says which half is present; the other is absent rather than null. */
-export interface Project extends ProjectSummary {
-  versions?: string[];
-  version_groups?: Record<string, string[]>;
-  releases?: string[];
-}
-
-export interface VersionSummary {
-  version: string;
-  support: Support;
-  java_min: number | null;
-  latest_build: number | null;
-  build_count: number;
-}
-
-export interface Version extends VersionSummary {
-  builds: Page<Build>;
-}
-
-export interface Build {
-  build: number;
-  project: string;
-  version: string;
-  channel: Channel;
-  created_at: string;
-  commit: string | null;
-  commits: BuildCommit[];
-  downloads: Record<string, Download>;
-}
-
-export interface Release {
-  tag: string;
-  project: string;
-  channel: Channel;
-  created_at: string;
-  commit: string | null;
-  notes: string | null;
-  commits: BuildCommit[];
-  downloads: Record<string, Download>;
-}
+/** Typed off the API's own route table; in dev an empty base goes through the Nitro proxy. */
+const api = hc<ApiContract>(API_BASE || (import.meta.client ? location.origin : API_ORIGIN)).v1;
 
 /** Paged: a version has thousands of builds. */
 export const BUILDS_PER_PAGE = 25;
 
-export function fetchProjects(): Promise<ProjectSummary[]> {
-  return $fetch<ProjectSummary[]>(`${API}/projects`);
+export function fetchProjects() {
+  return parseResponse(api.projects.$get());
 }
 
-export function fetchProject(project: string): Promise<Project> {
-  return $fetch<Project>(`${API}/projects/${encodeURIComponent(project)}`);
+export function fetchProject(project: string) {
+  return parseResponse(api.projects[':project'].$get({ param: { project } }));
 }
 
-export function fetchVersions(project: string): Promise<VersionSummary[]> {
-  return $fetch<VersionSummary[]>(`${API}/builds/${encodeURIComponent(project)}`);
+export function fetchVersions(project: string) {
+  return parseResponse(api.builds[':project'].$get({ param: { project } }));
 }
 
-export function fetchVersion(
-  project: string,
-  version: string,
-  limit = BUILDS_PER_PAGE,
-  after?: string,
-): Promise<Version> {
-  const url = apiUrl(`${API}/builds/${encodeURIComponent(project)}/${encodeURIComponent(version)}`);
-  url.searchParams.set('limit', String(limit));
-  if (after) url.searchParams.set('after', after);
-  return $fetch<Version>(url.toString());
+export function fetchVersion(project: string, version: string, limit = BUILDS_PER_PAGE, after?: string) {
+  return parseResponse(
+    api.builds[':project'][':version'].$get({
+      param: { project, version },
+      query: after ? { limit: String(limit), after } : { limit: String(limit) },
+    }),
+  );
 }
 
-export function fetchLatestBuild(project: string, version: string): Promise<Build> {
-  return $fetch<Build>(`${API}/builds/${encodeURIComponent(project)}/${encodeURIComponent(version)}/latest`);
+export function fetchLatestBuild(project: string, version: string) {
+  return parseResponse(api.builds[':project'][':version'].latest.$get({ param: { project, version } }));
 }
 
-export function fetchBuild(project: string, version: string, build: number): Promise<Build> {
-  return $fetch<Build>(`${API}/builds/${encodeURIComponent(project)}/${encodeURIComponent(version)}/${build}`);
+export function fetchBuild(project: string, version: string, build: number) {
+  return parseResponse(
+    api.builds[':project'][':version'][':build'].$get({ param: { project, version, build: String(build) } }),
+  );
 }
 
-export function fetchReleases(project: string): Promise<Release[]> {
-  return $fetch<Release[]>(`${API}/releases/${encodeURIComponent(project)}`);
+export function fetchReleases(project: string) {
+  return parseResponse(api.releases[':project'].$get({ param: { project } }));
 }
 
-export function fetchLatestRelease(project: string): Promise<Release> {
-  return $fetch<Release>(`${API}/releases/${encodeURIComponent(project)}/latest`);
+export function fetchLatestRelease(project: string) {
+  return parseResponse(api.releases[':project'].latest.$get({ param: { project } }));
 }
 
-export function fetchRelease(project: string, tag: string): Promise<Release> {
-  return $fetch<Release>(`${API}/releases/${encodeURIComponent(project)}/${encodeURIComponent(tag)}`);
+export function fetchRelease(project: string, tag: string) {
+  return parseResponse(api.releases[':project'][':tag'].$get({ param: { project, tag } }));
 }
 
 /** A publish uploads whatever its workflow handed over, so there is no fixed download:

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@bx-team/projects": "workspace:*",
+    "@bx-team/types": "workspace:*",
     "@bx-team/ui": "workspace:*",
     "@lucide/vue": "^1.37.0",
     "@nuxt/content": "^3.16.0",
@@ -23,6 +24,7 @@
     "@shikijs/transformers": "^4.4.3",
     "@vueuse/core": "^15.0.0",
     "dompurify": "^3.4.14",
+    "hono": "^4.13.13",
     "markdown-it": "^15.0.1",
     "nuxt": "^4.5.2",
     "shiki": "^4.4.3",
