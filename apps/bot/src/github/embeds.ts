@@ -1,6 +1,7 @@
 import type { PullRequestEvent, PushEvent, ReleaseEvent, User } from '@bx-team/types/schema/github';
 import type { EmbedBuilder } from '@discordjs/builders';
 import { COLORS, createEmbed } from '../discord/embeds';
+import { RELEASE_BRANCH } from '../release/pull';
 
 const MAX_COMMITS_SHOWN = 5;
 const MAX_RELEASE_BODY = 1500;
@@ -11,7 +12,7 @@ export function pushEmbed(event: PushEvent): EmbedBuilder | null {
 
   const branch = event.ref.slice('refs/heads/'.length);
   const { commits, repository } = event;
-  if (!branch || commits.length === 0) return null;
+  if (!branch || branch === RELEASE_BRANCH || commits.length === 0) return null;
 
   const lines = commits.slice(0, MAX_COMMITS_SHOWN).map(commit => {
     const sha = commit.id.slice(0, 7);
