@@ -10,11 +10,11 @@ interface Board {
 let board: Board | null = null;
 
 /**
- * Adds an issue or pull request to the organisation board. Idempotent on GitHub's side, so a
- * redelivery or the board's own auto-add workflow cannot create a duplicate item.
+ * Adds an issue or pull request a person opened to the organisation board. Idempotent on
+ * GitHub's side, so a redelivery or the board's own auto-add workflow cannot create a duplicate item.
  */
-export async function addToProject(gh: Github, owner: string, author: { type: string }, contentId: string) {
-  if (owner !== ORGANISATION || author.type === 'Bot') return false;
+export async function addToProject(gh: Github, owner: string, byPerson: boolean, contentId: string) {
+  if (owner !== ORGANISATION || !byPerson) return false;
 
   board ??= await lookupBoard(gh);
   await gh.graphql(

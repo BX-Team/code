@@ -1,6 +1,7 @@
-import type { PullRequestEvent, PushEvent, ReleaseEvent, User } from '@bx-team/types/schema/github';
+import type { PullRequestEvent, PushEvent, ReleaseEvent, User, WorkflowRunEvent } from '@bx-team/types/schema/github';
 import type { EmbedBuilder } from '@discordjs/builders';
 import { COLORS, createEmbed } from '../discord/embeds';
+import type { ReleaseRun } from '../handlers/release';
 import { RELEASE_BRANCH } from '../release/pull';
 
 const MAX_COMMITS_SHOWN = 5;
@@ -62,6 +63,21 @@ export function releaseEmbed(event: ReleaseEvent): EmbedBuilder | null {
     url: release.html_url,
     description: truncate(release.body, MAX_RELEASE_BODY),
     footer: release.tag_name,
+  });
+}
+
+/** A failed release workflow; a held draft is the maintainers' business and stays on GitHub. */
+export function releaseRunEmbed(event: WorkflowRunEvent, run: ReleaseRun | null): EmbedBuilder | null {
+  if (run?.state !== 'failed') return null;
+
+  return createEmbed({
+    color: COLORS.error,
+    title: `[${event.repository.full_name}] Release ${run.tag} failed`,
+    url: event.workflow_run.html_url,
+    description: run.jobs.length
+      ? run.jobs.map(job => `• [${job.name}](${job.html_url})`).join('\n')
+      : 'The release workflow failed before any job ran.',
+    footer: `Attempt ${event.workflow_run.run_attempt}`,
   });
 }
 

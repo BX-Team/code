@@ -1,6 +1,6 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { commands } from './index';
+import { commands, messageCommands } from './index';
 
 const applicationId = process.env.DISCORD_APPLICATION_ID;
 const guildId = process.env.GUILD_ID;
@@ -16,7 +16,7 @@ const route = guildId
   : Routes.applicationCommands(applicationId);
 
 const rest = new REST({ version: '10' }).setToken(token);
-const body = commands.map(command => command.data);
+const body = [...commands.map(command => command.data), ...messageCommands.map(command => command.data)];
 
 await rest.put(route, { body });
 

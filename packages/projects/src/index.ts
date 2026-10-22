@@ -73,18 +73,6 @@ export const PROJECTS: Project[] = [
           replacements: [{ pattern: /github:BX-Team\/Riven\/v[^\s`]*/, with: 'github:BX-Team/Riven/{tag}' }],
           stableOnly: true,
         },
-        {
-          kind: 'replace',
-          path: 'README.md',
-          replacements: [
-            { pattern: /releases\/download\/v[^/]+\//, with: 'releases/download/{tag}/' },
-            { pattern: /riven_[^_]+_(amd64|arm64)\.deb/, with: 'riven_{version}_$1.deb' },
-            { pattern: /riven-[^-]+-1\.(x86_64|aarch64)\.rpm/, with: 'riven-{version}-1.$1.rpm' },
-            { pattern: /riven-[^-]+-1-x86_64\.pkg/, with: 'riven-{version}-1-x86_64.pkg' },
-          ],
-          between: ['<!-- downloads -->', '<!-- /downloads -->'],
-          stableOnly: true,
-        },
       ],
     },
   },

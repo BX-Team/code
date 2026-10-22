@@ -25,6 +25,19 @@ export async function installationClient(env: Env, installationId: number): Prom
   return new Github(issued.token);
 }
 
+const installations = new Map<string, number>();
+
+/** A client for an `owner/name` repository where no webhook handed over an installation, as in a Discord interaction. */
+export async function repositoryClient(env: Env, repo: string): Promise<Github> {
+  let installationId = installations.get(repo);
+  if (installationId === undefined) {
+    const app = new Github(await appJwt(env));
+    installationId = (await app.request<{ id: number }>('GET', `/repos/${repo}/installation`)).id;
+    installations.set(repo, installationId);
+  }
+  return installationClient(env, installationId);
+}
+
 async function appJwt(env: Env): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   // Backdated a minute against clock drift; GitHub refuses anything over ten minutes.

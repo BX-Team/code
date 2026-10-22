@@ -35,6 +35,8 @@ export const PushEventSchema = z.object({
 export const PullRequestEventSchema = z.object({
   ...base,
   action: z.string(),
+  /** Present on `edited`; only the fields that changed. */
+  changes: z.object({ title: z.object({ from: z.string() }).optional() }).optional(),
   pull_request: z.object({
     number: z.number().int(),
     node_id: z.string(),
@@ -55,6 +57,7 @@ export const IssuesEventSchema = z.object({
   action: z.string(),
   issue: z.object({
     node_id: z.string(),
+    body: z.string().nullish(),
     state_reason: z.string().nullish(),
     user: UserSchema,
   }),
@@ -88,6 +91,22 @@ export const ReleaseEventSchema = z.object({
   }),
 });
 
+export const WorkflowRunEventSchema = z.object({
+  ...base,
+  action: z.string(),
+  workflow_run: z.object({
+    id: z.number().int(),
+    name: z.string().nullish(),
+    html_url: z.string(),
+    /** The tag name, for a run started by a tag push. */
+    head_branch: z.string().nullish(),
+    head_sha: z.string(),
+    event: z.string(),
+    conclusion: z.string().nullish(),
+    run_attempt: z.number().int().default(1),
+  }),
+});
+
 export type Repository = z.infer<typeof RepositorySchema>;
 export type User = z.infer<typeof UserSchema>;
 export type PushEvent = z.infer<typeof PushEventSchema>;
@@ -95,3 +114,4 @@ export type PullRequestEvent = z.infer<typeof PullRequestEventSchema>;
 export type IssuesEvent = z.infer<typeof IssuesEventSchema>;
 export type IssueCommentEvent = z.infer<typeof IssueCommentEventSchema>;
 export type ReleaseEvent = z.infer<typeof ReleaseEventSchema>;
+export type WorkflowRunEvent = z.infer<typeof WorkflowRunEventSchema>;

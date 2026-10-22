@@ -8,8 +8,8 @@ each named after who calls it:
 
 | Path | Source | Purpose |
 | --- | --- | --- |
-| `POST /github/webhook` | the GitHub App webhook, every installed repository | push, pull_request, issues, issue_comment, release |
-| `POST /discord/interactions` | Discord Interactions Endpoint URL | slash commands and autocomplete |
+| `POST /github/webhook` | the GitHub App webhook, every installed repository | push, pull_request, issues, issue_comment, release, workflow_run |
+| `POST /discord/interactions` | Discord Interactions Endpoint URL | slash commands, autocomplete, message commands and their modals |
 | `POST /api/webhook` | `apps/api`, after a publish | new builds and releases |
 
 The bot has **no storage**. Everything it needs to remember lives on GitHub: the pinned
@@ -25,22 +25,34 @@ Everything here is request-driven.
 - **Release PR.** A push to the default branch of a repository with a `release` entry in
   `@bx-team/projects` recomputes the next version from the Conventional Commit titles since
   the newest stable `v*` tag, rewrites every file listed for it on the `release/next` branch
-  and opens or updates the `chore(release): <version>` PR, labelled `🚀 release`. Its body
-  carries the release text as it will be published. Nothing releasable — the PR is closed.
+  and opens or updates the `chore(release): <version>` PR, labelled `🚀 release` and locked to
+  collaborators — the commands need write access anyway. Its body carries the release text
+  as it will be published. Nothing releasable — the PR is closed.
 - **Shipping.** Merging that PR opens the draft release — the text above the generated
   marker, then the notes between the `release:notes` markers — and pushes the annotated
   `v<version>` tag on the merge commit. That tag push starts the repository's release
   workflow, which builds onto the draft and publishes it.
 - **Commands** on the release PR, from anyone with write access: `/release` merges it, or
-  turns on auto-merge while checks run; `/version <x.y.z>` pins a version, pre-releases
-  included; `/version auto` drops the pin.
+  turns on auto-merge while checks run; `/release draft` does the same but leaves a
+  `<!-- release:hold -->` marker in the PR body and the draft, and the release workflow
+  then attaches every file without publishing; `/release cancel` turns auto-merge off again
+  and drops the hold; `/version <x.y.z>` pins a version, pre-releases included;
+  `/version auto` drops the pin.
+- **Release runs.** A release workflow run on a `v*` tag push that fails is reported on the
+  release PR, with the failed jobs, and in the repository's Discord thread. A successful run
+  that left a held draft says on the PR that the draft is ready. A run started by hand is
+  not reported: it carries no tag.
 - **Board.** Every issue and pull request opened by a person is added to the organisation
   project (`PROJECT_NUMBER`). Bots — Renovate, this one — are left off. A closed item
   moves to Done when completed and to Closed/Rejected when closed as not planned or a
   duplicate, or a pull request closed unmerged; a merged one is the board's own workflow.
   The board's built-in "Item closed" workflow stays off, since it cannot tell them apart.
+  An issue the app opens from Discord counts as a person's, by its `discord:report` marker.
 - **Title check.** A `Conventional title` check run on every pull request, since the title
   becomes the squash commit and so a line of the release notes.
+- **Type labels.** A person's pull request gets the label of its title type (`TYPE_LABELS`):
+  `feat` → 🔧 enhancement, `fix` → 🐛 bug, and so on. A retitle swaps the label the old title
+  gave; labels put on by hand are left alone.
 - **Activity.** Pushes, merged pull requests and published releases are posted into the
   repository's thread in the GitHub forum. Pushes to `release/next` are left out: the bot
   rewrites that branch on every push to the default branch.
@@ -48,6 +60,10 @@ Everything here is request-driven.
   a read-back from the API.
 - **Slash commands.** `/build` shows the newest build or release of a project, `/docs`
   links the documentation.
+- **Create GitHub issue**, in a message's Apps menu: a modal prefilled from the message —
+  project (preselected in a project's thread), title, description — and the app opens the
+  issue with a link back to the message. Registered admin-only; grant it to a role in
+  Discord.
 
 ## Bindings
 
@@ -87,7 +103,9 @@ openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem | bunx wrangler secret put
   activity embeds.
 - `downloads/` — the read client for `api.bxteam.org/v1` and the build and release embeds.
 - `discord/` — signature check, REST wrapper, embed and interaction-response helpers.
-- `commands/` — one file per slash command, registered through `commands/index.ts`.
+- `commands/` — one file per slash or message command, registered through `commands/index.ts`.
+  A message command answers with a modal; its `custom_id` starts with the command's `modal`
+  prefix, which is how the submission finds its way back.
 
 ## Rules
 
@@ -108,9 +126,10 @@ openssl pkcs8 -topk8 -nocrypt -in app.private-key.pem | bunx wrangler secret put
   pushed yet counts as released, so the push of that merge does not reopen the PR.
 - A failed command is answered on the PR with a 😕 reaction and a reply.
 - **The bot tags, the workflow builds.** A repository's release workflow runs on `push: tags:
-  ['v*']`, never bumps or commits, and finds the draft by its tag. The app is in the bypass
-  list of the repository's `v*` tag ruleset; nobody else but organisation admins may create
-  those tags. The draft is created before the tag, so the workflow always finds it.
+  ['v*']`, never bumps or commits, finds the draft by its tag, and leaves it a draft when its
+  body carries the hold marker. The app is in the bypass list of the repository's `v*` tag
+  ruleset; nobody else but organisation admins may create those tags. The draft is created
+  before the tag, so the workflow always finds it.
 - Shipping is idempotent, because a redelivery reruns it: an existing draft is rewritten, a
   tag already on the merge commit is kept, and a tag on another commit is reported on the PR
   instead of being moved.
@@ -147,5 +166,6 @@ Advanced settings.
 the API's `BOT_WEBHOOK_URL` has to point at `/api/webhook` here. Leaving either side
 unset makes a publish silent rather than failing it.
 
-The GitHub App has to be subscribed to **push, pull request, issues, issue comment and
-release** events — the last one is what activity announcements of releases come from.
+The GitHub App has to be subscribed to **push, pull request, issues, issue comment, release
+and workflow run** events — release is what activity announcements of releases come from,
+and workflow run, which needs the **Actions: read** permission, is what reports release runs.
