@@ -18,6 +18,7 @@ import {
 export const RELEASE_BRANCH = 'release/next';
 const GENERATED = '<!-- release:generated -->';
 const PIN = /<!-- release:pin (\S+) -->/;
+export const HOLD = '<!-- release:hold -->';
 const NOTES_OPEN = '<!-- release:notes -->';
 const NOTES_CLOSE = '<!-- /release:notes -->';
 const INTRO_HINT =
@@ -37,6 +38,10 @@ export interface PullRequest {
   title: string;
   body: string | null;
   html_url: string;
+  state: 'open' | 'closed';
+  locked: boolean;
+  /** Set while auto-merge is on. */
+  auto_merge: object | null;
   head: { ref: string; sha: string };
 }
 
@@ -86,10 +91,11 @@ export async function syncReleasePull(
     introFrom(existing?.body) || INTRO_HINT,
     GENERATED,
     summaryLine(version, pin ? null : bump, commits.length, baseTag),
-    'Comment `/release` to merge this once CI is green and ship it, `/version <x.y.z>` to release another version, or `/version auto` to go back to the computed one. Below the line is the release text as it will be published, after the summary above.',
+    'Comment `/release` to merge this once CI is green and ship it, `/release draft` to ship it but leave the release a draft to publish by hand, `/version <x.y.z>` to release another version, or `/version auto` to go back to the computed one. Below the line is the release text as it will be published, after the summary above.',
     '---',
     `${NOTES_OPEN}\n\n${notes}\n\n${NOTES_CLOSE}`,
     ...(pin ? [`<!-- release:pin ${formatSemver(pin)} -->`] : []),
+    ...(releaseHeld(existing?.body) ? [HOLD] : []),
   ].join('\n\n');
 
   let number: number;
@@ -108,6 +114,8 @@ export async function syncReleasePull(
 
   // Adding a label the PR already carries is a no-op, so this also repairs one removed by hand.
   await gh.request('POST', `/repos/${repo.full}/issues/${number}/labels`, { labels: [RELEASE_LABEL] });
+  // Locked to collaborators: the release commands need write access anyway, and the PR is no place for discussion.
+  if (!existing?.locked) await gh.request('PUT', `/repos/${repo.full}/issues/${number}/lock`);
   return { state: 'open', number, version: formatSemver(version) };
 }
 
@@ -122,6 +130,17 @@ export async function findReleasePull(gh: Github, repo: RepoRef): Promise<PullRe
 /** The summary written above the generated marker, without the hint comment; empty when unset. */
 export function releaseIntro(body: string | null | undefined): string {
   return (introFrom(body) ?? '').replace(/<!--[\s\S]*?-->/g, '').trim();
+}
+
+/** Whether `/release draft` asked for the release to stay a draft. */
+export function releaseHeld(body: string | null | undefined): boolean {
+  return body?.includes(HOLD) ?? false;
+}
+
+/** The PR body with the hold marker added or removed, so a queued auto-merge still carries it. */
+export function withHold(body: string | null, hold: boolean): string {
+  const rest = (body ?? '').replaceAll(HOLD, '').trimEnd();
+  return hold ? `${rest}\n\n${HOLD}` : rest;
 }
 
 /** The changelog text of a merged release PR, exactly as its body showed it. */

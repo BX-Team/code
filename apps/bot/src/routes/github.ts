@@ -4,6 +4,7 @@ import {
   PullRequestEventSchema,
   PushEventSchema,
   ReleaseEventSchema,
+  WorkflowRunEventSchema,
 } from '@bx-team/types/schema/github';
 import { badRequest, unauthorized } from '@bx-team/worker/error';
 import { verifySignature } from '@bx-team/worker/signature';
@@ -11,14 +12,16 @@ import type { EmbedBuilder } from '@discordjs/builders';
 import type { REST } from '@discordjs/rest';
 import { Hono } from 'hono';
 import type { z } from 'zod';
+import { isDiscordReport } from '../commands/issue';
 import { activityChannel } from '../config/routing';
 import type { BotEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { installationClient } from '../github/app';
-import { mergedEmbed, pushEmbed, releaseEmbed } from '../github/embeds';
+import { mergedEmbed, pushEmbed, releaseEmbed, releaseRunEmbed } from '../github/embeds';
 import { onComment } from '../handlers/commands';
+import { labelByType } from '../handlers/labels';
 import { addToProject, moveClosed } from '../handlers/project';
-import { onPush, onReleaseMerged } from '../handlers/release';
+import { onPush, onReleaseMerged, onReleaseRun } from '../handlers/release';
 import { checkTitle } from '../handlers/title';
 
 export const github = new Hono<BotEnv>();
@@ -59,9 +62,10 @@ github.post('/webhook', async c => {
         ok: true,
         shipped: await onReleaseMerged(gh, payload),
         checked: await checkTitle(gh, payload),
+        labelled: await labelByType(gh, payload),
         tracked:
           payload.action === 'opened' &&
-          (await addToProject(gh, payload.repository.owner.login, pull.user, pull.node_id)),
+          (await addToProject(gh, payload.repository.owner.login, pull.user.type !== 'Bot', pull.node_id)),
         moved:
           payload.action === 'closed' &&
           !pull.merged &&
@@ -76,7 +80,9 @@ github.post('/webhook', async c => {
       const { issue } = payload;
       if (payload.action === 'opened') {
         const gh = await client(payload.installation);
-        return c.json({ ok: true, tracked: await addToProject(gh, owner, issue.user, issue.node_id) });
+        // An issue the app opened from a Discord report stands for the person who reported it.
+        const byPerson = issue.user.type !== 'Bot' || isDiscordReport(issue.body);
+        return c.json({ ok: true, tracked: await addToProject(gh, owner, byPerson, issue.node_id) });
       }
       if (payload.action === 'closed') {
         const gh = await client(payload.installation);
@@ -89,6 +95,16 @@ github.post('/webhook', async c => {
     case 'issue_comment': {
       const payload = parse(IssueCommentEventSchema, json);
       return c.json({ ok: true, command: await onComment(await client(payload.installation), payload) });
+    }
+
+    case 'workflow_run': {
+      const payload = parse(WorkflowRunEventSchema, json);
+      const run = await onReleaseRun(await client(payload.installation), payload);
+      return c.json({
+        ok: true,
+        run,
+        announced: await announce(rest, payload.repository.full_name, releaseRunEmbed(payload, run)),
+      });
     }
 
     case 'release': {

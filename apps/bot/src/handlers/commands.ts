@@ -2,7 +2,7 @@ import type { IssueCommentEvent } from '@bx-team/types/schema/github';
 import { releaseConfig } from '../config/organisation';
 import type { Github } from '../github/client';
 import { type PullRequest, RELEASE_BRANCH, syncReleasePull } from '../release/pull';
-import { mergeRelease } from '../release/ship';
+import { cancelRelease, mergeRelease } from '../release/ship';
 import { parseSemver } from '../release/version';
 import { CommandError } from '../util/error';
 import { repoRef } from './repo';
@@ -13,8 +13,9 @@ const ALLOWED = ['admin', 'write'];
 type Reaction = '+1' | 'rocket' | 'confused';
 
 /**
- * `/release` and `/version` on a release PR, from anyone with write access. A command error
- * is answered on the PR rather than failing the delivery — nothing a redelivery would fix.
+ * `/release`, `/release draft`, `/release cancel` and `/version` on a release PR, from anyone
+ * with write access. A command error is answered on the PR rather than failing the delivery —
+ * nothing a redelivery would fix.
  */
 export async function onComment(gh: Github, event: IssueCommentEvent): Promise<boolean> {
   const config = releaseConfig(event.repository.full_name);
@@ -43,16 +44,27 @@ export async function onComment(gh: Github, event: IssueCommentEvent): Promise<b
 
     const [, command, argument] = match;
     if (command === 'release') {
-      if (argument)
-        throw new CommandError('`/release` takes no argument; pick the version with `/version <x.y.z>` first.');
-      const result = await mergeRelease(gh, repo, pull);
+      if (argument === 'cancel') {
+        await cancelRelease(gh, repo, pull);
+        await react('+1');
+        await reply(gh, repo.full, event.issue.number, 'Auto-merge is off; nothing ships until the next `/release`.');
+        return true;
+      }
+      if (argument && argument !== 'draft')
+        throw new CommandError(
+          '`/release` takes `draft`, `cancel` or nothing; pick the version with `/version <x.y.z>` first.',
+        );
+      const hold = argument === 'draft';
+      const result = await mergeRelease(gh, repo, pull, hold);
       await react(result === 'merged' ? 'rocket' : '+1');
       if (result === 'queued') {
         await reply(
           gh,
           repo.full,
           event.issue.number,
-          'Auto-merge is on: this merges and ships once the required checks pass.',
+          hold
+            ? 'Auto-merge is on: this merges once the required checks pass, and the release stays a draft for you to publish.'
+            : 'Auto-merge is on: this merges and ships once the required checks pass.',
         );
       }
       return true;

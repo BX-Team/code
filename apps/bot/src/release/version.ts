@@ -57,6 +57,11 @@ export function releaseTitle(version: Semver): string {
   return `chore(release): ${formatSemver(version)}`;
 }
 
+/** The type of a Conventional Commit title — `feat` of `feat(gui)!: …` — or null when it is not one. */
+export function titleType(title: string): string | null {
+  return TITLE.exec(title)?.[1] ?? null;
+}
+
 export function isConventionalTitle(title: string, types: readonly string[]): boolean {
   const match = TITLE.exec(title);
   return match !== null && types.includes(match[1]!);

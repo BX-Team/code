@@ -1,7 +1,7 @@
 import type { ReleaseConfig } from '../config/organisation';
 import { type Github, GithubApiError } from '../github/client';
 import { CommandError } from '../util/error';
-import { type PullRequest, type RepoRef, releaseIntro, releaseNotesFrom } from './pull';
+import { HOLD, type PullRequest, type RepoRef, releaseHeld, releaseIntro, releaseNotesFrom, withHold } from './pull';
 import { formatSemver, releaseTitleVersion } from './version';
 
 interface MergedPull {
@@ -16,6 +16,7 @@ interface Release {
   tag_name: string;
   draft: boolean;
   html_url: string;
+  body: string | null;
 }
 
 /**
@@ -29,7 +30,8 @@ export async function tagRelease(gh: Github, repo: RepoRef, config: ReleaseConfi
 
   const tag = `v${formatSemver(version)}`;
   const name = `${config.name} ${formatSemver(version)}`;
-  const body = [releaseIntro(pull.body), releaseNotesFrom(pull.body)].filter(Boolean).join('\n\n');
+  const held = releaseHeld(pull.body);
+  const body = [releaseIntro(pull.body), releaseNotesFrom(pull.body), held ? HOLD : ''].filter(Boolean).join('\n\n');
 
   // The draft goes first, so the workflow the tag starts always finds it.
   const draft = await ensureDraft(gh, repo, {
@@ -41,8 +43,11 @@ export async function tagRelease(gh: Github, repo: RepoRef, config: ReleaseConfi
   });
 
   const tagged = await ensureTag(gh, repo, tag, pull.merge_commit_sha, name);
+  const ending = held
+    ? `attaches every file to [the draft](${draft.html_url}) and leaves it for you to check and publish.`
+    : `publishes [the draft](${draft.html_url}) once every file is attached.`;
   const message = tagged
-    ? `🏷️ Tagged **${tag}** on ${pull.merge_commit_sha.slice(0, 7)}. The release workflow builds from the tag and publishes [the draft](${draft.html_url}) once every file is attached.`
+    ? `🏷️ Tagged **${tag}** on ${pull.merge_commit_sha.slice(0, 7)}. The release workflow builds from the tag and ${ending}`
     : `⚠️ **${tag}** already exists on another commit, so nothing was tagged. Delete the stray tag and redeliver this webhook, or release under another version.`;
 
   await gh.request('POST', `/repos/${repo.full}/issues/${pull.number}/comments`, { body: message });
@@ -54,9 +59,7 @@ async function ensureDraft(
   repo: RepoRef,
   release: { tag_name: string; target_commitish: string; name: string; body: string; prerelease: boolean },
 ): Promise<Release> {
-  // Drafts are invisible to `/releases/tags/{tag}`, so they are found by listing.
-  const recent = await gh.request<Release[]>('GET', `/repos/${repo.full}/releases?per_page=30`);
-  const existing = recent.find(candidate => candidate.tag_name === release.tag_name);
+  const existing = await findRelease(gh, repo, release.tag_name);
 
   if (!existing) {
     return gh.request<Release>('POST', `/repos/${repo.full}/releases`, { ...release, draft: true });
@@ -67,6 +70,13 @@ async function ensureDraft(
     body: release.body,
     prerelease: release.prerelease,
   });
+}
+
+/** The release for `tag`, draft or not. */
+export async function findRelease(gh: Github, repo: RepoRef, tag: string): Promise<Release | undefined> {
+  // Drafts are invisible to `/releases/tags/{tag}`, so they are found by listing.
+  const recent = await gh.request<Release[]>('GET', `/repos/${repo.full}/releases?per_page=30`);
+  return recent.find(candidate => candidate.tag_name === tag);
 }
 
 /** Creates the annotated tag; false when the name is already taken by another commit. */
@@ -104,9 +114,18 @@ async function taggedCommit(gh: Github, repo: RepoRef, tag: string): Promise<str
 
 /**
  * Squash-merges the release PR now if it is mergeable, or turns on auto-merge so GitHub
- * merges it the moment the required checks pass.
+ * merges it the moment the required checks pass. `hold` marks the release to stay a draft.
  */
-export async function mergeRelease(gh: Github, repo: RepoRef, pull: PullRequest): Promise<'merged' | 'queued'> {
+export async function mergeRelease(
+  gh: Github,
+  repo: RepoRef,
+  pull: PullRequest,
+  hold: boolean,
+): Promise<'merged' | 'queued'> {
+  if (releaseHeld(pull.body) !== hold) {
+    await gh.request('PATCH', `/repos/${repo.full}/pulls/${pull.number}`, { body: withHold(pull.body, hold) });
+  }
+
   try {
     await gh.request('PUT', `/repos/${repo.full}/pulls/${pull.number}/merge`, {
       merge_method: 'squash',
@@ -135,5 +154,22 @@ export async function mergeRelease(gh: Github, repo: RepoRef, pull: PullRequest)
       throw new CommandError(`Could not merge or queue the merge: ${error.message}`);
     }
     throw error;
+  }
+}
+
+/** Undoes a `/release` that is still waiting on checks: auto-merge goes off, and so does the hold. */
+export async function cancelRelease(gh: Github, repo: RepoRef, pull: PullRequest): Promise<void> {
+  if (pull.state !== 'open' || !pull.auto_merge) {
+    throw new CommandError('Nothing to cancel: auto-merge is not on for this pull request.');
+  }
+
+  await gh.graphql(
+    `mutation($id: ID!) {
+      disablePullRequestAutoMerge(input: { pullRequestId: $id }) { clientMutationId }
+    }`,
+    { id: pull.node_id },
+  );
+  if (releaseHeld(pull.body)) {
+    await gh.request('PATCH', `/repos/${repo.full}/pulls/${pull.number}`, { body: withHold(pull.body, false) });
   }
 }

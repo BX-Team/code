@@ -2,12 +2,13 @@ import { unauthorized } from '@bx-team/worker/error';
 import {
   type APIChatInputApplicationCommandInteraction,
   type APIInteraction,
+  type APIMessageApplicationCommandInteraction,
   ApplicationCommandType,
   InteractionResponseType,
   InteractionType,
 } from 'discord-api-types/v10';
 import { Hono } from 'hono';
-import { findCommand } from '../commands';
+import { findCommand, findMessageCommand, findModalOwner } from '../commands';
 import type { BotEnv } from '../context';
 import { errorEmbed } from '../discord/embeds';
 import { reply } from '../discord/respond';
@@ -42,6 +43,16 @@ discord.post('/interactions', async c => {
   }
 
   if (interaction.type === InteractionType.ApplicationCommand) {
+    if (interaction.data.type === ApplicationCommandType.Message) {
+      const command = findMessageCommand(interaction.data.name);
+      if (!command) {
+        return c.json(
+          reply([errorEmbed({ title: `Unknown command \`${interaction.data.name}\`` })], { ephemeral: true }),
+        );
+      }
+      return c.json(await command.execute(interaction as APIMessageApplicationCommandInteraction, c.env));
+    }
+
     if (interaction.data.type !== ApplicationCommandType.ChatInput) {
       return c.json(reply([errorEmbed({ title: 'Unsupported command type' })], { ephemeral: true }));
     }
@@ -59,6 +70,22 @@ discord.post('/interactions', async c => {
       console.error(`Command ${interaction.data.name} failed`, error);
       return c.json(
         reply([errorEmbed({ title: 'Command failed', description: 'Please try again in a moment.' })], {
+          ephemeral: true,
+        }),
+      );
+    }
+  }
+
+  if (interaction.type === InteractionType.ModalSubmit) {
+    const command = findModalOwner(interaction.data.custom_id);
+    if (!command) return c.json(reply([errorEmbed({ title: 'Unknown form' })], { ephemeral: true }));
+
+    try {
+      return c.json(await command.submit(interaction, c.env));
+    } catch (error) {
+      console.error(`Form ${interaction.data.custom_id} failed`, error);
+      return c.json(
+        reply([errorEmbed({ title: 'Submitting failed', description: 'Please try again in a moment.' })], {
           ephemeral: true,
         }),
       );
