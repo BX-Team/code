@@ -42,7 +42,8 @@ Everything here is request-driven.
 - **Title check.** A `Conventional title` check run on every pull request, since the title
   becomes the squash commit and so a line of the release notes.
 - **Activity.** Pushes, merged pull requests and published releases are posted into the
-  repository's thread in the GitHub forum.
+  repository's thread in the GitHub forum. Pushes to `release/next` are left out: the bot
+  rewrites that branch on every push to the default branch.
 - **Publishes.** A new build or release is posted into the releases channel, rendered off
   a read-back from the API.
 - **Slash commands.** `/build` shows the newest build or release of a project, `/docs`
