@@ -25,9 +25,9 @@ Everything here is request-driven.
 - **Release PR.** A push to the default branch of a repository with a `release` entry in
   `@bx-team/projects` recomputes the next version from the Conventional Commit titles since
   the newest stable `v*` tag, rewrites every file listed for it on the `release/next` branch
-  and opens or updates the `chore(release): <version>` PR, labelled `🚀 release` and locked to
-  collaborators — the commands need write access anyway. Its body carries the release text
-  as it will be published. Nothing releasable — the PR is closed.
+  and opens or updates the `chore(release): <version>` PR, labelled `🚀 release`. Its body
+  carries the release text as it will be published. It is never locked: a locked
+  conversation refuses the app's own comments and reactions, which every command answers with. Nothing releasable — the PR is closed.
 - **Shipping.** Merging that PR opens the draft release — the text above the generated
   marker, then the notes between the `release:notes` markers — and pushes the annotated
   `v<version>` tag on the merge commit. That tag push starts the repository's release

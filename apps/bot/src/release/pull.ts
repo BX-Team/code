@@ -39,7 +39,6 @@ export interface PullRequest {
   body: string | null;
   html_url: string;
   state: 'open' | 'closed';
-  locked: boolean;
   /** Set while auto-merge is on. */
   auto_merge: object | null;
   head: { ref: string; sha: string };
@@ -114,8 +113,6 @@ export async function syncReleasePull(
 
   // Adding a label the PR already carries is a no-op, so this also repairs one removed by hand.
   await gh.request('POST', `/repos/${repo.full}/issues/${number}/labels`, { labels: [RELEASE_LABEL] });
-  // Locked to collaborators: the release commands need write access anyway, and the PR is no place for discussion.
-  if (!existing?.locked) await gh.request('PUT', `/repos/${repo.full}/issues/${number}/lock`);
   return { state: 'open', number, version: formatSemver(version) };
 }
 
