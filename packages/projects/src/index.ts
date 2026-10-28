@@ -81,6 +81,9 @@ export const PROJECTS: Project[] = [
     name: 'Nyx',
     repo: 'BX-Team/Nyx',
     discord: '1515539407862632640',
+    release: {
+      files: [{ kind: 'cargo-manifest' }, { kind: 'cargo-lock' }],
+    },
   },
 ];
 
