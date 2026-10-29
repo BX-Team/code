@@ -1,89 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { MARK, type PixelGlyph, WORDMARK } from '../pixel/glyphs';
 import PixelField from './PixelField.vue';
 
 defineProps<{ lede?: string }>();
-
-const slotEl = ref<HTMLElement | null>(null);
-const markEl = ref<HTMLElement | null>(null);
-const painted = ref(false);
-
-function runsOf(glyph: PixelGlyph) {
-  return glyph.rows.flatMap((bits, y) => {
-    const out: { x: number; y: number; w: number }[] = [];
-    let start = -1;
-    for (let x = 0; x <= bits.length; x++) {
-      if (bits[x] === '1') {
-        if (start < 0) start = x;
-      } else if (start >= 0) {
-        out.push({ x: start, y, w: x - start });
-        start = -1;
-      }
-    }
-    return out;
-  });
-}
-
-const wordRuns = runsOf(WORDMARK);
-const markRuns = runsOf(MARK);
 </script>
 
 <template>
 	<section class="bx-hero" data-nav-overlay>
-		<PixelField variant="hero" :slot-el="slotEl" :mark-el="markEl" @painted="painted = true" />
+		<PixelField variant="hero" class="bx-hero__field" />
 
 		<div class="bx-hero__inner">
-			<div class="bx-hero__main">
-				<div
-					ref="slotEl"
-					class="bx-hero__wordmark"
-					:class="{ 'bx-hero__glyph--painted': painted }"
-					role="img"
-					aria-label="BX Team"
-				>
-					<svg
-						:viewBox="`0 0 ${WORDMARK.width} ${WORDMARK.height}`"
-						preserveAspectRatio="none"
-						shape-rendering="crispEdges"
-						aria-hidden="true"
-					>
-						<defs>
-							<linearGradient id="bx-hero-ink" gradientUnits="userSpaceOnUse" x1="0" y1="0" :x2="WORDMARK.width" y2="0">
-								<stop offset="0" style="stop-color: var(--accent)" />
-								<stop offset="1" style="stop-color: var(--accent-2)" />
-							</linearGradient>
-						</defs>
-						<rect v-for="r in wordRuns" :key="`${r.x}-${r.y}`" :x="r.x" :y="r.y" :width="r.w" height="1" fill="url(#bx-hero-ink)" />
-					</svg>
-				</div>
-
+			<div class="bx-hero__head">
+				<span class="bx-hero__bar" aria-hidden="true" />
 				<div class="bx-hero__copy">
 					<h1 class="bx-hero__title" data-quiet>
-						<span class="bx-hero__sr">BX Team: </span>
 						<slot name="title" />
 					</h1>
 					<p v-if="lede" class="bx-hero__lede" data-quiet>{{ lede }}</p>
-					<div v-if="$slots.cta" class="bx-hero__cta" data-quiet>
-						<slot name="cta" />
-					</div>
 				</div>
 			</div>
-
-			<div ref="markEl" class="bx-hero__mark" :class="{ 'bx-hero__glyph--painted': painted }" aria-hidden="true">
-				<svg
-					:viewBox="`0 0 ${MARK.width} ${MARK.height}`"
-					preserveAspectRatio="none"
-					shape-rendering="crispEdges"
-				>
-					<defs>
-						<linearGradient id="bx-hero-mark-ink" gradientUnits="userSpaceOnUse" x1="0" y1="0" :x2="MARK.width" y2="0">
-							<stop offset="0" style="stop-color: var(--accent)" />
-							<stop offset="1" style="stop-color: var(--accent-2)" />
-						</linearGradient>
-					</defs>
-					<rect v-for="r in markRuns" :key="`${r.x}-${r.y}`" :x="r.x" :y="r.y" :width="r.w" height="1" fill="url(#bx-hero-mark-ink)" />
-				</svg>
+			<div v-if="$slots.cta" class="bx-hero__cta" data-quiet>
+				<slot name="cta" />
 			</div>
 		</div>
 	</section>
@@ -93,92 +29,56 @@ const markRuns = runsOf(MARK);
 .bx-hero {
 	position: relative;
 	overflow: hidden;
-	display: flex;
-	flex-direction: column;
 	margin-top: -56px;
-	min-height: 100svh;
-	background: var(--pixel-bg);
-	border-bottom: 1px solid var(--line);
-	user-select: none;
-	-webkit-touch-callout: none;
+	background:
+		radial-gradient(70% 85% at 15% -20%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+		radial-gradient(60% 75% at 88% -15%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 70%),
+		var(--surface-1);
+}
+
+.bx-hero .bx-hero__field {
+	background: transparent;
 }
 
 .bx-hero__inner {
 	position: relative;
-	flex: 1;
-	display: flex;
-	align-items: center;
-	gap: var(--s-16);
 	box-sizing: border-box;
-	width: 100%;
 	max-width: var(--container);
 	margin: 0 auto;
-	padding: calc(56px + var(--s-12)) var(--s-8) var(--s-16);
-	pointer-events: none;
+	padding: calc(56px + var(--s-32)) var(--s-8) var(--s-32);
 }
 
-.bx-hero__main {
-	flex: 1 1 0;
-	min-width: 0;
+.bx-hero__head {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
+	align-items: stretch;
+	gap: var(--s-6);
 }
 
-.bx-hero__wordmark {
-	width: 100%;
-	max-width: 640px;
-	aspect-ratio: 65 / 12;
-}
-
-.bx-hero__mark {
+.bx-hero__bar {
 	flex: none;
-	width: clamp(180px, 16vw, 220px);
-	aspect-ratio: 1;
-}
-
-.bx-hero__wordmark svg,
-.bx-hero__mark svg {
-	display: block;
-	width: 100%;
-	height: 100%;
-}
-
-.bx-hero__glyph--painted {
-	visibility: hidden;
+	width: 5px;
+	border-radius: var(--r-pill);
+	background: linear-gradient(to bottom, var(--accent), var(--accent-2));
 }
 
 .bx-hero__copy {
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
-	width: 100%;
-	max-width: 36rem;
-	margin-top: var(--s-12);
-	pointer-events: auto;
-	user-select: text;
+	gap: 14px;
+	max-width: 48rem;
 }
 
 .bx-hero__title {
 	margin: 0;
-	font: 600 32px/1.2 var(--font-sans);
-	letter-spacing: -0.02em;
-	color: var(--fg);
+	font: 800 clamp(36px, 5.2vw, 64px) / 1.04 var(--font-sans);
+	letter-spacing: -0.035em;
+	color: var(--fg-hi);
 	text-wrap: balance;
 }
 
-.bx-hero__sr {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
-}
-
 .bx-hero__lede {
-	margin: var(--s-4) 0 0;
-	font: 400 17px/1.6 var(--font-sans);
+	margin: 0;
+	font: 400 clamp(17px, 1.8vw, 22px) / 1.45 var(--font-sans);
 	color: var(--dim);
 	text-wrap: pretty;
 }
@@ -187,47 +87,22 @@ const markRuns = runsOf(MARK);
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--s-3);
-	margin-top: var(--s-8);
-}
-
-@media (max-width: 860px) {
-	.bx-hero__mark {
-		display: none;
-	}
-
-	.bx-hero__main,
-	.bx-hero__copy {
-		align-items: center;
-		text-align: center;
-	}
-
-	.bx-hero__copy {
-		margin-inline: auto;
-	}
-
-	.bx-hero__cta {
-		justify-content: center;
-	}
+	margin: var(--s-8) 0 0 calc(5px + var(--s-6));
 }
 
 @media (max-width: 640px) {
 	.bx-hero__inner {
-		padding: calc(56px + var(--s-10)) var(--s-4) var(--s-12);
+		padding: calc(56px + var(--s-16)) var(--s-4) var(--s-16);
 	}
 
-	.bx-hero__copy {
-		margin-top: var(--s-10);
-	}
-
-	.bx-hero__title {
-		font-size: 25px;
+	.bx-hero__head {
+		gap: var(--s-4);
 	}
 
 	.bx-hero__cta {
 		flex-direction: column;
 		align-items: stretch;
-		width: 100%;
-		max-width: 20rem;
+		margin-left: calc(5px + var(--s-4));
 	}
 }
 </style>

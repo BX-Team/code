@@ -4,7 +4,8 @@ Shared Vue 3 component library for the BX Team monorepo, on the **BX Team Omarch
 (Basalt palette — the previous site's warm `#12100d` ground under the system's Meridian accents) in its
 v1.3 "Riven shell", matching the Riven Launcher: dark warm surfaces, Inter for the interface and
 JetBrains Mono for data (code, versions, hashes, file names, kbd, uppercase labels), soft 6–12px
-corners, borders instead of shadows, no blur and no glow, and a pixel field on the hero and the footer. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation
+corners, borders instead of shadows, no blur except under the scrolled top bar, and a pixel field on the hero and the footer. The one glow
+allowed is the mark's cyan-to-green gradient washed over the hero, the community band and the footer. No build step — raw `.vue` files are consumed directly; Nuxt handles transpilation
 via `build.transpile: ['@bx-team/ui']`.
 
 The mark is the design system's 11-cell pixel mark (`BrandMark`, monochrome, `currentColor`), and the
@@ -52,8 +53,8 @@ The pre-redesign names (`--bg-0…3`, `--brand*`, `--hover*`, `--r-sm…2xl`, `-
 still resolve, as aliases onto the tokens above, so older pages read the new palette. Prefer the new
 names in anything you write.
 
-The accent is rationed: focus ring on buttons and links, link hover, active markers, the one `bx-accent`
-phrase in the hero, and `--accent-wash` tag chips. Buttons, borders, fields and body text never take it:
+The accent is rationed: focus ring on buttons and links, link hover, active markers, the one `bx-text-grad`
+phrase in the hero, the gradient bar beside hero and section headings, and `--accent-wash` tag chips. Buttons, borders, fields and body text never take it:
 the primary button is the white `--fg` plate, and fields focus with a grey `--edge` border, not the ring.
 
 Utility classes: `.bx-h1`–`.bx-h5`, `.bx-hero-lede`, `.bx-lede`, `.bx-body`, `.bx-body-sm`,
@@ -66,8 +67,8 @@ release-channel chip with a dot) and `.bx-callout` (+ `--note`/`--warn`/`--err`/
 
 ### `BrandMark`
 The pixel mark: an 11-cell frame with the top-left and bottom-right corners opened around a solid core,
-`fg` by default. Keep sizes on whole 2px multiples (22, 44, 66) so the cells stay square. The field
-stamps the same glyph (`MARK` in `src/pixel/glyphs.ts`); `public/favicon.svg`/`.ico` in `apps/web` are it too.
+`fg` by default. Keep sizes on whole 2px multiples (22, 44, 66) so the cells stay square. The
+favicon (`public/favicon.svg`/`.ico` in `apps/web`) is it too.
 ```ts
 props: { size?: number }  // default 22
 ```
@@ -105,13 +106,15 @@ props: { featured?: boolean; padding?: 'sm' | 'md' | 'lg' }
 ```
 
 ### `Navbar`
-The site-wide bar: full width, 56px, sticky, **opaque** `surface-deep` with a bottom rule — nothing
-here uses `backdrop-filter`. Its row follows the page's own container (`maxWidth` / `gutter`) so the
+The site-wide bar: full width, 56px, sticky, `surface-deep` at 72% over a `backdrop-filter` blur with a
+bottom rule, as on helium.computer — opaque and unfiltered while the phone sheet is open, since a filter would
+make the bar the containing block of the fixed scrim. Its row follows the page's own container (`maxWidth` / `gutter`) so the
 lockup sits above the left edge of the content; shells that lay out edge to edge pass `maxWidth: 'none'`.
 `#lead` takes a section's sidebar toggle, `#right` the icon buttons beside the search box. The links
 share one highlight plate that glides to the hovered link and rests on the active one, like Riven's tabs. With
-`overlay` the bar is transparent while the page's `[data-nav-overlay]` band (the hero, pulled up 56px
-under it) is in view and turns opaque once it scrolls away; on a phone it then shows only the mark.
+`overlay` the bar is transparent while the page sits at the very top over its `[data-nav-overlay]` band
+(the hero, pulled up 56px under it) and takes its blurred fill as soon as the page scrolls; on a phone the
+clear bar shows only the mark.
 Under 1023px the links, search and socials move into a sheet that drops under the bar, as on omarchy.org. Nothing else may make a bar of its own — `apps/web` wires this one through
 `app/components/SiteNav.vue`.
 ```ts
@@ -121,26 +124,25 @@ slots: #lead, #right
 ```
 
 ### `PixelField`
-The drifting dithered ground after omarchy.org's hero: one lattice, a glow that follows the pointer,
-the BrandMark stamped where the field is pressed. It fills its positioned, clipped parent; elements in
-the same `section`/`footer` marked `data-quiet` keep the field clear around them and hush the glow. The
-engine is `src/pixel/field.ts`, the bitmaps (`BX Team` wordmark, the stamp) `src/pixel/glyphs.ts`.
-At most two per page — the page's top band and the footer.
+The dithered ground after omarchy.org's hero: one lattice that drifts and breathes very slowly with a noise
+field while one cell in twenty kindles cyan to green over several seconds and dies back, each on its own
+40–120 s cycle — atmosphere, never flicker. It is ambient only — it ignores the pointer
+and has no stamp. It fills its positioned, clipped parent and draws on a transparent canvas over
+`--pixel-bg`; a parent that brings its own ground (the hero, the footer) clears that background. Elements
+in the same `section`/`footer` marked `data-quiet` keep the field clear around them. The engine is
+`src/pixel/field.ts`. At most two per page — the page's top band and the footer.
 ```ts
-props: { variant?: 'hero' | 'field'; slotEl?: HTMLElement | null; markEl?: HTMLElement | null }  // hero draws the wordmark into slotEl, the mark into markEl
-emits: { painted: [] }
+props: { variant?: 'hero' | 'field' }  // hero: densest at the sides, thinned under the bar
 ```
 
 ### `Hero`
-The home page's opening band: full viewport height, pulled up under an `overlay` bar, `PixelField` in `hero` mode.
-Left-aligned in the container: the pixel "BX Team" wordmark drawn into the field, then the headline in
-Inter 600, a lede and two buttons. On the right the BrandMark, drawn into the same lattice at a whole-cell
-scale, so the glow and the stamps light it like the word. Below 860px the mark is dropped and the
-column centres. Both glyphs have an
-SVG copy server-rendered in their boxes and hidden once the canvas paints.
+The home page's opening band, pulled up under an `overlay` bar: the mark's cyan and green washed in from
+the top corners over `surface-1`, so the band runs into the page without a rule, and `PixelField` in `hero`
+mode over it, densest at the sides. Left-aligned in the container: a gradient bar beside an Inter 800
+headline and a lede, then the buttons.
 ```ts
 props: { lede?: string }
-slots: #title (the h1, mono), #cta
+slots: #title (the h1; wrap the key phrase in `.bx-text-grad`), #cta
 ```
 
 ### `PageHero`
@@ -155,7 +157,8 @@ slots: #crumbs, #badge, #cta, #meta, #aside
 ```
 
 ### `Footer`
-`surface-deep` with a `PixelField`, the BrandMark lockup, blurb and social icons on the left, link
+No top rule: the page fades into a deep green, light columns rise from the bottom in the mark's cyan and
+green, and the `PixelField` comes up out of them. The BrandMark lockup, blurb and social icons on the left, link
 columns on the right, legal line under a rule. Columns come from the app (`SiteFooter.vue` in `apps/web`).
 ```ts
 interface FooterLink   { label: string; href: string; external?: boolean }
@@ -164,7 +167,8 @@ props: { columns: FooterColumn[]; blurb?: string; githubHref?: string; discordHr
 ```
 
 ### `Section`
-A full-width band: left-aligned sans `h2`, a lede, an optional `#action` link pushed right.
+A full-width band: a gradient bar beside a left-aligned Inter 800 `h2` and its lede, an optional `#action`
+link pushed right.
 `alt` moves it onto `surface-0`; stacked sections alternate so two bands never read as one.
 ```ts
 props: { id?: string; eyebrow?: string; title?: string; lede?: string; alt?: boolean }

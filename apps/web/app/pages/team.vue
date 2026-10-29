@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
 import { GITHUB_URL } from '~/config/links';
-import { githubHeaders } from '~/lib/github';
 
 interface TeamMember {
   name: string;
@@ -13,14 +12,6 @@ interface TeamSection {
   title: string;
   description: string;
   members: TeamMember[];
-}
-
-interface GithubContributor {
-  login: string;
-  html_url: string;
-  avatar_url: string;
-  contributions: number;
-  type: string;
 }
 
 const sections: TeamSection[] = [
@@ -43,34 +34,7 @@ const sections: TeamSection[] = [
   },
 ];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'Nyx', 'code'];
-
-const { data: contributors } = await useAsyncData<GithubContributor[]>(
-  'team:contributors',
-  async () => {
-    try {
-      const results = await Promise.all(
-        REPOS.map(repo =>
-          $fetch<GithubContributor[]>(`https://api.github.com/repos/BX-Team/${repo}/contributors?per_page=100`, {
-            headers: githubHeaders(),
-          }).catch(() => [] as GithubContributor[]),
-        ),
-      );
-      const merged = results.flat().reduce(
-        (acc, c) => {
-          if (c.type !== 'User') return acc;
-          acc[c.login] = { ...c, contributions: (acc[c.login]?.contributions ?? 0) + c.contributions };
-          return acc;
-        },
-        {} as Record<string, GithubContributor>,
-      );
-      return Object.values(merged).sort((a, b) => b.contributions - a.contributions || a.login.localeCompare(b.login));
-    } catch {
-      return [];
-    }
-  },
-  { default: () => [] as GithubContributor[] },
-);
+const { data: contributors } = await useContributors();
 
 useHead({
   title: 'Team',

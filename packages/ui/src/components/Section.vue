@@ -12,10 +12,13 @@ defineProps<{
 	<section :id="id" class="bx-section" :class="{ 'bx-section--alt': alt }">
 		<div class="bx-section__container">
 			<div v-if="title || $slots.action" class="bx-section__head">
-				<div class="bx-section__text">
-					<p v-if="eyebrow" class="bx-section__eyebrow">{{ eyebrow }}</p>
-					<h2 v-if="title" class="bx-section__title">{{ title }}</h2>
-					<p v-if="lede" class="bx-section__lede">{{ lede }}</p>
+				<div class="bx-section__lead">
+					<span v-if="title" class="bx-section__bar" aria-hidden="true" />
+					<div class="bx-section__text">
+						<p v-if="eyebrow" class="bx-section__eyebrow">{{ eyebrow }}</p>
+						<h2 v-if="title" class="bx-section__title">{{ title }}</h2>
+						<p v-if="lede" class="bx-section__lede">{{ lede }}</p>
+					</div>
 				</div>
 				<div v-if="$slots.action" class="bx-section__action">
 					<slot name="action" />
@@ -50,6 +53,18 @@ defineProps<{
 	margin-bottom: var(--s-10);
 }
 
+.bx-section__lead {
+	display: flex;
+	gap: var(--s-5);
+}
+
+.bx-section__bar {
+	flex: none;
+	width: 4px;
+	border-radius: var(--r-pill);
+	background: linear-gradient(to bottom, var(--accent), var(--accent-2));
+}
+
 .bx-section__text {
 	display: flex;
 	flex-direction: column;
@@ -67,8 +82,8 @@ defineProps<{
 
 .bx-section__title {
 	margin: 0;
-	font: 600 32px/1.15 var(--font-sans);
-	letter-spacing: -0.018em;
+	font: 800 34px/1.1 var(--font-sans);
+	letter-spacing: -0.025em;
 	color: var(--fg);
 	text-wrap: balance;
 }

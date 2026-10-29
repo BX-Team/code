@@ -1,36 +1,16 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { mountPixelField, type PixelFieldHandle } from '../pixel/field';
 
-const props = defineProps<{
-  variant?: 'hero' | 'field';
-  slotEl?: HTMLElement | null;
-  markEl?: HTMLElement | null;
-}>();
-
-const emit = defineEmits<{ painted: [] }>();
+const props = defineProps<{ variant?: 'hero' | 'field' }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 let field: PixelFieldHandle | undefined;
 
 onMounted(() => {
   if (!canvas.value) return;
-  field = mountPixelField(canvas.value, {
-    variant: props.variant ?? 'field',
-    slot: props.slotEl,
-    markSlot: props.markEl,
-    onPainted: () => emit('painted'),
-  });
+  field = mountPixelField(canvas.value, { variant: props.variant ?? 'field' });
 });
-
-watch(
-  () => props.slotEl,
-  el => field?.setSlot(el ?? null),
-);
-watch(
-  () => props.markEl,
-  el => field?.setMarkSlot(el ?? null),
-);
 
 onBeforeUnmount(() => field?.destroy());
 </script>

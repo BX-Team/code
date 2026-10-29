@@ -27,9 +27,9 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 		<SiteNav overlay search-enabled @search="openCommandPalette()" />
 
 		<main>
-			<Hero lede="An open source community building server software, plugins and developer tools for Minecraft — and a few things beyond it.">
+			<Hero lede="Server software, plugins and developer tools — and a few things beyond Minecraft.">
 				<template #title>
-					Open-source software for <span class="bx-accent">Minecraft servers</span>
+					Open-source software for <span class="bx-text-grad">Minecraft servers</span>
 				</template>
 				<template #cta>
 					<Button variant="primary" href="#projects" @click="toProjects">
@@ -45,6 +45,7 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 
 			<Section
 				id="projects"
+				class="home__projects"
 				title="Everything we maintain"
 				lede="A server fork, a library, plugins and the tools around them. Open any of them for its features, previews and how to get started."
 			>
@@ -65,6 +66,8 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 					/>
 				</div>
 			</Section>
+
+			<HomeCommunityBand />
 		</main>
 
 		<SiteFooter />
@@ -75,6 +78,10 @@ const projects = computed(() => [...PROJECTS].sort((a, b) => Number(!!a.archived
 .home {
 	min-height: 100vh;
 	overflow-x: clip;
+}
+
+.home .home__projects {
+	border-top: 0;
 }
 
 .home__all {

@@ -56,12 +56,10 @@ const overBand = ref(props.overlay);
 const clear = computed(() => props.overlay && overBand.value && !menuOpen.value);
 const kbdLabel = computed(() => (isMac.value ? '⌘K' : 'Ctrl K'));
 
-const header = ref<HTMLElement | null>(null);
 const linksEl = ref<HTMLElement | null>(null);
 const hovered = ref<string | null>(null);
 const pillBox = ref<{ x: number; w: number } | null>(null);
 const pillReady = ref(false);
-let observer: IntersectionObserver | undefined;
 let resizer: ResizeObserver | undefined;
 
 /** The highlight under the links glides to the hovered one and rests on the active one, like Riven's tabs. */
@@ -81,6 +79,10 @@ const onKey = (e: KeyboardEvent) => {
   if (e.key === 'Escape') menuOpen.value = false;
 };
 
+const onScroll = () => {
+  overBand.value = window.scrollY <= 0;
+};
+
 onMounted(() => {
   isMac.value = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
   window.addEventListener('keydown', onKey);
@@ -91,22 +93,19 @@ onMounted(() => {
     resizer.observe(linksEl.value);
   }
 
-  const band = props.overlay ? document.querySelector('[data-nav-overlay]') : null;
-  if (!band || !header.value) {
+  // Clear only at the very top: once the page moves, the band would show through the links.
+  if (!props.overlay || !document.querySelector('[data-nav-overlay]')) {
     overBand.value = false;
     return;
   }
-  const height = header.value.getBoundingClientRect().height;
-  observer = new IntersectionObserver(([entry]) => (overBand.value = entry.isIntersecting), {
-    rootMargin: `-${height}px 0px 0px 0px`,
-  });
-  observer.observe(band);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 });
 
 onBeforeUnmount(() => {
-  observer?.disconnect();
   resizer?.disconnect();
   window.removeEventListener('keydown', onKey);
+  window.removeEventListener('scroll', onScroll);
 });
 
 function go(id: string) {
@@ -122,7 +121,6 @@ function openSearch() {
 
 <template>
 	<header
-		ref="header"
 		class="bx-nav"
 		:class="{ 'bx-nav--clear': clear, 'bx-nav--open': menuOpen }"
 		:style="{ '--bx-nav-max': maxWidth, '--bx-nav-pad': gutter }"
@@ -246,15 +244,28 @@ function openSearch() {
 	flex: 0 0 auto;
 	height: 56px;
 	border-bottom: 1px solid var(--line);
-	background: var(--surface-deep);
+	background: color-mix(in srgb, var(--surface-deep) 72%, transparent);
+	-webkit-backdrop-filter: blur(18px) saturate(160%);
+	backdrop-filter: blur(18px) saturate(160%);
 	transition:
-		background-color 0.15s ease,
-		border-color 0.15s ease;
+		background-color 0.2s ease,
+		border-color 0.2s ease,
+		backdrop-filter 0.2s ease;
+}
+
+/* Opaque and unfiltered while the sheet is open: a backdrop-filter would make the bar the
+   containing block of the fixed scrim under it. */
+.bx-nav--open {
+	background: var(--surface-deep);
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
 }
 
 .bx-nav--clear {
 	background: transparent;
 	border-bottom-color: transparent;
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
 }
 
 .bx-nav__row {

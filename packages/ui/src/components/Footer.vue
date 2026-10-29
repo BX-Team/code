@@ -2,6 +2,12 @@
 import BrandMark from './BrandMark.vue';
 import PixelField from './PixelField.vue';
 
+/** Light columns rising behind the field, cyan on the left and green on the right, like the mark's gradient. */
+const beams = Array.from({ length: 16 }, (_, i) => ({
+  '--bx-col-ink': i < 8 ? 'var(--accent)' : 'var(--accent-2)',
+  '--bx-col-mix': `${Math.round(5 + 16 * Math.abs(Math.sin(i * 1.7 + 0.4)))}%`,
+}));
+
 export interface FooterLink {
   label: string;
   href: string;
@@ -30,7 +36,10 @@ withDefaults(
 
 <template>
 	<footer class="bx-footer">
-		<PixelField variant="field" />
+		<div class="bx-footer__beams" aria-hidden="true">
+			<span v-for="(style, i) in beams" :key="i" :style="style" />
+		</div>
+		<PixelField variant="field" class="bx-footer__field" />
 
 		<div class="bx-footer__inner">
 			<div class="bx-footer__top">
@@ -102,16 +111,41 @@ withDefaults(
 	position: relative;
 	isolation: isolate;
 	overflow: hidden;
-	border-top: 1px solid var(--line);
-	background: var(--pixel-bg);
+	background: linear-gradient(
+		to bottom,
+		var(--surface-1),
+		color-mix(in srgb, var(--surface-deep) 91%, var(--accent))
+	);
 	padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bx-footer__beams {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	pointer-events: none;
+}
+
+.bx-footer__beams span {
+	flex: 1;
+	background: linear-gradient(
+		to bottom,
+		transparent 15%,
+		color-mix(in srgb, var(--bx-col-ink) var(--bx-col-mix), transparent)
+	);
+}
+
+/* The page runs into the footer instead of stopping at a rule: the field rises out of it. */
+.bx-footer .bx-footer__field {
+	background: transparent;
+	mask-image: linear-gradient(to bottom, transparent, #000 var(--s-32));
 }
 
 .bx-footer__inner {
 	position: relative;
 	max-width: var(--container);
 	margin: 0 auto;
-	padding: var(--s-16) var(--s-8) var(--s-8);
+	padding: var(--s-32) var(--s-8) var(--s-8);
 }
 
 .bx-footer__top {
@@ -243,7 +277,7 @@ withDefaults(
 
 @media (max-width: 640px) {
 	.bx-footer__inner {
-		padding: var(--s-12) var(--s-4) var(--s-6);
+		padding: var(--s-24) var(--s-4) var(--s-6);
 	}
 
 	.bx-footer__cols {
