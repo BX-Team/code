@@ -125,7 +125,7 @@ function stripTags(html: string) {
 	position: relative;
 	background: var(--bg-deep);
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-3);
 	margin: 22px 0;
 	overflow: hidden;
 }
@@ -147,7 +147,7 @@ function stripTags(html: string) {
 	padding: 4px 10px;
 	font: 500 12px var(--font-mono);
 	color: var(--mute);
-	border-radius: 5px;
+	border-radius: var(--r-1);
 	cursor: pointer;
 	transition: color .15s, background-color .15s;
 }
@@ -159,21 +159,24 @@ function stripTags(html: string) {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font: 500 11px var(--font-mono);
+	font: 500 11px var(--font-sans);
 	color: var(--mute);
 	padding: 4px 9px;
 	border: 1px solid var(--line);
-	border-radius: 5px;
+	border-radius: var(--r-1);
 	background: transparent;
 	cursor: pointer;
 	transition: color .15s, border-color .15s;
 }
 .cb-copy:hover { color: var(--fg-hi); border-color: var(--line-2); }
 
-.cb-body :deep(pre),
-.cb-body .cb-pre :deep(pre),
-.cb-body > pre.cb-pre {
+/* `.code-block` outranks the docs page's `.doc-body pre`, which would frame the pre a second time inside the block. */
+.code-block .cb-body :deep(pre),
+.code-block .cb-body .cb-pre :deep(pre),
+.code-block .cb-body > pre.cb-pre {
 	margin: 0;
+	border: 0;
+	border-radius: 0;
 	padding: 16px 18px;
 	font: 400 13px/1.65 var(--font-mono);
 	color: var(--fg);

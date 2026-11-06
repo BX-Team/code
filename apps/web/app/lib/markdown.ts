@@ -62,6 +62,14 @@ export function renderNotes(source: string): string {
 
   rewriteTaskLists(fragment);
 
+  // A wide table scrolls inside its own frame instead of pushing the page sideways.
+  for (const table of fragment.querySelectorAll('table')) {
+    const frame = document.createElement('div');
+    frame.className = 'notes-table';
+    table.replaceWith(frame);
+    frame.append(table);
+  }
+
   const holder = document.createElement('div');
   holder.append(fragment);
   return holder.innerHTML;

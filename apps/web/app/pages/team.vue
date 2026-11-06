@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@bx-team/ui';
+import { Button, PageHero, Section } from '@bx-team/ui';
 import { GITHUB_URL } from '~/config/links';
 
 interface TeamMember {
@@ -12,14 +12,6 @@ interface TeamSection {
   title: string;
   description: string;
   members: TeamMember[];
-}
-
-interface GithubContributor {
-  login: string;
-  html_url: string;
-  avatar_url: string;
-  contributions: number;
-  type: string;
 }
 
 const sections: TeamSection[] = [
@@ -42,34 +34,7 @@ const sections: TeamSection[] = [
   },
 ];
 
-const REPOS = ['DivineMC', 'NDailyRewards', 'Quark', 'run-server-plugin', 'docs'];
-
-const { data: contributors } = await useAsyncData<GithubContributor[]>(
-  'team:contributors',
-  async () => {
-    try {
-      const results = await Promise.all(
-        REPOS.map(repo =>
-          $fetch<GithubContributor[]>(`https://api.github.com/repos/BX-Team/${repo}/contributors?per_page=100`, {
-            headers: { Accept: 'application/vnd.github.v3+json' },
-          }).catch(() => [] as GithubContributor[]),
-        ),
-      );
-      const merged = results.flat().reduce(
-        (acc, c) => {
-          if (c.type !== 'User') return acc;
-          acc[c.login] = { ...c, contributions: (acc[c.login]?.contributions ?? 0) + c.contributions };
-          return acc;
-        },
-        {} as Record<string, GithubContributor>,
-      );
-      return Object.values(merged).sort((a, b) => b.contributions - a.contributions || a.login.localeCompare(b.login));
-    } catch {
-      return [];
-    }
-  },
-  { default: () => [] as GithubContributor[] },
-);
+const { data: contributors } = await useContributors();
 
 useHead({
   title: 'Team',
@@ -78,180 +43,142 @@ useHead({
 </script>
 
 <template>
-  <PageShell max-width="1180px" gutter="24px">
-    <div class="team-root">
-    <div class="team-atmosphere" aria-hidden="true" />
-    <div class="page-wrap">
-      <header class="page-head">
-        <h1>Meet our team</h1>
-        <p>
-          BX Team is a group of developers and contributors who work together to
-          maintain and improve the BX Team projects.
-        </p>
-        <Button :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" variant="primary">
-          <img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
-          Visit our GitHub
-        </Button>
-      </header>
+	<PageShell>
+		<main>
+			<PageHero
+				title="Meet our team"
+				lede="BX Team is a group of developers and contributors who work together to maintain and improve the BX Team projects."
+			>
+				<template #cta>
+					<Button :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
+						<img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
+						Visit our GitHub
+					</Button>
+				</template>
+			</PageHero>
 
-      <section v-for="s in sections" :key="s.title" class="team-section">
-        <h2>{{ s.title }}</h2>
-        <p class="section-desc">{{ s.description }}</p>
-        <div class="member-grid">
-          <component
-            :is="m.github ? 'a' : 'div'"
-            v-for="m in s.members"
-            :key="m.name"
-            :href="m.github ? `https://github.com/${m.github}` : undefined"
-            :target="m.github ? '_blank' : undefined"
-            :rel="m.github ? 'noopener noreferrer' : undefined"
-            class="member-card"
-          >
-            <div class="avatar avatar--44 shrink-0">
-              <img v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
-              <span v-else>{{ m.name[0] }}</span>
-            </div>
-            <div>
-              <h3>{{ m.name }}</h3>
-              <p>{{ m.role }}</p>
-            </div>
-          </component>
-        </div>
-      </section>
+			<Section v-for="s in sections" :key="s.title" :title="s.title" :lede="s.description">
+				<div class="team__grid">
+					<template v-for="m in s.members" :key="m.name">
+						<component
+							:is="m.github ? 'a' : 'div'"
+							:href="m.github ? `https://github.com/${m.github}` : undefined"
+							:target="m.github ? '_blank' : undefined"
+							:rel="m.github ? 'noopener noreferrer' : undefined"
+							class="team__member"
+						>
+							<span class="team__avatar">
+								<img v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
+								<span v-else>{{ m.name[0] }}</span>
+							</span>
+							<span class="team__who">
+								<h3>{{ m.name }}</h3>
+								<p>{{ m.role }}</p>
+							</span>
+						</component>
+					</template>
+				</div>
+			</Section>
 
-      <section class="team-section">
-        <h2>Contributors</h2>
-        <p class="section-desc">
-          Our amazing contributors who help make BX Team projects better and better.
-        </p>
-        <div class="contributors">
-          <a
-            v-for="c in contributors"
-            :key="c.login"
-            :href="c.html_url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="contrib"
-          >
-            <div class="avatar avatar--56">
-              <img :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
-            </div>
-          </a>
-        </div>
-      </section>
-    </div>
-    </div>
-  </PageShell>
+			<Section
+				title="Contributors"
+				:lede="`${contributors.length} people who have committed to our repositories and make BX Team projects better.`"
+			>
+				<div class="team__contributors">
+					<a
+						v-for="c in contributors"
+						:key="c.login"
+						:href="c.html_url"
+						:title="c.login"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="team__contrib"
+					>
+						<img :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
+					</a>
+				</div>
+			</Section>
+		</main>
+	</PageShell>
 </template>
 
 <style scoped>
-.team-root {
-	position: relative;
+.team__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: var(--s-4);
+}
+
+.team__member {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: var(--s-5);
+	border: 1px solid var(--line);
+	border-radius: var(--r-4);
+	background: var(--surface-card);
+	color: inherit;
+	transition: background-color 0.15s ease;
+}
+
+a.team__member:hover {
+	background: var(--surface-2);
+}
+
+.team__avatar {
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+	width: 44px;
+	height: 44px;
 	overflow: hidden;
+	border-radius: 50%;
+	background: var(--surface-3);
+	font: 700 15px var(--font-sans);
+	color: var(--fg-hi);
 }
 
-.team-atmosphere {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 960px;
-	pointer-events: none;
+.team__avatar img,
+.team__contrib img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.team__who h3 {
+	margin: 0 0 2px;
+	font: 700 16px/1.3 var(--font-sans);
+	letter-spacing: -0.02em;
+	color: var(--fg);
+}
+
+.team__who p {
+	margin: 0;
+	font: 400 13px/1.4 var(--font-sans);
+	color: var(--mute);
+}
+
+.team__contributors {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--s-3);
+	padding: var(--s-5);
+	border: 1px solid var(--line);
+	border-radius: var(--r-4);
+	background: var(--surface-card);
+}
+
+.team__contrib {
+	width: 52px;
+	height: 52px;
 	overflow: hidden;
-	z-index: 0;
+	border: 2px solid var(--line);
+	border-radius: 50%;
+	transition: border-color 0.15s ease;
 }
 
-.team-atmosphere::before {
-	content: '';
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1200px;
-	height: 800px;
-	background: radial-gradient(
-		ellipse 50% 45% at 50% 50%,
-		color-mix(in oklab, var(--brand-glow) 70%, var(--brand-glow-2)),
-		transparent 70%
-	);
-	filter: blur(50px);
-	opacity: 0.55;
+.team__contrib:hover {
+	border-color: var(--accent);
 }
-
-.team-atmosphere::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background-image:
-		linear-gradient(to right,  rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-		linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-	background-size: 56px 56px;
-	mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-	-webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 75%);
-}
-
-.page-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 90px 24px 80px; }
-.page-head { max-width: 720px; margin: 0 auto 56px; text-align: center; }
-.page-head h1 {
-  font-size: clamp(36px, 5vw, 52px);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.05;
-  color: var(--fg-hi);
-  margin: 0 0 18px;
-}
-.page-head p { color: var(--dim); font-size: 17px; margin: 0 0 24px; }
-
-.team-section { margin-top: 56px; }
-.team-section h2 {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--fg-hi);
-  margin: 0 0 6px;
-}
-.section-desc { color: var(--dim); margin: 0 0 24px; font-size: 14.5px; }
-
-.member-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
-}
-.member-card {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--bg-1) 60%, transparent);
-  text-decoration: none;
-  color: inherit;
-  transition: border-color .15s, background .15s, transform .15s;
-}
-a.member-card:hover {
-  border-color: var(--line-2);
-  background: color-mix(in oklab, var(--bg-2) 80%, transparent);
-  transform: translateY(-1px);
-}
-.member-card h3 {
-  margin: 0 0 2px;
-  font-size: 14px; font-weight: 600;
-  color: var(--fg-hi);
-}
-.member-card p { margin: 0; color: var(--mute); font-size: 13px; }
-
-.contributors { display: flex; flex-wrap: wrap; gap: 12px; }
-.contrib { transition: transform .15s; }
-.contrib:hover { transform: translateY(-2px); }
-
-.avatar {
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--bg-3);
-  display: flex; align-items: center; justify-content: center;
-  font: 600 13px var(--font-sans);
-  color: var(--fg-hi);
-  flex-shrink: 0;
-}
-.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.avatar--44 { width: 44px; height: 44px; }
-.avatar--56 { width: 56px; height: 56px; }
 </style>

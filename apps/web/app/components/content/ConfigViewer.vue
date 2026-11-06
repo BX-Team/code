@@ -191,7 +191,7 @@ function fmtVal(v: unknown): string {
 .cv {
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: var(--r-3);
 	margin: 22px 0;
 }
 
@@ -209,7 +209,7 @@ function fmtVal(v: unknown): string {
 }
 .cv-title {
 	margin: 0;
-	font: 600 15px var(--font-sans);
+	font: 600 15px var(--font-heading);
 	color: var(--fg-hi);
 	letter-spacing: -0.005em;
 }
@@ -220,7 +220,7 @@ function fmtVal(v: unknown): string {
 	cursor: pointer;
 	font: 500 11px var(--font-sans);
 	padding: 5px 10px;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	border: 1px solid var(--line);
 	background: transparent;
 	color: var(--mute);
@@ -228,11 +228,12 @@ function fmtVal(v: unknown): string {
 }
 .cv-btn:hover { color: var(--fg-hi); border-color: var(--line-2); background: var(--hover); }
 .cv-btn.primary {
-	color: var(--fg-hi);
-	border-color: color-mix(in oklab, var(--brand) 50%, var(--line));
-	background: color-mix(in oklab, var(--brand) 12%, transparent);
+	color: var(--surface-deep);
+	border-color: var(--fg);
+	background: var(--fg);
+	font-weight: 700;
 }
-.cv-btn.primary:hover { border-color: var(--brand); background: color-mix(in oklab, var(--brand) 18%, transparent); }
+.cv-btn.primary:hover { color: var(--surface-deep); border-color: var(--fg); background: var(--fg); opacity: 0.88; }
 
 .cv-search-wrap {
 	position: relative;
@@ -242,18 +243,19 @@ function fmtVal(v: unknown): string {
 	width: 100%;
 	box-sizing: border-box;
 	padding: 8px 36px 8px 34px;
-	border-radius: 8px;
-	border: 1px solid var(--line);
-	background: var(--bg-0);
+	border-radius: var(--r-2);
+	border: 1px solid var(--line-2);
+	background: var(--surface-deep);
 	color: var(--fg);
 	font: 400 13px var(--font-sans);
 	outline: none;
 	transition: border-color .15s, box-shadow .15s;
 }
 .cv-input::placeholder { color: var(--mute); }
+.cv-input:hover { border-color: var(--rule); }
 .cv-input:focus {
-	border-color: var(--brand);
-	box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
+	border-color: var(--edge);
+	box-shadow: none;
 }
 .cv-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--mute); pointer-events: none; }
 .cv-clear {
@@ -285,7 +287,7 @@ function fmtVal(v: unknown): string {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	padding-right: 12px;
-	border-radius: 4px;
+	border-radius: var(--r-2);
 	transition: background .12s;
 	flex-wrap: wrap;
 	min-width: 0;
@@ -357,7 +359,7 @@ function fmtVal(v: unknown): string {
 	padding: 8px 12px;
 	background: var(--bg-1);
 	border-left: 2px solid var(--brand);
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	font: 400 12.5px/1.6 var(--font-sans);
 	color: var(--fg);
 	white-space: pre-wrap;
@@ -373,7 +375,7 @@ function fmtVal(v: unknown): string {
 :deep(.cv-mark) {
 	background: color-mix(in oklab, var(--brand) 28%, transparent);
 	color: var(--fg-hi);
-	border-radius: 3px;
+	border-radius: var(--r-xs);
 	padding: 0 2px;
 	font-style: normal;
 }

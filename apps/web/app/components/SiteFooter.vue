@@ -1,33 +1,21 @@
 <script setup lang="ts">
-import { Footer, type FooterColumn } from '@bx-team/ui';
+import { Footer, type FooterLink } from '@bx-team/ui';
 import { DISCORD_URL, GITHUB_URL, MAVEN_URL } from '~/config/links';
-import { PROJECTS } from '~/config/projects';
 
-const columns: FooterColumn[] = [
-  {
-    title: 'Projects',
-    links: PROJECTS.filter(p => !p.archived).map(p => ({ label: p.name, href: `/${p.slug}` })),
-  },
-  {
-    title: 'Resources',
-    links: [
-      { label: 'Documentation', href: '/docs' },
-      { label: 'Downloads', href: '/downloads' },
-      { label: 'Maven repository', href: MAVEN_URL, external: true },
-      { label: 'API reference', href: '/docs/api' },
-    ],
-  },
-  {
-    title: 'Community',
-    links: [
-      { label: 'Discord', href: DISCORD_URL, external: true },
-      { label: 'GitHub', href: GITHUB_URL, external: true },
-      { label: 'Team', href: '/team' },
-    ],
-  },
+const links: FooterLink[] = [
+  { label: 'Team', href: '/team' },
+  { label: 'Docs', href: '/docs' },
+  { label: 'Downloads', href: '/downloads' },
+  { label: 'Tools', href: '/tools' },
+];
+
+const socials: FooterLink[] = [
+  { label: 'GitHub', href: GITHUB_URL, external: true },
+  { label: 'Discord', href: DISCORD_URL, external: true },
+  { label: 'Maven', href: MAVEN_URL, external: true },
 ];
 </script>
 
 <template>
-	<Footer :columns="columns" :github-href="GITHUB_URL" :discord-href="DISCORD_URL" />
+	<Footer :links="links" :socials="socials" :github-href="GITHUB_URL" />
 </template>

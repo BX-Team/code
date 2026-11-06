@@ -1,0 +1,18 @@
+{
+  "name": "bx-team",
+  "description": "Claude skills from BX Team for running Minecraft servers.",
+  "owner": {
+    "name": "BX Team",
+    "url": "https://bxteam.org"
+  },
+  "plugins": [
+    {
+      "name": "minecraft-server",
+      "source": "./",
+      "description": "JVM flags and server configuration for Paper, Purpur, DivineMC and Velocity.",
+      "homepage": "https://bxteam.org/tools",
+      "license": "AGPL-3.0-only",
+      "skills": ["./.claude/skills/jvm-flags", "./.claude/skills/server-config"]
+    }
+  ]
+}

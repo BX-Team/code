@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, CornerDownLeft, Download, FileText, FolderGit2, Home, Search, Users } from '@lucide/vue';
+import { BookOpen, CornerDownLeft, Download, FileText, FolderGit2, Home, Search, Users, Wrench } from '@lucide/vue';
 import type { Component } from 'vue';
 import { closeCommandPalette, useCommandPaletteOpen } from '@/composables/useCommandPalette';
 
@@ -35,6 +35,7 @@ const navItems: PaletteItem[] = [
   { key: 'nav:home', group: 'nav', title: 'Home', subtitle: '/', icon: Home, to: '/' },
   { key: 'nav:docs', group: 'nav', title: 'Documentation', subtitle: '/docs', icon: BookOpen, to: '/docs' },
   { key: 'nav:downloads', group: 'nav', title: 'Downloads', subtitle: '/downloads', icon: Download, to: '/downloads' },
+  { key: 'nav:tools', group: 'nav', title: 'Tools', subtitle: '/tools', icon: Wrench, to: '/tools' },
   { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
 ];
 
@@ -243,8 +244,6 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	inset: 0;
 	z-index: 300;
 	background: rgba(0, 0, 0, 0.55);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
@@ -254,11 +253,9 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 .cmdk-panel {
 	width: 100%;
 	max-width: 580px;
-	background: color-mix(in oklab, var(--bg-1) 92%, transparent);
-	-webkit-backdrop-filter: blur(20px);
-	backdrop-filter: blur(20px);
+	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 14px;
+	border-radius: var(--r-4);
 	box-shadow: var(--shadow-pop);
 	overflow: hidden;
 	display: flex;
@@ -306,7 +303,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	border-bottom-width: 2px;
-	border-radius: 4px;
+	border-radius: var(--r-xs);
 	padding: 2px 6px;
 	min-width: 22px;
 	display: inline-grid;
@@ -333,7 +330,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 
 .cmdk-list::-webkit-scrollbar-thumb {
 	background: var(--line-2);
-	border-radius: 4px;
+	border-radius: var(--r-pill);
 }
 
 .cmdk-group-label {
@@ -357,7 +354,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	padding: 9px 10px;
 	background: transparent;
 	border: none;
-	border-radius: 8px;
+	border-radius: var(--r-2);
 	cursor: pointer;
 	text-align: left;
 	color: inherit;
@@ -373,7 +370,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	place-items: center;
 	width: 22px;
 	height: 22px;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	background: var(--bg-3);
 	border: 1px solid var(--line);
 	color: var(--dim);
@@ -395,7 +392,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__subtitle {
-	font: 400 12px var(--font-mono);
+	font: 400 12px var(--font-sans);
 	color: var(--mute);
 	max-width: 240px;
 	white-space: nowrap;
@@ -405,11 +402,11 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 }
 
 .cmdk-item__hint {
-	font: 600 10.5px var(--font-mono);
+	font: 600 11px var(--font-sans);
 	color: var(--warn);
 	background: color-mix(in oklab, var(--warn) 14%, transparent);
 	border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--line));
-	border-radius: 4px;
+	border-radius: var(--r-1);
 	padding: 2px 6px;
 	letter-spacing: 0.02em;
 }
@@ -443,7 +440,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	padding: 9px 14px;
 	border-top: 1px solid var(--line);
 	background: color-mix(in oklab, var(--bg-0) 60%, transparent);
-	font: 500 11.5px var(--font-mono);
+	font: 500 11.5px var(--font-sans);
 	color: var(--mute);
 }
 

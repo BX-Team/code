@@ -41,6 +41,22 @@ export interface ProjectPreview {
   caption?: string;
 }
 
+/** A line of the terminal a showcase card draws in place of a screenshot. */
+export interface TerminalLine {
+  text: string;
+  kind?: 'command' | 'comment' | 'add' | 'remove' | 'ok' | 'dim';
+}
+
+export interface ProjectDemo {
+  /** The wasm-bindgen module; it finds its `_bg.wasm` next to itself. */
+  script: string;
+  /** What the window shows, for the frame before it starts. */
+  title: string;
+  /** The size the interface is laid out at; narrower screens get it scaled down. */
+  width: number;
+  height: number;
+}
+
 export interface ProjectStart {
   label: string;
   title: string;
@@ -59,11 +75,21 @@ export interface Project {
   lede: string;
   repo: string;
   archived?: boolean;
+  /** Where the home page shows it: the wide flagship card, a half card with its first preview, or a small tile. */
+  home: 'flagship' | 'showcase' | 'tile';
   docs?: string;
   downloads?: string;
+  /** Published only as GitHub releases; `/downloads/<slug>` reads them from GitHub. */
+  githubReleases?: boolean;
   channels?: { label: string; href: string }[];
   features: ProjectFeature[];
   previews: ProjectPreview[];
+  /** Shown by the home showcase card when there is no screenshot to show. */
+  terminal?: TerminalLine[];
+  /** A raster logo, for a project whose mark is not one of the pixel logos in `lib/marks.ts`. */
+  logo?: string;
+  /** A build of the app's interface for the browser, in `public/`, started on the project page by a click. */
+  demo?: ProjectDemo;
   start: ProjectStart[];
   benchmarks?: 'pending' | { docs: string };
 }
@@ -83,10 +109,11 @@ function site(key: string): Pick<Project, 'slug' | 'name' | 'repo' | 'docs'> {
 export const PROJECTS: Project[] = [
   {
     ...site('divinemc'),
+    home: 'flagship',
     tag: 'Server software',
     summary: 'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization.',
     tagline: 'A Purpur fork that puts every core to work',
-    lede: 'Regionized chunk ticking, parallel worlds and async everything, on top of the full Purpur configuration surface. Your Bukkit, Spigot and Paper plugins keep working.',
+    lede: 'Spreads chunks, worlds and entity work across your CPU cores, so a busy server keeps its tick rate. Swap your previous jar: every setting stays, and your Bukkit, Spigot and Paper plugins run as they are.',
     downloads: '/downloads/divinemc',
     channels: [{ label: 'MCJars', href: 'https://mcjars.app/DIVINEMC/versions' }],
     features: [
@@ -165,6 +192,7 @@ export const PROJECTS: Project[] = [
   },
   {
     ...site('quark'),
+    home: 'tile',
     tag: 'Framework',
     summary:
       'Small modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers.',
@@ -231,6 +259,7 @@ export const PROJECTS: Project[] = [
   },
   {
     ...site('ndailyrewards'),
+    home: 'tile',
     tag: 'Plugin',
     summary:
       'Simple and lightweight plugin that allows you to reward your players for playing on your server every day.',
@@ -294,6 +323,9 @@ export const PROJECTS: Project[] = [
   },
   {
     ...site('riven'),
+    home: 'showcase',
+    downloads: '/downloads/riven',
+    githubReleases: true,
     tag: 'Desktop app',
     summary: 'Native Minecraft launcher and modpack toolkit in pure Rust.',
     tagline: 'A Minecraft launcher that builds packs too',
@@ -335,34 +367,33 @@ export const PROJECTS: Project[] = [
         href: '/docs/riven/guides/servers',
       },
     ],
-    previews: [
-      {
-        src: '/projects/riven/instance.webp',
-        alt: 'A modpack instance with its mods, kept up to date by the pack.',
-        caption: 'Instances and their mods',
-      },
-      {
-        src: '/projects/riven/developer.webp',
-        alt: "Developer mode listing a pack's mods with sources, sides, groups and available updates.",
-        caption: 'Developer mode',
-      },
-      {
-        src: '/projects/riven/editor.webp',
-        alt: 'A pack config open in the built-in editor next to the overrides tree.',
-        caption: 'Config editor',
-      },
-      {
-        src: '/projects/riven/releases.webp',
-        alt: 'The releases page: version bump, signed build into a channel and the built releases.',
-        caption: 'Releases',
-      },
+    previews: [],
+    logo: '/projects/riven/logo.png',
+    demo: {
+      script: '/demo/riven/riven_demo.js',
+      title: 'Riven Launcher',
+      // The project page's container, so a desktop sees the window at its own size.
+      width: 1176,
+      height: 740,
+    },
+    // What `riven install` prints for an update (Riven's src/cli/sync.rs): the changes, the plan, the result.
+    terminal: [
+      { kind: 'command', text: 'riven install gh:owner/pack -y' },
+      { text: '1.4.0 → 1.5.0' },
+      { kind: 'add', text: '  + create-aeronautics, sable' },
+      { kind: 'dim', text: '  ~ sodium, iris, jei' },
+      { kind: 'remove', text: '  - rubidium' },
+      { kind: 'dim', text: '  3 other files' },
+      { text: 'Create Skies 1.5.0: 8 to install, 1 to remove, 344 up to date' },
+      { kind: 'remove', text: '  - mods/rubidium-0.7.1.jar' },
+      { kind: 'ok', text: '✓ Create Skies 1.5.0 installed in /home/steve/mc (8 files changed, 1 removed)' },
     ],
     start: [
       {
         label: 'Download',
         title: 'Grab a release',
         body: 'Installers for Windows, a DMG for macOS, AppImage, deb, rpm and Arch packages for Linux.',
-        action: { label: 'Latest release', href: 'https://github.com/BX-Team/Riven/releases/latest' },
+        action: { label: 'Downloads', href: '/downloads/riven' },
       },
       {
         label: 'CLI',
@@ -376,6 +407,9 @@ export const PROJECTS: Project[] = [
   },
   {
     ...site('nyx'),
+    home: 'showcase',
+    downloads: '/downloads/nyx',
+    githubReleases: true,
     tag: 'Desktop app',
     summary: 'Modern, lightweight desktop GUI for the Mihomo proxy core.',
     tagline: 'A desktop client for Mihomo, in pure Rust',
@@ -412,22 +446,72 @@ export const PROJECTS: Project[] = [
         body: 'A single native gpui application — no Electron, no bundled browser.',
       },
     ],
-    previews: [
-      { src: '/projects/nyx/preview.webp', alt: 'Nyx connected over TUN, with the traffic statistics panel open.' },
+    previews: [],
+    terminal: [
+      { kind: 'comment', text: '# Any Linux with Nix' },
+      { kind: 'command', text: 'nix run github:BX-Team/Nyx' },
+      { kind: 'comment', text: '# Debian, Ubuntu' },
+      { kind: 'command', text: 'sudo apt install ./Nyx_<version>_amd64.deb' },
+      { kind: 'comment', text: '# Fedora' },
+      { kind: 'command', text: 'sudo dnf install ./Nyx-<version>.x86_64.rpm' },
+      { kind: 'comment', text: '# Arch' },
+      { kind: 'command', text: 'sudo pacman -U ./Nyx-<version>-x86_64.pkg.tar.xz' },
     ],
     start: [
       {
         label: 'Download',
         title: 'Grab a release',
         body: 'Installers and portable builds for Windows and Linux are attached to every GitHub release.',
-        action: { label: 'Latest release', href: 'https://github.com/BX-Team/Nyx/releases/latest' },
+        action: { label: 'Downloads', href: '/downloads/nyx' },
+      },
+    ],
+  },
+  {
+    ...site('vanilla-reimagined'),
+    home: 'tile',
+    tag: 'Modpack',
+    summary: 'Fabric mods that heavily optimise the game and bring back OptiFine features.',
+    tagline: 'Vanilla, faster, with the OptiFine features back',
+    lede: 'A Fabric modpack built to optimise the game as much as possible and to bring back what people installed OptiFine for, without changing how vanilla plays.',
+    channels: [{ label: 'Modrinth', href: 'https://modrinth.com/modpack/vred' }],
+    features: [
+      {
+        icon: Zap,
+        title: 'Performance',
+        body: 'Sodium, Lithium, Moonrise, FerriteCore, ImmediatelyFast, Entity Culling and Dynamic FPS.',
       },
       {
-        label: 'Nix',
-        title: 'Run it without installing',
-        body: 'Prebuilt binaries are pushed to the bx-team Cachix.',
-        code: 'nix run github:BX-Team/Nyx',
-        lang: 'bash',
+        icon: Palette,
+        title: 'Visual features',
+        body: 'Iris for shaders, dynamic lights from LambDynamicLights and Sodium Extra’s video options.',
+      },
+      {
+        icon: Eye,
+        title: 'OptiFine-like features',
+        body: 'Zoom, connected textures, custom entity models and textures, and OptiGUI for resource-pack GUIs.',
+      },
+      {
+        icon: Blocks,
+        title: 'Quality of life',
+        body: 'Mod Menu, no reloading screen and the config screens to tune all of it.',
+      },
+    ],
+    previews: [],
+    start: [
+      {
+        label: 'Install',
+        title: 'Get it from Modrinth',
+        body: 'Install the pack with the Modrinth app or any launcher that reads .mrpack files. Versions are <Minecraft version>-x.y.z.',
+        action: { label: 'Open on Modrinth', href: 'https://modrinth.com/modpack/vred' },
+      },
+      {
+        label: 'Contribute',
+        title: 'Build it with Riven',
+        body: 'The pack is built with Riven; the repository explains how to add mods, change configs and test it.',
+        action: {
+          label: 'Contributing guide',
+          href: 'https://github.com/BX-Team/Vanilla-Reimagined/blob/master/CONTRIBUTING.md',
+        },
       },
     ],
   },

@@ -85,6 +85,11 @@ export const PROJECTS: Project[] = [
       files: [{ kind: 'cargo-manifest' }, { kind: 'cargo-lock' }],
     },
   },
+  {
+    key: 'vanilla-reimagined',
+    name: 'Vanilla Reimagined',
+    repo: 'BX-Team/Vanilla-Reimagined',
+  },
 ];
 
 export function findProject(key: string): Project | undefined {

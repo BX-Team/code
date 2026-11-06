@@ -32,12 +32,17 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       {
-        name: 'Inter',
-        provider: 'google',
-        weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
-        styles: ['normal', 'italic'],
+        name: 'Obel Mono',
+        src: 'https://typographic.systems/fonts/ObelMono-VF.woff2',
+        weight: '100 900',
+        style: 'normal',
       },
-      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
+      {
+        name: 'Obel Mono',
+        src: 'https://typographic.systems/fonts/ObelMono-Italic-VF.woff2',
+        weight: '100 900',
+        style: 'italic',
+      },
     ],
   },
 
@@ -90,6 +95,10 @@ export default defineNuxtConfig({
   app: {
     head: {
       titleTemplate: '%s | BX Team',
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+      ],
       meta: [
         {
           name: 'description',
@@ -107,6 +116,8 @@ export default defineNuxtConfig({
   routeRules: {
     '/downloads/**': { ssr: false },
     '/docs/api/**': { ssr: false },
+    // Each tool restores its form from the query string, which a prerendered page cannot know.
+    '/tools/*': { ssr: false },
   },
 
   sourcemap: { server: false },
@@ -116,6 +127,11 @@ export default defineNuxtConfig({
 
     devProxy: {
       '/v1': { target: `${api}/v1`, changeOrigin: true },
+      '/gh': {
+        target: 'https://api.github.com',
+        changeOrigin: true,
+        headers: process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {},
+      },
     },
   },
 

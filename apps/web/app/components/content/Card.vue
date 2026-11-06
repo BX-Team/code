@@ -16,7 +16,7 @@ defineProps<{ title: string; href: string }>();
 	padding: 16px;
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-3);
 	text-decoration: none;
 	color: inherit;
 	transition: border-color .15s, background .15s;
@@ -27,7 +27,7 @@ defineProps<{ title: string; href: string }>();
 	background: var(--bg-2);
 }
 .card-title {
-	font: 600 14px var(--font-sans);
+	font: 500 14px var(--font-sans);
 	color: var(--fg-hi);
 }
 .card-desc {

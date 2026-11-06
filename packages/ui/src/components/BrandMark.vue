@@ -1,50 +1,35 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ size?: number }>(), { size: 22 });
+import { useId } from 'vue';
+
+withDefaults(defineProps<{ size?: number; gradient?: boolean }>(), { size: 22, gradient: false });
+
+const gradientId = `bx-mark-${useId()}`;
 </script>
 
 <template>
-	<span class="bx-mark" :style="{ '--mark-size': `${props.size}px` }" aria-hidden="true">
-		<span class="bx-mark__frame" />
-		<span class="bx-mark__core" />
-	</span>
+	<svg
+		class="bx-mark"
+		:width="size"
+		:height="size"
+		viewBox="0 0 22 22"
+		:fill="gradient ? `url(#${gradientId})` : 'currentColor'"
+		shape-rendering="crispEdges"
+		aria-hidden="true"
+	>
+		<defs v-if="gradient">
+			<linearGradient :id="gradientId" x1="0" y1="0" x2="1" y2="0">
+				<stop offset="0" stop-color="var(--accent)" />
+				<stop offset="1" stop-color="var(--accent-2)" />
+			</linearGradient>
+		</defs>
+		<path d="M4 0h18v4H4zM0 4h4v14H0zM18 4h4v14h-4zM8 8h6v6H8zM0 18h18v4H0z" />
+	</svg>
 </template>
 
 <style scoped>
 .bx-mark {
-	position: relative;
-	display: inline-block;
+	display: block;
 	flex-shrink: 0;
-	width: var(--mark-size);
-	height: var(--mark-size);
-	border-radius: calc(var(--mark-size) * 6 / 22);
-	background: linear-gradient(
-		to bottom left,
-		var(--brand) 0%,
-		var(--brand-2) 40%,
-		var(--brand) 72%,
-		var(--brand-2) 100%
-	);
-}
-
-.bx-mark__frame,
-.bx-mark__core {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-}
-
-.bx-mark__frame {
-	width: calc(var(--mark-size) * 12 / 22);
-	height: calc(var(--mark-size) * 12 / 22);
-	border-radius: calc(var(--mark-size) * 3 / 22);
-	background: var(--bg-0);
-}
-
-.bx-mark__core {
-	width: calc(var(--mark-size) * 6 / 22);
-	height: calc(var(--mark-size) * 6 / 22);
-	border-radius: calc(var(--mark-size) * 1 / 22);
-	background: var(--brand);
+	color: var(--fg);
 }
 </style>

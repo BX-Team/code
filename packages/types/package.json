@@ -5,7 +5,8 @@
   "exports": {
     "./api": "./src/api.ts",
     "./schema/downloads": "./src/schemas/downloads.ts",
-    "./schema/github": "./src/schemas/github.ts"
+    "./schema/github": "./src/schemas/github.ts",
+    "./schema/mojang": "./src/schemas/mojang.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",

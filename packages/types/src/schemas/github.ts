@@ -107,6 +107,26 @@ export const WorkflowRunEventSchema = z.object({
   }),
 });
 
+/** A release as the REST API lists it (`GET /repos/{owner}/{repo}/releases`) — what the site shows for a project published only on GitHub. */
+export const RestReleaseSchema = z.object({
+  tag_name: z.string(),
+  name: z.string().nullish(),
+  body: z.string().nullish(),
+  html_url: z.string(),
+  draft: z.boolean(),
+  prerelease: z.boolean(),
+  published_at: z.string().nullable(),
+  assets: z.array(
+    z.object({
+      name: z.string(),
+      size: z.number().int(),
+      browser_download_url: z.string(),
+    }),
+  ),
+});
+
+export const RestReleaseListSchema = z.array(RestReleaseSchema);
+
 export type Repository = z.infer<typeof RepositorySchema>;
 export type User = z.infer<typeof UserSchema>;
 export type PushEvent = z.infer<typeof PushEventSchema>;
@@ -115,3 +135,4 @@ export type IssuesEvent = z.infer<typeof IssuesEventSchema>;
 export type IssueCommentEvent = z.infer<typeof IssueCommentEventSchema>;
 export type ReleaseEvent = z.infer<typeof ReleaseEventSchema>;
 export type WorkflowRunEvent = z.infer<typeof WorkflowRunEventSchema>;
+export type RestRelease = z.infer<typeof RestReleaseSchema>;

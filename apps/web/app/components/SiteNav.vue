@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Navbar } from '@bx-team/ui';
+import { Navbar, type NavLink } from '@bx-team/ui';
 import { computed, resolveComponent } from 'vue';
 import discordSvgRaw from '~/assets/external/discord.svg?raw';
 import githubSvgRaw from '~/assets/external/github.svg?raw';
@@ -19,9 +19,17 @@ defineEmits<{ search: [] }>();
 const link = resolveComponent('NuxtLink');
 
 const route = useRoute();
+const links: NavLink[] = [
+  { id: 'documentation', label: 'Docs', href: '/docs' },
+  { id: 'downloads', label: 'Downloads', href: '/downloads' },
+  { id: 'tools', label: 'Tools', href: '/tools' },
+  { id: 'team', label: 'Team', href: '/team' },
+];
+
 const active = computed(() => {
   if (route.path.startsWith('/docs')) return 'documentation';
   if (route.path.startsWith('/downloads')) return 'downloads';
+  if (route.path.startsWith('/tools')) return 'tools';
   if (route.path.startsWith('/team')) return 'team';
   return '';
 });
@@ -30,8 +38,10 @@ const active = computed(() => {
 <template>
 	<Navbar
 		:active="active"
+		:links="links"
 		:tag="tag"
 		:link-as="link"
+		:github-href="GITHUB_URL"
 		:discord-href="DISCORD_URL"
 		:search-enabled="searchEnabled"
 		:search-label="searchLabel"
@@ -58,14 +68,14 @@ const active = computed(() => {
 .icon-btn {
 	display: grid;
 	place-items: center;
-	width: 32px;
-	height: 32px;
-	border-radius: var(--r-md);
-	color: var(--dim);
+	width: 36px;
+	height: 36px;
+	border-radius: var(--r-2);
+	color: var(--mute);
 }
 
 .icon-btn:hover {
-	background: var(--hover);
+	background: var(--surface-2);
 	color: var(--fg-hi);
 }
 
@@ -76,8 +86,8 @@ const active = computed(() => {
 }
 
 .raw-icon :deep(svg) {
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 }
 
 @media (max-width: 1023px) {

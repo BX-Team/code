@@ -16,6 +16,7 @@ import {
   Files,
   FileText,
   FolderDot,
+  Gauge,
   GitBranch,
   GitPullRequest,
   Globe,
@@ -77,6 +78,7 @@ const iconMap: Record<string, Component> = {
   Files,
   FileText,
   FolderDot,
+  Gauge,
   Globe,
   GitBranch,
   GitPullRequest,
@@ -165,7 +167,8 @@ function findNavNode(nodes: any[], targetPath: string): any {
 
 const switcherOpen = ref(false);
 const mobileSidebarOpen = ref(false);
-const searchOpen = ref(false);
+// Shared so the docs index can open the same search from its own field.
+const searchOpen = useState('docs:search', () => false);
 const searchQuery = ref('');
 const searchResults = ref<any[]>([]);
 const searchLoading = ref(false);
@@ -365,7 +368,6 @@ onUnmounted(() => {
 
 <template>
 	<div class="docs-root">
-		<div class="ambient" aria-hidden="true" />
 
 		<SiteNav tag="DOCS" max-width="none" gutter="24px" search-enabled search-label="Search documentation…" @search="searchOpen = true">
 			<template v-if="!hideSidebar" #lead>
@@ -556,26 +558,6 @@ onUnmounted(() => {
 	font-size: 14.5px;
 }
 
-.ambient {
-	position: fixed;
-	inset: 0 0 auto 0;
-	height: 420px;
-	pointer-events: none;
-	z-index: 0;
-	opacity: 0.55;
-}
-.ambient::before {
-	content: "";
-	position: absolute;
-	top: -200px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: 1000px;
-	height: 600px;
-	background: radial-gradient(ellipse 50% 45% at 50% 50%, color-mix(in oklab, var(--brand-glow) 60%, var(--brand-glow-2)), transparent 70%);
-	filter: blur(80px);
-	opacity: 0.35;
-}
 
 .raw-icon {
 	display: inline-flex;
@@ -627,7 +609,7 @@ onUnmounted(() => {
 	scrollbar-width: thin;
 }
 .side::-webkit-scrollbar { width: 8px; }
-.side::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 4px; }
+.side::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: var(--r-pill); }
 
 .proj-switcher { position: relative; margin-bottom: 16px; }
 .proj-trigger {
@@ -638,7 +620,7 @@ onUnmounted(() => {
 	padding: 9px 10px;
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--r-2);
 	color: var(--fg-hi);
 	font: 500 13px var(--font-sans);
 	text-align: left;
@@ -651,7 +633,7 @@ onUnmounted(() => {
 	place-items: center;
 	width: 22px;
 	height: 22px;
-	border-radius: 5px;
+	border-radius: var(--r-1);
 	background: color-mix(in oklab, var(--brand-soft) 90%, transparent);
 	color: var(--brand);
 	flex-shrink: 0;
@@ -666,9 +648,9 @@ onUnmounted(() => {
 	right: 0;
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 10px;
+	border-radius: var(--r-3);
 	padding: 6px;
-	box-shadow: var(--shadow-card);
+	box-shadow: var(--shadow-panel);
 	z-index: 20;
 }
 .proj-item {
@@ -676,7 +658,7 @@ onUnmounted(() => {
 	grid-template-columns: 28px 1fr auto;
 	gap: 10px;
 	padding: 10px;
-	border-radius: 7px;
+	border-radius: var(--r-2);
 	cursor: pointer;
 	align-items: start;
 	text-decoration: none;
@@ -688,14 +670,14 @@ onUnmounted(() => {
 	height: 28px;
 	display: inline-grid;
 	place-items: center;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	background: var(--bg-2);
 	border: 1px solid var(--line);
 	color: var(--fg-hi);
 	flex-shrink: 0;
 }
 .proj-item.active .ic-wrap { color: var(--brand); border-color: color-mix(in oklab, var(--brand) 40%, var(--line)); }
-.proj-item .ttl { display: block; font: 600 13px var(--font-sans); color: var(--fg-hi); line-height: 1.2; }
+.proj-item .ttl { display: block; font: 500 13px var(--font-sans); color: var(--fg-hi); line-height: 1.2; }
 .proj-item .desc { display: block; margin-top: 3px; font: 400 12px/1.45 var(--font-sans); color: var(--dim); }
 .proj-item .check { color: var(--brand); align-self: center; }
 
@@ -714,7 +696,7 @@ onUnmounted(() => {
 	gap: 10px;
 	padding: 7px 10px;
 	margin-bottom: 1px;
-	border-radius: 6px;
+	border-radius: var(--r-1);
 	color: var(--dim);
 	font: 500 13px var(--font-sans);
 	transition: all 0.12s;
@@ -722,29 +704,16 @@ onUnmounted(() => {
 	text-decoration: none;
 }
 .nav-item:hover { background: var(--hover); color: var(--fg-hi); }
-.nav-item.active { background: var(--hover-2); color: var(--fg-hi); }
-.nav-item.active::before {
-	content: "";
-	position: absolute;
-	left: -16px;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 2px;
-	height: 16px;
-	background: linear-gradient(to bottom, var(--brand), var(--brand-2));
-	border-radius: 0 2px 2px 0;
-}
+.nav-item.active { background: var(--surface-3); color: var(--fg-hi); font-weight: 600; }
 .nav-item :deep(svg) { width: 15px; height: 15px; flex-shrink: 0; color: var(--mute); }
-.nav-item.active :deep(svg) { color: var(--brand); }
+.nav-item.active :deep(svg) { color: var(--fg-hi); }
 .nav-item .meta {
 	margin-left: auto;
-	font: 500 10px var(--font-mono);
+	font: 500 10px var(--font-sans);
 	color: var(--mute);
 	background: var(--bg-2);
-	border: 1px solid var(--line);
-	padding: 1px 5px;
-	border-radius: 3px;
-	letter-spacing: 0.04em;
+	padding: 2px 6px;
+	border-radius: var(--r-xs);
 }
 
 .content {
@@ -753,7 +722,7 @@ onUnmounted(() => {
 	scrollbar-gutter: stable;
 }
 .content::-webkit-scrollbar { width: 10px; }
-.content::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 5px; border: 2px solid var(--bg-0); }
+.content::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: var(--r-pill); border: 2px solid var(--bg-0); }
 
 .toc {
 	border-left: 1px solid var(--line);
@@ -762,7 +731,7 @@ onUnmounted(() => {
 	scrollbar-width: thin;
 }
 .toc::-webkit-scrollbar { width: 6px; }
-.toc::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 3px; }
+.toc::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: var(--r-pill); }
 .toc-h {
 	display: flex;
 	align-items: center;
@@ -820,8 +789,6 @@ onUnmounted(() => {
 	inset: 0;
 	z-index: 200;
 	background: rgba(0, 0, 0, 0.6);
-	-webkit-backdrop-filter: blur(4px);
-	backdrop-filter: blur(4px);
 	display: flex;
 	padding-top: 12vh;
 	justify-content: center;
@@ -831,8 +798,8 @@ onUnmounted(() => {
 	width: min(640px, 92vw);
 	background: var(--bg-1);
 	border: 1px solid var(--line);
-	border-radius: 14px;
-	box-shadow: var(--shadow-card);
+	border-radius: var(--r-4);
+	box-shadow: var(--shadow-modal);
 	overflow: hidden;
 }
 .search-input-row {
@@ -858,7 +825,7 @@ onUnmounted(() => {
 	padding: 3px 8px;
 	background: var(--bg-3);
 	border: 1px solid var(--line);
-	border-radius: 5px;
+	border-radius: var(--r-xs);
 }
 .search-results { max-height: 60vh; overflow-y: auto; padding: 8px; }
 .sr-empty { padding: 24px; text-align: center; font: 400 13.5px var(--font-sans); color: var(--mute); }
@@ -866,7 +833,7 @@ onUnmounted(() => {
 .sr-item {
 	display: block;
 	padding: 10px 14px;
-	border-radius: 8px;
+	border-radius: var(--r-2);
 	text-decoration: none;
 	color: inherit;
 	transition: background 0.12s;
@@ -879,7 +846,7 @@ onUnmounted(() => {
 	letter-spacing: 0.06em;
 	margin-bottom: 3px;
 }
-.sr-title { font: 600 14px var(--font-sans); color: var(--fg-hi); }
+.sr-title { font: 500 14px var(--font-sans); color: var(--fg-hi); }
 .sr-snippet { font: 400 12px/1.5 var(--font-sans); color: var(--dim); margin-top: 4px; }
 
 .search-foot {
@@ -918,10 +885,10 @@ onUnmounted(() => {
 
 	.side {
 		position: fixed;
-		top: 56px;
+		top: 52px;
 		left: -290px;
 		width: 280px;
-		height: calc(100vh - 56px);
+		height: calc(100vh - 52px);
 		z-index: 50;
 		background: var(--bg-0);
 		border-right: 1px solid var(--line);

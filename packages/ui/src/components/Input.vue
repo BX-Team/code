@@ -24,25 +24,24 @@ defineProps<{
 .bx-input-wrap {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 6px;
 }
 
 .bx-input-label {
-	font: 500 12px var(--font-sans);
+	font: 500 13px/1.4 var(--font-sans);
 	color: var(--dim);
 }
 
 .bx-input {
 	width: 100%;
 	height: 38px;
-	padding: 0 12px;
-	background: var(--bg-3);
-	border: 1px solid var(--line);
-	border-radius: var(--r-md);
-	color: var(--fg-hi);
-	font: 400 13.5px var(--font-sans);
-	font-family: inherit;
-	transition: border-color 0.15s, box-shadow 0.15s;
+	padding: 0 var(--s-3);
+	background: var(--surface-deep);
+	border: 1px solid var(--line-2);
+	border-radius: var(--r-2);
+	color: var(--fg);
+	font: 400 14px var(--font-sans);
+	transition: border-color 0.15s ease;
 	box-sizing: border-box;
 }
 
@@ -50,9 +49,12 @@ defineProps<{
 	color: var(--mute);
 }
 
-.bx-input:focus {
+.bx-input:hover {
+	border-color: var(--rule);
+}
+
+.bx-input:focus-visible {
 	outline: none;
-	border-color: var(--brand);
-	box-shadow: var(--shadow-glow);
+	border-color: var(--edge);
 }
 </style>

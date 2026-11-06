@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@bx-team/ui';
-import { AlertCircle, AlertTriangle, FlaskConical, Loader2, XCircle } from '@lucide/vue';
+import { Loader2 } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import { BUILDS_PER_PAGE, type Build, fetchVersion, type ProjectSummary, type VersionSummary } from '@/lib/builds';
 import BuildCard from './BuildCard.vue';
@@ -85,39 +85,30 @@ function onToggle(value: boolean) {
 			@toggle-experimental="onToggle"
 		/>
 
-		<div v-if="selectedVersion === experimental" class="banner banner-info">
-			<FlaskConical :size="16" :stroke-width="1.7" class="banner-icon" />
-			<div>
-				<strong>Experimental Build</strong>
-				<p>Experimental builds may contain bugs or unstable features. Not recommended for production servers.</p>
-			</div>
-		</div>
+		<p v-if="selectedVersion === experimental" class="bx-callout bx-callout--exp notice">
+			<span class="bx-callout__mark">Experimental</span>
+			<span>Experimental builds may contain bugs or unstable features. Not recommended for production servers.</span>
+		</p>
 
-		<div v-if="supportOf(selectedVersion) === 'deprecated'" class="banner banner-warn">
-			<AlertTriangle :size="16" :stroke-width="1.7" class="banner-icon" />
-			<div>
-				<strong>Deprecated Version</strong>
-				<p>This Minecraft version is deprecated. Consider upgrading to a newer version.</p>
-			</div>
-		</div>
+		<p v-if="supportOf(selectedVersion) === 'deprecated'" class="bx-callout bx-callout--warn notice">
+			<span class="bx-callout__mark">Deprecated</span>
+			<span>This Minecraft version is deprecated. Consider upgrading to a newer version.</span>
+		</p>
 
-		<div v-if="supportOf(selectedVersion) === 'unsupported'" class="banner banner-err">
-			<XCircle :size="16" :stroke-width="1.7" class="banner-icon" />
-			<div>
-				<strong>Unsupported Version</strong>
-				<p>This Minecraft version is no longer supported. Please upgrade to a supported version.</p>
-			</div>
-		</div>
+		<p v-if="supportOf(selectedVersion) === 'unsupported'" class="bx-callout bx-callout--err notice">
+			<span class="bx-callout__mark">Unsupported</span>
+			<span>This Minecraft version is no longer supported. Please upgrade to a supported version.</span>
+		</p>
 
 		<div v-if="loading" class="state">
 			<Loader2 class="spin" :size="28" :stroke-width="1.7" />
 			<p>Loading builds…</p>
 		</div>
 
-		<div v-else-if="error" class="banner banner-err">
-			<AlertCircle :size="16" :stroke-width="1.7" class="banner-icon" />
-			<div><p>{{ error }}</p></div>
-		</div>
+		<p v-else-if="error" class="bx-callout bx-callout--err notice">
+			<span class="bx-callout__mark">Error</span>
+			<span>{{ error }}</span>
+		</p>
 
 		<div v-else-if="!builds.length" class="state">
 			<p>No builds available for this version.</p>
@@ -137,35 +128,8 @@ function onToggle(value: boolean) {
 </template>
 
 <style scoped>
-.banner {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	padding: 12px 16px;
-	border-radius: 10px;
-	border: 1px solid;
-	margin-bottom: 14px;
-	font-size: 13px;
-	line-height: 1.5;
-}
-.banner strong { display: block; font-weight: 600; margin-bottom: 2px; }
-.banner p { margin: 0; opacity: 0.85; }
-.banner-icon { flex-shrink: 0; margin-top: 1px; }
-
-.banner-info {
-	background: color-mix(in oklab, var(--info) 10%, transparent);
-	border-color: color-mix(in oklab, var(--info) 25%, transparent);
-	color: var(--info);
-}
-.banner-warn {
-	background: color-mix(in oklab, var(--warn) 10%, transparent);
-	border-color: color-mix(in oklab, var(--warn) 25%, transparent);
-	color: var(--warn);
-}
-.banner-err {
-	background: color-mix(in oklab, var(--err) 10%, transparent);
-	border-color: color-mix(in oklab, var(--err) 25%, transparent);
-	color: var(--err);
+.notice {
+	margin-bottom: var(--s-4);
 }
 
 .state {
@@ -178,6 +142,6 @@ function onToggle(value: boolean) {
 .spin { animation: spin 1s linear infinite; color: var(--mute); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.builds { display: flex; flex-direction: column; gap: 12px; }
+.builds { display: flex; flex-direction: column; gap: var(--s-4); }
 .more { display: flex; justify-content: center; padding-top: 6px; }
 </style>

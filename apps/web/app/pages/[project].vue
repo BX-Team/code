@@ -19,14 +19,6 @@ if (!project) {
 const link = resolveComponent('NuxtLink');
 const githubUrl = `https://github.com/${project.repo}`;
 
-const bands = [
-  project.previews.length ? 'previews' : null,
-  'features',
-  project.benchmarks ? 'benchmarks' : null,
-  'start',
-].filter(Boolean);
-const alt = (band: string) => bands.indexOf(band) % 2 === 1;
-
 const botswarm = (profile: string) => BENCHMARKS.botswarm.find(r => r.build === 'divinemc' && r.profile === profile);
 const paperSwarm = BENCHMARKS.botswarm.find(r => r.build === 'paper');
 const rct4 = BENCHMARKS.rctclusters[4][0];
@@ -56,6 +48,9 @@ const { copy, copied, text: copiedText } = useClipboard({ legacy: true });
 
 const storeButtons = !project.downloads && !!project.channels?.length;
 
+const startIndex = ref(0);
+const start = computed(() => project.start[startIndex.value] ?? project.start[0]!);
+
 const coloured = shallowRef<Record<string, ThemedToken[][]>>({});
 onMounted(async () => {
   const entries = await Promise.all(
@@ -72,7 +67,7 @@ useHead({
 
 <template>
 	<div v-if="project" class="proj">
-		<SiteNav overlay search-enabled @search="openCommandPalette()" />
+		<SiteNav search-enabled @search="openCommandPalette()" />
 
 		<main>
 			<PageHero :title="project.name" :tagline="project.tagline" :lede="project.lede">
@@ -123,7 +118,16 @@ useHead({
 				</p>
 			</div>
 
-			<Section v-if="project.previews.length" title="Preview" :alt="alt('previews')">
+			<Section
+				v-if="project.demo"
+				class="proj-demo"
+				title="Live demo"
+				:lede="`Click around ${project.demo.title} without installing it.`"
+			>
+				<ProjectDemo :demo="project.demo" :logo="project.logo" />
+			</Section>
+
+			<Section v-if="project.previews.length" title="Preview">
 				<div class="proj-previews" :class="{ 'proj-previews--single': project.previews.length === 1 }">
 					<figure v-for="(p, i) in project.previews" :key="p.src" class="proj-preview">
 						<button class="proj-preview__frame" type="button" :aria-label="`Enlarge: ${p.caption ?? p.alt}`" @click="zoomed = i">
@@ -135,7 +139,7 @@ useHead({
 				<PreviewLightbox v-model="zoomed" :previews="project.previews" />
 			</Section>
 
-			<Section title="Features" :lede="`What ${project.name} does, and where to read more about each part.`" :alt="alt('features')">
+			<Section title="Features" :lede="`What ${project.name} does, and where to read more about each part.`">
 				<template v-if="project.docs" #action>
 					<NuxtLink class="bx-link proj-more" :to="project.docs">Read the docs →</NuxtLink>
 				</template>
@@ -159,7 +163,6 @@ useHead({
 				v-if="project.benchmarks === 'pending'"
 				title="Paper vs DivineMC"
 				lede="The same worlds, the same plugins and the same hardware, run on both servers and measured side by side."
-				:alt="alt('benchmarks')"
 			>
 				<p class="proj-callout proj-callout--note">
 					<span class="proj-callout__mark">In progress</span>
@@ -174,14 +177,13 @@ useHead({
 				v-else-if="project.benchmarks"
 				title="Benchmarks"
 				:lede="`${project.name} against Paper and Purpur: the same worlds, the same bots and the same machine, five runs each.`"
-				:alt="alt('benchmarks')"
 			>
 				<template #action>
 					<NuxtLink class="bx-link proj-more" :to="project.benchmarks.docs">Full results →</NuxtLink>
 				</template>
 				<div class="proj-bench">
 					<div v-for="h in benchHighlights" :key="h.label" class="proj-bench__stat">
-						<p class="proj-bench__value">{{ h.value }}</p>
+						<p class="proj-bench__value bx-text-grad">{{ h.value }}</p>
 						<p class="proj-bench__label">{{ h.label }}</p>
 						<p class="bx-caption">{{ h.detail }}</p>
 					</div>
@@ -195,38 +197,58 @@ useHead({
 				</p>
 			</Section>
 
-			<Section title="Get started" :alt="alt('start')">
+			<Section title="Get started">
 				<div class="proj-start" :class="{ 'proj-start--single': project.start.length === 1 }">
-					<article v-for="s in project.start" :key="s.title" class="proj-card">
-						<p class="bx-micro">{{ s.label }}</p>
-						<h3 class="proj-card__title">{{ s.title }}</h3>
-						<p class="proj-card__body">{{ s.body }}</p>
-						<div v-if="s.code" class="proj-code">
-							<pre v-if="coloured[s.title]"><code><template v-for="(line, i) in coloured[s.title]" :key="i"><span
-								v-for="(token, at) in line" :key="at" :style="{ color: token.color }">{{ token.content }}</span><template v-if="i < coloured[s.title]!.length - 1">{{ '\n' }}</template></template></code></pre>
-							<pre v-else><code>{{ s.code }}</code></pre>
-							<button
-								type="button"
-								class="proj-code__copy"
-								:aria-label="copied && copiedText === s.code ? 'Copied' : 'Copy to clipboard'"
-								@click="copy(s.code)"
-							>
-								<Check v-if="copied && copiedText === s.code" :size="15" :stroke-width="1.7" />
-								<Copy v-else :size="15" :stroke-width="1.7" />
-							</button>
+					<div v-if="project.start.length > 1" class="proj-start__tabs" role="tablist" aria-label="Ways to get started">
+						<button
+							v-for="(s, i) in project.start"
+							:key="s.title"
+							type="button"
+							role="tab"
+							class="proj-start__tab"
+							:class="{ 'proj-start__tab--on': i === startIndex }"
+							:aria-selected="i === startIndex"
+							@click="startIndex = i"
+						>
+							<span class="proj-start__label">{{ s.label }}</span>
+							<span class="proj-start__name">{{ s.title }}</span>
+						</button>
+					</div>
+
+					<div class="proj-start__panel" role="tabpanel">
+						<p v-if="project.start.length === 1" class="proj-start__label">{{ start.label }}</p>
+						<h3 class="proj-start__title">{{ start.title }}</h3>
+						<p class="proj-start__body">{{ start.body }}</p>
+						<div v-if="start.code" class="proj-code">
+							<div class="proj-code__bar">
+								<span class="proj-code__dots" aria-hidden="true"><i /><i /><i /></span>
+								<span class="proj-code__file">{{ start.lang === 'kotlin' ? 'build.gradle.kts' : 'terminal' }}</span>
+								<button
+									type="button"
+									class="proj-code__copy"
+									:aria-label="copied && copiedText === start.code ? 'Copied' : 'Copy to clipboard'"
+									@click="copy(start.code)"
+								>
+									<Check v-if="copied && copiedText === start.code" :size="15" :stroke-width="1.7" />
+									<Copy v-else :size="15" :stroke-width="1.7" />
+								</button>
+							</div>
+							<pre v-if="coloured[start.title]"><code><template v-for="(line, i) in coloured[start.title]" :key="i"><span
+								v-for="(token, at) in line" :key="at" :style="{ color: token.color }">{{ token.content }}</span><template v-if="i < coloured[start.title]!.length - 1">{{ '\n' }}</template></template></code></pre>
+							<pre v-else><code>{{ start.code }}</code></pre>
 						</div>
-						<div v-if="s.action" class="proj-card__foot">
+						<div v-if="start.action" class="proj-start__foot">
 							<Button
 								variant="primary"
-								:href="s.action.href"
-								:target="s.action.href.startsWith('http') ? '_blank' : undefined"
-								:rel="s.action.href.startsWith('http') ? 'noopener' : undefined"
+								:href="start.action.href"
+								:target="start.action.href.startsWith('http') ? '_blank' : undefined"
+								:rel="start.action.href.startsWith('http') ? 'noopener' : undefined"
 							>
-								{{ s.action.label }}
-								<ArrowUpRight v-if="s.action.href.startsWith('http')" :size="15" :stroke-width="1.7" />
+								{{ start.action.label }}
+								<ArrowUpRight v-if="start.action.href.startsWith('http')" :size="15" :stroke-width="1.7" />
 							</Button>
 						</div>
-					</article>
+					</div>
 				</div>
 			</Section>
 		</main>
@@ -236,16 +258,30 @@ useHead({
 </template>
 
 <style scoped>
+/* A desktop interface scaled to a phone is unreadable, and touch cannot drive it well. */
+@media (max-width: 767px) {
+	.proj-demo {
+		display: none;
+	}
+}
+
 .proj {
 	min-height: 100vh;
 	overflow-x: clip;
 }
 
+.proj > main {
+	padding-bottom: var(--s-16);
+}
+
 .proj-tag,
 .proj-chip {
-	font: 500 11px/1 var(--font-mono);
-	padding: 5px 8px;
-	border-radius: var(--r-1);
+	display: inline-flex;
+	align-items: center;
+	height: 24px;
+	padding: 0 10px;
+	border-radius: var(--r-pill);
+	font: 500 12px/1 var(--font-sans);
 }
 
 .proj-tag {
@@ -254,8 +290,7 @@ useHead({
 }
 
 .proj-chip {
-	border: 1px solid var(--line-2);
-	background: var(--surface-1);
+	background: var(--surface-3);
 	color: var(--warn);
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -274,7 +309,7 @@ useHead({
 .proj-archived {
 	max-width: var(--container);
 	margin: 0 auto;
-	padding: var(--s-8) var(--s-8) 0;
+	padding: var(--s-6) var(--s-4) 0;
 }
 
 .proj-callout {
@@ -283,10 +318,9 @@ useHead({
 	margin: 0;
 	padding: var(--s-4);
 	border: 1px solid var(--line);
-	border-left: 2px solid var(--rule);
-	border-radius: var(--r-1);
-	background: var(--surface-0);
-	font: 400 13.5px/1.6 var(--font-mono);
+	border-radius: var(--r-3);
+	background: var(--surface-card);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 
@@ -298,16 +332,8 @@ useHead({
 	text-transform: uppercase;
 }
 
-.proj-callout--note {
-	border-left-color: var(--info);
-}
-
 .proj-callout--note .proj-callout__mark {
 	color: var(--info);
-}
-
-.proj-callout--warn {
-	border-left-color: var(--warn);
 }
 
 .proj-callout--warn .proj-callout__mark {
@@ -325,8 +351,10 @@ useHead({
 	display: flex;
 	flex-direction: column;
 	gap: var(--s-2);
-	padding-left: var(--s-4);
-	border-left: 2px solid var(--accent);
+	padding: var(--s-5) var(--s-6);
+	border: 1px solid var(--line);
+	border-radius: var(--r-4);
+	background: var(--surface-card);
 }
 
 .proj-bench__stat p {
@@ -334,13 +362,12 @@ useHead({
 }
 
 .proj-bench__value {
-	font: 600 48px/1 var(--font-sans);
-	letter-spacing: -0.03em;
-	color: var(--fg-hi);
+	font: 900 48px/1 var(--font-sans);
+	letter-spacing: -0.05em;
 }
 
 .proj-bench__label {
-	font: 400 14px/1.5 var(--font-mono);
+	font: 400 14px/1.5 var(--font-sans);
 	color: var(--fg);
 }
 
@@ -406,65 +433,138 @@ useHead({
 
 .proj-start {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: var(--s-6);
+	grid-template-columns: 280px minmax(0, 1fr);
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: var(--r-4);
+	background: var(--surface-card);
 }
 
 .proj-start--single {
 	grid-template-columns: minmax(0, 1fr);
 }
 
-.proj-card {
+.proj-start__tabs {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: var(--s-3);
+	border-right: 1px solid var(--line);
+	background: var(--surface-1);
+}
+
+.proj-start__tab {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 12px 14px;
+	border: 0;
+	border-radius: var(--r-3);
+	background: transparent;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.proj-start__tab:hover {
+	background: var(--surface-2);
+}
+
+.proj-start__tab--on {
+	background: var(--surface-3);
+}
+
+.proj-start__label {
+	margin: 0;
+	font: 500 11px/1.4 var(--font-mono);
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--mute);
+}
+
+.proj-start__tab--on .proj-start__label {
+	color: var(--accent-2);
+}
+
+.proj-start__name {
+	font: 600 14px/1.35 var(--font-sans);
+	color: var(--dim);
+}
+
+.proj-start__tab--on .proj-start__name {
+	color: var(--fg);
+}
+
+.proj-start__panel {
 	display: flex;
 	flex-direction: column;
 	gap: var(--s-3);
 	min-width: 0;
 	padding: var(--s-6);
-	background: var(--surface-card);
-	border: 1px solid var(--line);
-	border-radius: var(--r-1);
 }
 
-.proj-card__title {
+.proj-start__title {
 	margin: 0;
-	font: 600 21px/1.3 var(--font-sans);
-	letter-spacing: -0.01em;
+	font: 700 22px/1.25 var(--font-sans);
+	letter-spacing: -0.03em;
 	color: var(--fg);
 }
 
-.proj-card__body {
+.proj-start__body {
+	max-width: 60ch;
 	margin: 0;
-	font: 400 13.5px/1.6 var(--font-mono);
+	font: 400 14px/1.6 var(--font-sans);
 	color: var(--dim);
 }
 
-.proj-card__foot {
-	margin-top: auto;
-	padding-top: var(--s-3);
+.proj-start__foot {
+	padding-top: var(--s-2);
 }
 
 .proj-code {
-	position: relative;
-	margin-top: var(--s-1);
+	margin-top: var(--s-2);
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: var(--r-3);
+	background: var(--surface-deep);
+}
+
+.proj-code__bar {
+	display: flex;
+	align-items: center;
+	gap: var(--s-3);
+	min-height: 40px;
+	padding: 0 6px 0 14px;
+	border-bottom: 1px solid var(--line);
+}
+
+.proj-code__dots {
+	display: flex;
+	gap: 6px;
+}
+
+.proj-code__dots i {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--line-2);
+}
+
+.proj-code__file {
+	flex: 1;
+	font: 400 12px/1.4 var(--font-mono);
+	color: var(--mute);
 }
 
 .proj-code pre {
 	margin: 0;
-	padding: var(--s-4) var(--s-12) var(--s-4) var(--s-4);
+	padding: var(--s-4) var(--s-5);
 	overflow-x: auto;
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-	background: var(--surface-deep);
-	border: 1px solid var(--line);
-	border-radius: var(--r-3);
-	font: 400 13px/1.55 var(--font-mono);
+	font: 400 13px/1.7 var(--font-mono);
 	color: var(--fg);
 }
 
 .proj-code__copy {
-	position: absolute;
-	top: 6px;
-	right: 6px;
 	display: grid;
 	place-items: center;
 	width: 32px;
@@ -491,15 +591,22 @@ useHead({
 }
 
 @media (max-width: 860px) {
-	.proj-archived {
-		padding: var(--s-6) var(--s-4) 0;
-	}
-
 	.proj-previews,
 	.proj-start,
 	.proj-bench,
 	.proj-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.proj-start__tabs {
+		flex-direction: row;
+		overflow-x: auto;
+		border-right: 0;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.proj-start__tab {
+		flex: 0 0 auto;
 	}
 }
 </style>
