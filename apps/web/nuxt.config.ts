@@ -136,6 +136,12 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2026-01-01',
+
+  future: { compatibilityVersion: 5 },
+
+  experimental: {
+    nitroAutoImports: true,
+  },
 });
 
 /** A docs section and a registry entry are the same fact twice; fail the build when they drift. */
