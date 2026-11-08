@@ -1,3 +1,5 @@
+import { RestTreeSchema } from '@bx-team/types/schema/github';
+import { GITHUB_API } from './releases';
 import { downloadZip } from './zip';
 
 export interface Skill {
@@ -22,22 +24,28 @@ export const SKILLS: Skill[] = [
   },
 ];
 
-export const MARKETPLACE = 'BX-Team/code';
+export const REPOSITORY = 'BX-Team/claude-skills';
+export const MARKETPLACE = REPOSITORY;
 export const PLUGIN = 'minecraft-server';
 
-// Bundled from the skills Claude Code reads in this repository, so the zip is never a stale copy.
-const files = import.meta.glob('../../../../.claude/skills/**/*.md', {
-  query: '?raw',
-  import: 'default',
-}) as Record<string, () => Promise<string>>;
-
-/** claude.ai wants the skill's own folder at the root of the archive. */
+/** claude.ai wants the skill's own folder at the root of the archive. The files are read from `master`, so the zip is never a stale copy. */
 export async function downloadSkill(name: string): Promise<void> {
-  const prefix = `../../../../.claude/skills/${name}/`;
+  const prefix = `skills/${name}/`;
+  const raw = await $fetch(`${GITHUB_API}/repos/${REPOSITORY}/git/trees/master`, {
+    query: { recursive: 1 },
+    headers: { Accept: 'application/vnd.github+json' },
+  });
+  const paths = RestTreeSchema.parse(raw)
+    .tree.filter(entry => entry.type === 'blob' && entry.path.startsWith(prefix))
+    .map(entry => entry.path);
+  if (paths.length === 0) throw new Error(`No skill named ${name} in ${REPOSITORY}`);
   const entries = await Promise.all(
-    Object.entries(files)
-      .filter(([path]) => path.startsWith(prefix))
-      .map(async ([path, load]) => ({ path: `${name}/${path.slice(prefix.length)}`, text: await load() })),
+    paths.map(async path => ({
+      path: `${name}/${path.slice(prefix.length)}`,
+      text: await $fetch<string>(`https://raw.githubusercontent.com/${REPOSITORY}/master/${path}`, {
+        responseType: 'text',
+      }),
+    })),
   );
   downloadZip(`${name}.zip`, entries);
 }

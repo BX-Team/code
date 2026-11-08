@@ -32,11 +32,11 @@ Shared components come from `@bx-team/ui` — see [`packages/ui/CLAUDE.md`](../.
 ## Tools
 `/tools` lists the utilities and the Claude skills; each tool is `app/pages/tools/<name>.vue` inside `ToolsToolPage`, which also carries the shared form styles (`.panel`, `.input`, `.chip`, `.btn`, …). The tool pages are client-rendered (`'/tools/*': { ssr: false }`) because every form lives in the query string (`lib/query.ts`) so a result can be pasted into a support thread.
 
-- **Server flags** — `lib/flags/` (the script highlighter is `lib/flags/highlight.ts`), the same sets and conditions as the `jvm-flags` skill (`.claude/skills/jvm-flags/reference/presets.md`). Change one, change the other.
+- **Server flags** — `lib/flags/` (the script highlighter is `lib/flags/highlight.ts`), the same sets and conditions as the `jvm-flags` skill (`skills/jvm-flags/reference/presets.md` in [BX-Team/claude-skills](https://github.com/BX-Team/claude-skills)). Change one, change the other.
 - **UUID** — `lib/mojang.ts`. Mojang answers a Cloudflare Worker with 403 and sends a browser no CORS headers, so the browser asks crafthead.net, then playerdb.co; the offline UUID is computed locally. Do not move the lookup into `api`.
 - **Colour text** and **coordinates** are pure computation (`lib/colortext.ts`, the page itself). The colour text previews (`ToolsMcPreview`) draw Minecraft's screens without Mojang's assets: the backdrops are pixel SVGs generated in `lib/mcscene.ts`, the font is Monocraft (OFL, subset to Latin and Cyrillic in `public/fonts/monocraft/`). Do not add textures or screenshots from the game.
 
-The skills are the ones in `.claude/skills`. Claude Code installs them through the marketplace in `.claude-plugin/marketplace.json` (plugin `minecraft-server`), and the "zip" button builds the archive claude.ai expects in the browser from the same files (`lib/skills.ts`), so there is no copy to keep in sync.
+The skills live in [BX-Team/claude-skills](https://github.com/BX-Team/claude-skills), which is also the Claude Code marketplace (plugin `minecraft-server`). The "zip" button builds the archive claude.ai expects in the browser (`lib/skills.ts`): it lists `skills/<name>/` in that repository's `master` tree through the GitHub API and reads each file from raw.githubusercontent.com, so there is no copy to keep in sync, and renaming a skill folder there breaks its button here.
 
 ## Responsive design
 

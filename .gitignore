@@ -53,4 +53,3 @@ generated
 .dev.vars
 
 .claude/*
-!.claude/skills/

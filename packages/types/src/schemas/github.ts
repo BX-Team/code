@@ -127,6 +127,12 @@ export const RestReleaseSchema = z.object({
 
 export const RestReleaseListSchema = z.array(RestReleaseSchema);
 
+/** A recursive tree (`GET /repos/{owner}/{repo}/git/trees/{ref}?recursive=1`) — how the site finds a skill's files. */
+export const RestTreeSchema = z.object({
+  truncated: z.boolean(),
+  tree: z.array(z.object({ path: z.string(), type: z.string() })),
+});
+
 export type Repository = z.infer<typeof RepositorySchema>;
 export type User = z.infer<typeof UserSchema>;
 export type PushEvent = z.infer<typeof PushEventSchema>;

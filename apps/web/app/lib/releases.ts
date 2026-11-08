@@ -3,7 +3,7 @@ import { type RestRelease, RestReleaseListSchema } from '@bx-team/types/schema/g
 export type { RestRelease };
 
 /** In dev the Nitro proxy adds `GITHUB_TOKEN`; in production each visitor spends their own anonymous quota. */
-const GITHUB_API = import.meta.dev ? '/gh' : 'https://api.github.com';
+export const GITHUB_API = import.meta.dev ? '/gh' : 'https://api.github.com';
 
 /** Desktop apps publish on GitHub only; the browser reads their releases straight from the REST API. */
 export async function fetchGithubReleases(repo: string, perPage = 20): Promise<RestRelease[]> {

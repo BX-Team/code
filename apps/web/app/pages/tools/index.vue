@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowRight, Check, Copy, Download, Fingerprint, Map as MapIcon, Palette, Terminal } from '@lucide/vue';
 import { useClipboard } from '@vueuse/core';
-import { downloadSkill, MARKETPLACE, PLUGIN, SKILLS } from '@/lib/skills';
+import { downloadSkill, MARKETPLACE, PLUGIN, REPOSITORY, SKILLS } from '@/lib/skills';
 
 useHead({
   title: 'Tools',
@@ -115,6 +115,11 @@ const { copy, copied, text: copiedText } = useClipboard({ legacy: true });
 							<em>Create skill</em> and upload it.
 						</p>
 					</div>
+					<p class="hint">
+						The skills live in
+						<a :href="`https://github.com/${REPOSITORY}`" target="_blank" rel="noopener">{{ REPOSITORY }}</a>, along with
+						the ones we use to drive and record desktop apps.
+					</p>
 				</div>
 			</div>
 		</section>
