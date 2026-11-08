@@ -140,6 +140,7 @@ export default defineNuxtConfig({
   future: { compatibilityVersion: 5 },
 
   experimental: {
+    // @nuxt/content still imports useRuntimeConfig from #imports; drop once it supports Nuxt 5.
     nitroAutoImports: true,
   },
 });

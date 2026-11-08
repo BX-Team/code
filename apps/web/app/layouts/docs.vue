@@ -64,6 +64,7 @@ interface Project {
 const route = useRoute();
 const router = useRouter();
 
+// Frontmatter icons must be listed here; an unknown one falls back to FileText silently.
 const iconMap: Record<string, Component> = {
   Blocks,
   CalendarClock,

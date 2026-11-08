@@ -16,6 +16,7 @@ import { verifyInteraction } from '../discord/verify';
 
 export const discord = new Hono<BotEnv>();
 
+// Answered within Discord's 3 seconds and never deferred: a Worker can't outlive its response.
 discord.post('/interactions', async c => {
   const body = await c.req.text();
   const valid = await verifyInteraction(

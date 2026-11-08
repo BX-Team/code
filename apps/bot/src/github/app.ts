@@ -44,6 +44,7 @@ async function appJwt(env: Env): Promise<string> {
   const claims = { iat: now - 60, exp: now + 9 * 60, iss: env.GITHUB_APP_ID };
   const unsigned = `${base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${base64url(JSON.stringify(claims))}`;
 
+  // GitHub hands out PKCS#1, which WebCrypto can't import: the secret is converted with `openssl pkcs8 -topk8`.
   const key = await crypto.subtle.importKey(
     'pkcs8',
     pemToDer(env.GITHUB_APP_PRIVATE_KEY),
