@@ -88,7 +88,6 @@ const link = resolveComponent('NuxtLink');
 
 .showcase__shot {
 	position: relative;
-	height: 220px;
 	overflow: hidden;
 	border: 1px solid var(--line);
 	border-radius: var(--r-2);
@@ -98,15 +97,17 @@ const link = resolveComponent('NuxtLink');
 .showcase__shot img {
 	display: block;
 	width: 100%;
-	height: 100%;
+	height: 220px;
 	object-fit: cover;
 	object-position: top left;
 }
 
 .showcase__term {
+	flex-grow: 1;
+	min-height: 220px;
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-end;
+	justify-content: center;
 	gap: 2px;
 	padding: 14px 16px;
 	font: 400 12.5px/1.6 var(--font-mono);
@@ -163,8 +164,12 @@ const link = resolveComponent('NuxtLink');
 }
 
 @media (max-width: 640px) {
-	.showcase__shot {
+	.showcase__shot img {
 		height: 160px;
+	}
+
+	.showcase__term {
+		min-height: 160px;
 	}
 }
 </style>
