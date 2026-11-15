@@ -104,8 +104,8 @@ Entity activation range (EAR) is evaluated once before the parallel phases begin
 
 To stay compatible with vanilla mechanics, a single world tick under RCT runs in strict phases, and each phase fully completes before the next one begins:
 
-1. **Block ticking** — all grouped chunks are ticked in parallel (scheduled block ticks, random ticks, redstone, piston activation, etc.), then the chunks left outside every group are ticked on the world thread.
-2. **Natural spawning** — mob spawning runs alongside block ticking and is joined before moving on (see `async-natural-spawn`).
+1. **Natural spawning** — mob spawning runs on the world thread before any chunk is ticked, as in vanilla.
+2. **Block ticking** — all grouped chunks are ticked in parallel (scheduled block ticks, random ticks, redstone, piston activation, etc.), then the chunks left outside every group are ticked on the world thread.
 3. **Block events** — piston and chest events are dispatched on the world thread, exactly where vanilla dispatches them.
 4. **Sensors** — if [Parallel Sensor Phase](./parallel-sensor-phase) is enabled, the due brain sensors are computed on their own pool right before entities tick.
 5. **Entity ticking (PET)** — only after every block update above has been finalized do entities tick.
@@ -136,10 +136,11 @@ async:
     executor-thread-count: 4
     # Thread priority of the region ticking pool (default: 7, i.e. NORM_PRIORITY + 2).
     executor-thread-priority: 7
-  mob-spawning:
-    # Run natural mob spawning alongside region ticking. Enabled by default.
-    async-natural-spawn: true
 ```
+
+The option `mob-spawning.async-natural-spawn` no longer exists and is removed from the file on startup: natural spawning always runs on the world thread.
+
+Event listeners run on the region threads, several at a time. For plugins that are not thread-safe, see `serialize-plugin-listeners` on the [Parallel World Ticking](./parallel-world-ticking#plugins-that-are-not-thread-safe) page; the option works with RCT alone too.
 
 Instead of picking the thread count by hand you can let the server do it:
 
