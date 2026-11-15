@@ -8,7 +8,6 @@ import {
   commitUrl,
   type Download as File,
   fetchLatestBuild,
-  fetchLatestRelease,
   fetchProjects,
   getChannelColor,
   type ProjectSummary,
@@ -18,8 +17,6 @@ import { formatBytes } from '@/lib/format';
 import { findProject, PROJECTS } from '~/config/projects';
 import { fetchGithubReleases } from '~/lib/releases';
 
-/** A versioned project's newest publication is a build, a release project's is a
- *  tag; the card is the same either way, so the difference is resolved here. */
 interface Entry {
   project: ProjectSummary;
   label: string;
@@ -30,19 +27,6 @@ interface Entry {
 }
 
 async function latestOf(project: ProjectSummary): Promise<Entry | null> {
-  if (project.kind === 'release') {
-    const release = await fetchLatestRelease(project.key).catch(() => null);
-    if (!release) return null;
-    return {
-      project,
-      label: release.tag,
-      channel: release.channel,
-      at: release.created_at,
-      file: primaryDownload(release.downloads),
-      commits: release.commits,
-    };
-  }
-
   if (!project.latest) return null;
   const build = await fetchLatestBuild(project.key, project.latest).catch(() => null);
   if (!build) return null;
@@ -108,7 +92,7 @@ useHead({
 
           <dl v-if="latest" class="dl-card__facts">
             <div>
-              <dt>{{ project.kind === 'release' ? 'Latest release' : 'Latest build' }}</dt>
+              <dt>Latest build</dt>
               <dd>{{ latest.label }}</dd>
             </div>
             <div>
@@ -143,7 +127,7 @@ useHead({
             </Button>
             <Button :href="`/downloads/${project.key}`" variant="secondary">
               <ArrowRight :size="16" :stroke-width="1.7" />
-              {{ project.kind === 'release' ? 'All releases' : 'All builds' }}
+              All builds
             </Button>
             <NuxtLink v-if="findProject(project.key)" :to="`/${project.key}`" class="bx-link dl-card__about">
               About {{ project.name }}

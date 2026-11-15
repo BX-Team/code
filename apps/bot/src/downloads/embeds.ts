@@ -1,18 +1,9 @@
 import type { EmbedBuilder } from '@discordjs/builders';
 import { RESOURCES } from '../config/resources';
 import { COLORS, createEmbed } from '../discord/embeds';
-import {
-  type Build,
-  type Channel,
-  type Commit,
-  type Download,
-  type ProjectSummary,
-  primaryDownload,
-  type Release,
-} from './client';
+import { type Build, type Channel, type Commit, type Download, type ProjectSummary, primaryDownload } from './client';
 
 const MAX_COMMITS_SHOWN = 5;
-const MAX_NOTES = 1500;
 
 const CHANNEL_COLORS: Record<Channel, number> = {
   stable: COLORS.success,
@@ -34,16 +25,6 @@ export function buildPublishedEmbed(project: ProjectSummary, build: Build): Embe
   });
 }
 
-export function releasePublishedEmbed(project: ProjectSummary, release: Release): EmbedBuilder {
-  return createEmbed({
-    color: CHANNEL_COLORS[release.channel],
-    title: `${project.name} ${release.tag}`,
-    url: `${RESOURCES.downloads}/${project.key}`,
-    description: truncate(release.notes, MAX_NOTES) ?? commitLines(project, release.commits),
-    fields: [{ name: 'Channel', value: release.channel, inline: true }, ...downloadFields(release.downloads)],
-  });
-}
-
 export function latestBuildEmbed(project: ProjectSummary, build: Build): EmbedBuilder {
   return createEmbed({
     color: CHANNEL_COLORS[build.channel],
@@ -52,18 +33,6 @@ export function latestBuildEmbed(project: ProjectSummary, build: Build): EmbedBu
     description: commitLines(project, build.commits),
     fields: [{ name: 'Channel', value: build.channel, inline: true }, ...downloadFields(build.downloads)],
     footer: `Published ${new Date(build.created_at).toUTCString()}`,
-    timestamp: false,
-  });
-}
-
-export function latestReleaseEmbed(project: ProjectSummary, release: Release): EmbedBuilder {
-  return createEmbed({
-    color: CHANNEL_COLORS[release.channel],
-    title: `${project.name} ${release.tag}`,
-    url: `${RESOURCES.downloads}/${project.key}`,
-    description: truncate(release.notes, MAX_NOTES) ?? commitLines(project, release.commits),
-    fields: [{ name: 'Channel', value: release.channel, inline: true }, ...downloadFields(release.downloads)],
-    footer: `Published ${new Date(release.created_at).toUTCString()}`,
     timestamp: false,
   });
 }
@@ -93,11 +62,6 @@ function commitLines(project: ProjectSummary, commits: Commit[]): string | undef
   }
 
   return lines.join('\n');
-}
-
-function truncate(text: string | null, limit: number): string | undefined {
-  if (!text) return undefined;
-  return text.length > limit ? `${text.slice(0, limit)}…` : text;
 }
 
 function formatSize(bytes: number): string {

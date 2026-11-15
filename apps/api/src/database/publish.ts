@@ -1,6 +1,6 @@
 import type { Channel, ProjectPatch, PublishCommit, VersionPatch } from '@bx-team/types/schema/downloads';
 import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
-import { type BuildRow, CHILD_TABLES, type Owner, type ReleaseRow, type VersionRow, version } from './downloads';
+import { type BuildRow, type VersionRow, version } from './downloads';
 
 /** D1 refuses more than 100 bound parameters in one statement; a commit binds four. */
 const COMMITS_PER_STATEMENT = 20;
@@ -53,27 +53,6 @@ export function upsertBuild(
     .first<BuildRow>();
 }
 
-export function upsertRelease(
-  db: D1Database,
-  projectKey: string,
-  tag: string,
-  channel: Channel,
-  commitSha: string | null,
-  notes: string | null,
-): Promise<ReleaseRow | null> {
-  return db
-    .prepare(
-      `insert into releases (project, tag, channel, commit_sha, notes, created_at) values (?, ?, ?, ?, ?, ?)
-       on conflict (project, tag) do update
-         set channel = excluded.channel,
-             commit_sha = coalesce(excluded.commit_sha, releases.commit_sha),
-             notes = coalesce(excluded.notes, releases.notes)
-       returning *`,
-    )
-    .bind(projectKey, tag, channel, commitSha, notes, now())
-    .first<ReleaseRow>();
-}
-
 /**
  * A published timestamp is written from here, not left to the column default: SQLite's
  * `datetime('now')` has no zone, and `new Date('2026-09-05 23:07:31')` is read as local
@@ -84,29 +63,22 @@ function now(): string {
 }
 
 /**
- * Writes the commit list and the artifact of one publish. D1 has no interactive
+ * Writes the commit list and the artifact of one build. D1 has no interactive
  * transactions, so `db.batch()` is the atomic unit and the caller compensates the object
  * it already put in the bucket if this throws.
  */
-export function attach(
-  db: D1Database,
-  owner: Owner,
-  id: number,
-  commits: PublishCommit[],
-  download: NewDownload,
-): Promise<unknown> {
-  const table = CHILD_TABLES[owner];
+export function attach(db: D1Database, id: number, commits: PublishCommit[], download: NewDownload): Promise<unknown> {
   const statements: D1PreparedStatement[] = [];
 
   if (commits.length) {
-    statements.push(db.prepare(`delete from ${table.commits} where ${table.column} = ?`).bind(id));
+    statements.push(db.prepare('delete from build_commits where build_id = ?').bind(id));
 
     for (let offset = 0; offset < commits.length; offset += COMMITS_PER_STATEMENT) {
       const chunk = commits.slice(offset, offset + COMMITS_PER_STATEMENT);
       statements.push(
         db
           .prepare(
-            `insert into ${table.commits} (${table.column}, position, sha, summary, at)
+            `insert into build_commits (build_id, position, sha, summary, at)
              values ${chunk.map(() => '(?, ?, ?, ?, ?)').join(', ')}`,
           )
           .bind(...chunk.flatMap((commit, index) => [id, offset + index, commit.sha, commit.summary, commit.at])),
@@ -117,9 +89,9 @@ export function attach(
   statements.push(
     db
       .prepare(
-        `insert into ${table.downloads} (${table.column}, name, file_name, file_path, size, sha256)
+        `insert into build_downloads (build_id, name, file_name, file_path, size, sha256)
          values (?, ?, ?, ?, ?, ?)
-         on conflict (${table.column}, name) do update
+         on conflict (build_id, name) do update
            set file_name = excluded.file_name, file_path = excluded.file_path,
                size = excluded.size, sha256 = excluded.sha256`,
       )
@@ -131,10 +103,6 @@ export function attach(
 
 export function deleteBuild(db: D1Database, id: number): Promise<unknown> {
   return db.prepare('delete from builds where id = ?').bind(id).run();
-}
-
-export function deleteRelease(db: D1Database, id: number): Promise<unknown> {
-  return db.prepare('delete from releases where id = ?').bind(id).run();
 }
 
 export function patchVersion(db: D1Database, id: number, patch: VersionPatch): Promise<unknown> {

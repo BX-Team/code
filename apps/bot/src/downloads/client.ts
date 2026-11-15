@@ -10,7 +10,6 @@ export type {
   Download,
   Project,
   ProjectSummary,
-  Release,
 } from '@bx-team/types/schema/downloads';
 
 /**
@@ -41,14 +40,6 @@ export function getBuild(project: string, version: string, build: number) {
 
 export function getLatestBuild(project: string, version: string) {
   return body(api.builds[':project'][':version'].latest.$get({ param: { project, version } }));
-}
-
-export function getRelease(project: string, tag: string) {
-  return body(api.releases[':project'][':tag'].$get({ param: { project, tag } }));
-}
-
-export function getLatestRelease(project: string) {
-  return body(api.releases[':project'].latest.$get({ param: { project } }));
 }
 
 /** A publish uploads whatever its workflow handed over: `application` when there is one. */

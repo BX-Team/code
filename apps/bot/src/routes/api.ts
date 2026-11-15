@@ -1,13 +1,12 @@
 import { type PublishEvent, PublishEventSchema } from '@bx-team/types/schema/downloads';
 import { badRequest, unauthorized } from '@bx-team/worker/error';
 import { verifySignature } from '@bx-team/worker/signature';
-import type { EmbedBuilder } from '@discordjs/builders';
 import { Hono } from 'hono';
 import { RELEASES_CHANNEL } from '../config/routing';
 import type { BotEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
-import { getBuild, getProject, getRelease, type Project } from '../downloads/client';
-import { buildPublishedEmbed, releasePublishedEmbed } from '../downloads/embeds';
+import { getBuild, getProject, type Project } from '../downloads/client';
+import { buildPublishedEmbed } from '../downloads/embeds';
 
 export const api = new Hono<BotEnv>();
 
@@ -36,12 +35,7 @@ api.post('/webhook', async c => {
   return c.json({ ok: true, announced: 1 });
 });
 
-async function render(project: Project, event: PublishEvent): Promise<EmbedBuilder | null> {
-  if (event.kind === 'release') {
-    const release = await getRelease(project.key, event.tag);
-    return release ? releasePublishedEmbed(project, release) : null;
-  }
-
+async function render(project: Project, event: PublishEvent) {
   const build = await getBuild(project.key, event.version, event.build);
   return build ? buildPublishedEmbed(project, build) : null;
 }

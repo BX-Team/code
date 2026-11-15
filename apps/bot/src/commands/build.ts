@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { errorEmbed } from '../discord/embeds';
 import { autocompleteChoices, focusedOption, reply, stringOption } from '../discord/respond';
-import { getLatestBuild, getLatestRelease, getProject, listProjects } from '../downloads/client';
-import { latestBuildEmbed, latestReleaseEmbed } from '../downloads/embeds';
+import { getLatestBuild, getProject, listProjects } from '../downloads/client';
+import { latestBuildEmbed } from '../downloads/embeds';
 import type { Command } from './types';
 
 export const build: Command = {
@@ -26,15 +26,7 @@ export const build: Command = {
       return reply([errorEmbed({ title: `Unknown project \`${projectKey}\`` })], { ephemeral: true });
     }
 
-    // A release project has tags rather than versions, so it answers with its newest one.
-    if (project.kind === 'release') {
-      const release = await getLatestRelease(project.key);
-      if (!release) return reply([errorEmbed({ title: `${project.name} has no releases yet` })], { ephemeral: true });
-
-      return reply([latestReleaseEmbed(project, release)]);
-    }
-
-    const version = stringOption(interaction.data.options, 'version') ?? project.latest ?? project.versions?.[0];
+    const version = stringOption(interaction.data.options, 'version') ?? project.latest ?? project.versions[0];
     if (!version) {
       return reply([errorEmbed({ title: `${project.name} has no versions yet` })], { ephemeral: true });
     }
@@ -54,7 +46,7 @@ export const build: Command = {
     if (focused?.name === 'version') {
       const projectKey = stringOption(interaction.data.options, 'project');
       const project = projectKey ? await getProject(projectKey) : null;
-      const keys = project?.versions ?? project?.releases ?? [];
+      const keys = project?.versions ?? [];
 
       return autocompleteChoices(
         keys.filter(key => key.toLowerCase().includes(query)).map(key => ({ name: key, value: key })),

@@ -1,7 +1,7 @@
 import { getBuild, getLatestBuild, getVersion, listVersions } from '@bx-team/types/api';
 import type { Build } from '@bx-team/types/schema/downloads';
 import { notFound } from '@bx-team/worker/error';
-import { type AppEnv, requireKind, requireProject, requireVersion } from '../context';
+import { type AppEnv, requireProject, requireVersion } from '../context';
 import {
   type BuildRow,
   build,
@@ -19,7 +19,7 @@ import { newestFirst } from '../util/versions';
 export const buildRoutes = router()
   .openapi(listVersions, async c => {
     const db = c.env.DB;
-    const project = requireKind(await requireProject(db, c.req.valid('param').project), 'versioned');
+    const project = await requireProject(db, c.req.valid('param').project);
 
     const rows = await versions(db, project.key);
     rows.sort((a, b) => newestFirst(a.key, b.key));
@@ -38,7 +38,7 @@ export const buildRoutes = router()
     const params = c.req.valid('param');
     const { limit, after } = c.req.valid('query');
 
-    const project = requireKind(await requireProject(db, params.project), 'versioned');
+    const project = await requireProject(db, params.project);
     const version = await requireVersion(db, project.key, params.version);
 
     const [rows, newest, count] = await Promise.all([
@@ -61,7 +61,7 @@ export const buildRoutes = router()
   .openapi(getLatestBuild, async c => {
     const db = c.env.DB;
     const params = c.req.valid('param');
-    const project = requireKind(await requireProject(db, params.project), 'versioned');
+    const project = await requireProject(db, params.project);
     const version = await requireVersion(db, project.key, params.version);
 
     const row = await latestBuild(db, version.id);
@@ -73,7 +73,7 @@ export const buildRoutes = router()
   .openapi(getBuild, async c => {
     const db = c.env.DB;
     const params = c.req.valid('param');
-    const project = requireKind(await requireProject(db, params.project), 'versioned');
+    const project = await requireProject(db, params.project);
     const version = await requireVersion(db, project.key, params.version);
 
     const row = await build(db, version.id, parseInt(params.build, 10));
@@ -94,7 +94,7 @@ async function hydrate(
   publicUrl: string,
 ): Promise<Build[]> {
   const ids = rows.map(row => row.id);
-  const [commits, downloads] = await Promise.all([commitsOf(db, 'build', ids), downloadsOf(db, 'build', ids)]);
+  const [commits, downloads] = await Promise.all([commitsOf(db, ids), downloadsOf(db, ids)]);
 
   return rows.map(row =>
     buildResponse(row, projectKey, versionKey, commits.get(row.id) ?? [], downloads.get(row.id) ?? [], publicUrl),

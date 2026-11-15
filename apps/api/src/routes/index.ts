@@ -1,11 +1,10 @@
-import { PublishBuildSchema, PublishReleaseSchema } from '@bx-team/types/schema/downloads';
+import { PublishBuildSchema } from '@bx-team/types/schema/downloads';
 import { router } from '../router';
 import { edgeCache } from '../util/cache';
 import { buildRoutes } from './builds';
 import { internalRoutes } from './internal';
 import { projectRoutes } from './projects';
 import { publishRoutes } from './publish';
-import { releaseRoutes } from './releases';
 
 export const routes = router();
 
@@ -13,12 +12,10 @@ export const routes = router();
 routes.use('/v1/projects/*', edgeCache);
 routes.use('/v1/projects', edgeCache);
 routes.use('/v1/builds/*', edgeCache);
-routes.use('/v1/releases/*', edgeCache);
 
 routes.route('/', internalRoutes);
 routes.route('/', projectRoutes);
 routes.route('/', buildRoutes);
-routes.route('/', releaseRoutes);
 routes.route('/', publishRoutes);
 
 routes.openAPIRegistry.registerComponent('securitySchemes', 'publishToken', {
@@ -27,7 +24,6 @@ routes.openAPIRegistry.registerComponent('securitySchemes', 'publishToken', {
   description: 'A publish token, valid for one project.',
 });
 routes.openAPIRegistry.register('PublishBuild', PublishBuildSchema);
-routes.openAPIRegistry.register('PublishRelease', PublishReleaseSchema);
 
 // Rendered from the same route definitions the handlers are registered with; `web` shows it at `/docs/api`.
 routes.doc31('/v1/openapi.json', c => ({
@@ -41,8 +37,8 @@ routes.doc31('/v1/openapi.json', c => ({
   },
   servers: [{ url: new URL(c.req.url).origin }],
   tags: [
-    { name: 'Downloads', description: 'Projects, versions, builds and releases.' },
-    { name: 'Publishing', description: 'What a release workflow calls. Bearer token, one project each.' },
+    { name: 'Downloads', description: 'Projects, versions and builds.' },
+    { name: 'Publishing', description: 'What a build workflow calls. Bearer token, one project each.' },
     { name: 'Service', description: 'Health and edge location.' },
   ],
 }));

@@ -36,8 +36,8 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 | [`packages/worker`](packages/worker) | What every Worker shares — the error type and handlers, hex, HMAC signatures |
 | [`packages/ui`](packages/ui) | Shared Vue 3 components and design tokens |
 
-`api` is the only app that stores anything — every project, version, build and
-release, with the artifacts in R2 and the download URLs pointing straight at the bucket.
+`api` is the only app that stores anything — every project, version and build,
+with the artifacts in R2 and the download URLs pointing straight at the bucket.
 `web` reads it for `/downloads`, and `bot` reads a publish back from it to
 announce. Nothing here builds an artifact: that happens in a release workflow in the
 project's own repository, which uploads through `api` with a project token.

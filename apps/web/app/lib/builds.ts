@@ -9,9 +9,7 @@ export type {
   Commit as BuildCommit,
   Download,
   Project,
-  ProjectKind,
   ProjectSummary,
-  Release,
   Support,
   Version,
   VersionSummary,
@@ -56,18 +54,6 @@ export function fetchBuild(project: string, version: string, build: number) {
   return parseResponse(
     api.builds[':project'][':version'][':build'].$get({ param: { project, version, build: String(build) } }),
   );
-}
-
-export function fetchReleases(project: string) {
-  return parseResponse(api.releases[':project'].$get({ param: { project } }));
-}
-
-export function fetchLatestRelease(project: string) {
-  return parseResponse(api.releases[':project'].latest.$get({ param: { project } }));
-}
-
-export function fetchRelease(project: string, tag: string) {
-  return parseResponse(api.releases[':project'][':tag'].$get({ param: { project, tag } }));
 }
 
 /** A publish uploads whatever its workflow handed over, so there is no fixed download:

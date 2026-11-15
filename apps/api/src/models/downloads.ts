@@ -1,42 +1,21 @@
-import type {
-  Build,
-  Commit,
-  Download,
-  Project,
-  ProjectSummary,
-  Release,
-  VersionSummary,
-} from '@bx-team/types/schema/downloads';
-import type { BuildRow, CommitRow, DownloadRow, ProjectRow, ReleaseRow, VersionRow } from '../database/downloads';
+import type { Build, Commit, Download, Project, ProjectSummary, VersionSummary } from '@bx-team/types/schema/downloads';
+import type { BuildRow, CommitRow, DownloadRow, ProjectRow, VersionRow } from '../database/downloads';
 import { groupVersions, sortNewestFirst } from '../util/versions';
 
-/**
- * A versioned project without an explicit `latest_version` falls back to its newest
- * version, and a release project to its newest tag — the page has to open on something.
- */
-export function projectSummary(
-  row: ProjectRow,
-  keys: string[],
-  updatedAt: string | null,
-  newestTag: string | null,
-): ProjectSummary {
-  const latest = row.kind === 'versioned' ? (row.latest_version ?? sortNewestFirst(keys)[0] ?? null) : newestTag;
-
+/** Without an explicit `latest_version` the newest version stands in: the page has to open on something. */
+export function projectSummary(row: ProjectRow, keys: string[], updatedAt: string | null): ProjectSummary {
   return {
     key: row.key,
     name: row.name,
-    kind: row.kind,
     description: row.description,
     repo: row.repo,
-    latest,
+    latest: row.latest_version ?? sortNewestFirst(keys)[0] ?? null,
     experimental: row.experimental_version,
     updated_at: updatedAt,
   };
 }
 
-export function projectDetail(summary: ProjectSummary, versionKeys: string[], releaseTags: string[]): Project {
-  if (summary.kind === 'release') return { ...summary, releases: releaseTags };
-
+export function projectDetail(summary: ProjectSummary, versionKeys: string[]): Project {
   const sorted = sortNewestFirst(versionKeys);
   return { ...summary, versions: sorted, version_groups: groupVersions(sorted) };
 }
@@ -66,24 +45,6 @@ export function buildResponse(
     channel: row.channel,
     created_at: row.created_at,
     commit: row.commit_sha,
-    commits: commits.map(commitResponse),
-    downloads: downloadsResponse(downloads, publicUrl),
-  };
-}
-
-export function releaseResponse(
-  row: ReleaseRow,
-  commits: CommitRow[],
-  downloads: DownloadRow[],
-  publicUrl: string,
-): Release {
-  return {
-    tag: row.tag,
-    project: row.project,
-    channel: row.channel,
-    created_at: row.created_at,
-    commit: row.commit_sha,
-    notes: row.notes,
     commits: commits.map(commitResponse),
     downloads: downloadsResponse(downloads, publicUrl),
   };

@@ -2,7 +2,6 @@ import { z } from '@hono/zod-openapi';
 
 export const ChannelSchema = z.enum(['alpha', 'beta', 'stable']);
 export const SupportSchema = z.enum(['supported', 'deprecated', 'unsupported']);
-export const ProjectKindSchema = z.enum(['versioned', 'release']);
 
 /** A commit as the publishing workflow reports it; `at` is an ISO 8601 instant. */
 export const PublishCommitSchema = z.object({
@@ -11,7 +10,9 @@ export const PublishCommitSchema = z.object({
   at: z.iso.datetime({ offset: true }),
 });
 
-const publishFields = {
+/** Omitting `build` lets the server take the next number after the newest one. */
+export const PublishBuildSchema = z.object({
+  build: z.number().int().positive().optional(),
   channel: ChannelSchema.default('stable'),
   /** Revision the artifact was built from, when the publisher knows it. */
   commit: z.string().min(4).max(64).nullish(),
@@ -22,17 +23,6 @@ const publishFields = {
     .regex(/^[a-z0-9._-]+$/i)
     .max(40)
     .default('application'),
-};
-
-/** Omitting `build` lets the server take the next number after the newest one. */
-export const PublishBuildSchema = z.object({
-  build: z.number().int().positive().optional(),
-  ...publishFields,
-});
-
-export const PublishReleaseSchema = z.object({
-  notes: z.string().max(20000).nullish(),
-  ...publishFields,
 });
 
 export const VersionPatchSchema = z.object({
@@ -54,30 +44,17 @@ export const PageQuerySchema = z.object({
   after: z.coerce.number().int().positive().optional(),
 });
 
-const publishedFields = {
-  event: z.literal('publish'),
-  project: z.string(),
-};
-
-export const BuildPublishedSchema = z.object({
-  ...publishedFields,
-  kind: z.literal('build'),
-  version: z.string(),
-  build: z.number().int().positive(),
-});
-
-export const ReleasePublishedSchema = z.object({
-  ...publishedFields,
-  kind: z.literal('release'),
-  tag: z.string(),
-});
-
 /**
  * What the API tells the bot after a publish. It carries the identity and nothing else —
  * the embed is rendered off a read-back, so a correction to the row shows up in Discord
  * without the notification having to grow a copy of it.
  */
-export const PublishEventSchema = z.discriminatedUnion('kind', [BuildPublishedSchema, ReleasePublishedSchema]);
+export const PublishEventSchema = z.object({
+  event: z.literal('publish'),
+  project: z.string(),
+  version: z.string(),
+  build: z.number().int().positive(),
+});
 
 /** `url` points at the bucket, never at the API. */
 export const DownloadSchema = z
@@ -101,7 +78,6 @@ export const ProjectSummarySchema = z
   .object({
     key: z.string().openapi({ example: 'divinemc' }),
     name: z.string().openapi({ example: 'DivineMC' }),
-    kind: ProjectKindSchema,
     description: z.string().nullable(),
     /** The GitHub repository the project is built from, when it has one. */
     repo: z.string().nullable(),
@@ -111,12 +87,10 @@ export const ProjectSummarySchema = z
   })
   .openapi('ProjectSummary');
 
-/** `kind` says which half is present; the other is absent rather than null. */
 export const ProjectSchema = ProjectSummarySchema.extend({
-  versions: z.array(z.string()).optional(),
-  version_groups: z.record(z.string(), z.array(z.string())).optional(),
-  releases: z.array(z.string()).optional(),
-}).openapi('Project', { description: '`kind` says which half is present; the other is absent rather than null.' });
+  versions: z.array(z.string()),
+  version_groups: z.record(z.string(), z.array(z.string())),
+}).openapi('Project');
 
 export const VersionSummarySchema = z
   .object({
@@ -145,19 +119,6 @@ export const VersionSchema = VersionSummarySchema.extend({
   builds: z.object({ items: z.array(BuildSchema), next: z.string().nullable() }),
 }).openapi('Version');
 
-export const ReleaseSchema = z
-  .object({
-    tag: z.string(),
-    project: z.string(),
-    channel: ChannelSchema,
-    created_at: z.string().openapi({ format: 'date-time' }),
-    commit: z.string().nullable(),
-    notes: z.string().nullable(),
-    commits: z.array(CommitSchema),
-    downloads: z.record(z.string(), DownloadSchema),
-  })
-  .openapi('Release');
-
 export const NextBuildSchema = z.object({ project: z.string(), version: z.string(), next: z.number().int() });
 
 export const OkSchema = z.object({ ok: z.boolean() }).openapi('Ok');
@@ -166,10 +127,8 @@ export const ErrorSchema = z.object({ ok: z.literal(false), error: z.string(), m
 
 export type Channel = z.infer<typeof ChannelSchema>;
 export type Support = z.infer<typeof SupportSchema>;
-export type ProjectKind = z.infer<typeof ProjectKindSchema>;
 export type PublishCommit = z.infer<typeof PublishCommitSchema>;
 export type PublishBuild = z.infer<typeof PublishBuildSchema>;
-export type PublishRelease = z.infer<typeof PublishReleaseSchema>;
 export type VersionPatch = z.infer<typeof VersionPatchSchema>;
 export type ProjectPatch = z.infer<typeof ProjectPatchSchema>;
 export type PageQuery = z.infer<typeof PageQuerySchema>;
@@ -181,4 +140,3 @@ export type Project = z.infer<typeof ProjectSchema>;
 export type VersionSummary = z.infer<typeof VersionSummarySchema>;
 export type Version = z.infer<typeof VersionSchema>;
 export type Build = z.infer<typeof BuildSchema>;
-export type Release = z.infer<typeof ReleaseSchema>;

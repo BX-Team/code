@@ -8,7 +8,6 @@ import {
   ProjectPatchSchema,
   ProjectSchema,
   ProjectSummarySchema,
-  ReleaseSchema,
   VersionPatchSchema,
   VersionSchema,
   VersionSummarySchema,
@@ -27,7 +26,7 @@ const json = <T extends z.ZodType>(schema: T, description = 'OK') => ({
 
 const error = (description: string) => json(ErrorSchema, description);
 
-const missing = { 404: error('No such project, version, build or release') };
+const missing = { 404: error('No such project, version or build') };
 const denied = {
   401: error('Missing or unknown token'),
   403: error('The token belongs to another project'),
@@ -36,30 +35,26 @@ const invalid = { 400: error('A parameter, query or body did not validate') };
 
 const param = (name: string, example: string) => z.string().openapi({ param: { name, in: 'path' }, example });
 
-const project = (example: string) => param('project', example);
+const project = param('project', 'divinemc');
 const versionKey = param('version', '26.2');
 const buildNumber = z
   .string()
   .regex(/^\d+$/, 'Build number must be a positive integer')
   .openapi({ param: { name: 'build', in: 'path' }, example: '11' });
-const tag = param('tag', '1.2.0');
 
 const security = [{ publishToken: [] }];
 
-const upload = (metadata: string) => ({
+const upload = {
   required: true,
   content: {
     'multipart/form-data': {
       schema: z.object({
         file: z.instanceof(File, { message: 'No file provided' }).openapi({ type: 'string', format: 'binary' }),
-        metadata: z
-          .string()
-          .optional()
-          .openapi({ description: `JSON: ${metadata}` }),
+        metadata: z.string().optional().openapi({ description: 'JSON: PublishBuild' }),
       }),
     },
   },
-});
+};
 
 export const listProjects = createRoute({
   method: 'get',
@@ -73,8 +68,8 @@ export const getProject = createRoute({
   method: 'get',
   path: '/v1/projects/{project}',
   tags: ['Downloads'],
-  summary: 'Get a project with its versions or its releases',
-  request: { params: z.object({ project: project('divinemc') }) },
+  summary: 'Get a project with its versions',
+  request: { params: z.object({ project: project }) },
   responses: { 200: json(ProjectSchema), ...missing },
 });
 
@@ -82,8 +77,8 @@ export const listVersions = createRoute({
   method: 'get',
   path: '/v1/builds/{project}',
   tags: ['Downloads'],
-  summary: "List a versioned project's versions, newest first",
-  request: { params: z.object({ project: project('divinemc') }) },
+  summary: "List a project's versions, newest first",
+  request: { params: z.object({ project: project }) },
   responses: { 200: json(z.array(VersionSummarySchema)), ...missing },
 });
 
@@ -93,7 +88,7 @@ export const getVersion = createRoute({
   tags: ['Downloads'],
   summary: 'Get a version with one page of its builds',
   request: {
-    params: z.object({ project: project('divinemc'), version: versionKey }),
+    params: z.object({ project: project, version: versionKey }),
     query: PageQuerySchema,
   },
   responses: { 200: json(VersionSchema), ...invalid, ...missing },
@@ -104,7 +99,7 @@ export const getLatestBuild = createRoute({
   path: '/v1/builds/{project}/{version}/latest',
   tags: ['Downloads'],
   summary: 'Get the newest build of a version',
-  request: { params: z.object({ project: project('divinemc'), version: versionKey }) },
+  request: { params: z.object({ project: project, version: versionKey }) },
   responses: { 200: json(BuildSchema), ...missing },
 });
 
@@ -113,35 +108,8 @@ export const getBuild = createRoute({
   path: '/v1/builds/{project}/{version}/{build}',
   tags: ['Downloads'],
   summary: 'Get one build',
-  request: { params: z.object({ project: project('divinemc'), version: versionKey, build: buildNumber }) },
+  request: { params: z.object({ project: project, version: versionKey, build: buildNumber }) },
   responses: { 200: json(BuildSchema), ...invalid, ...missing },
-});
-
-export const listReleases = createRoute({
-  method: 'get',
-  path: '/v1/releases/{project}',
-  tags: ['Downloads'],
-  summary: "List a release project's releases, newest first",
-  request: { params: z.object({ project: project('nyx') }) },
-  responses: { 200: json(z.array(ReleaseSchema)), ...missing },
-});
-
-export const getLatestRelease = createRoute({
-  method: 'get',
-  path: '/v1/releases/{project}/latest',
-  tags: ['Downloads'],
-  summary: 'Get the newest release',
-  request: { params: z.object({ project: project('nyx') }) },
-  responses: { 200: json(ReleaseSchema), ...missing },
-});
-
-export const getRelease = createRoute({
-  method: 'get',
-  path: '/v1/releases/{project}/{tag}',
-  tags: ['Downloads'],
-  summary: 'Get one release',
-  request: { params: z.object({ project: project('nyx'), tag }) },
-  responses: { 200: json(ReleaseSchema), ...missing },
 });
 
 export const nextBuild = createRoute({
@@ -151,7 +119,7 @@ export const nextBuild = createRoute({
   summary: 'The number the next build of a version will take',
   description: 'Creates the version when it does not exist yet. Never cached.',
   security,
-  request: { params: z.object({ project: project('divinemc'), version: versionKey }) },
+  request: { params: z.object({ project: project, version: versionKey }) },
   responses: { 200: json(NextBuildSchema), ...denied, ...missing },
 });
 
@@ -163,28 +131,8 @@ export const publishBuild = createRoute({
   description:
     'Multipart: `file` is the artifact, `metadata` a JSON object. Publishing the same number again replaces that named download and leaves the others alone, so a re-run of a failed upload is safe.',
   security,
-  request: { params: z.object({ project: project('divinemc'), version: versionKey }), body: upload('PublishBuild') },
+  request: { params: z.object({ project: project, version: versionKey }), body: upload },
   responses: { 200: json(BuildSchema), ...invalid, ...denied, ...missing },
-});
-
-export const publishRelease = createRoute({
-  method: 'post',
-  path: '/v1/publish/releases/{project}/{tag}',
-  tags: ['Publishing'],
-  summary: 'Publish a release',
-  security,
-  request: { params: z.object({ project: project('nyx'), tag }), body: upload('PublishRelease') },
-  responses: { 200: json(ReleaseSchema), ...invalid, ...denied, ...missing },
-});
-
-export const deleteRelease = createRoute({
-  method: 'delete',
-  path: '/v1/publish/releases/{project}/{tag}',
-  tags: ['Publishing'],
-  summary: 'Remove a release and the objects it published',
-  security,
-  request: { params: z.object({ project: project('nyx'), tag }) },
-  responses: { 200: json(OkSchema), ...denied, ...missing },
 });
 
 export const patchProject = createRoute({
@@ -194,7 +142,7 @@ export const patchProject = createRoute({
   summary: "Change a project's name, description, repository or offered versions",
   security,
   request: {
-    params: z.object({ project: project('divinemc') }),
+    params: z.object({ project: project }),
     body: { content: { 'application/json': { schema: ProjectPatchSchema.openapi('ProjectPatch') } } },
   },
   responses: { 200: json(OkSchema), ...invalid, ...denied, ...missing },
@@ -207,7 +155,7 @@ export const patchVersion = createRoute({
   summary: "Change a version's support status or Java floor",
   security,
   request: {
-    params: z.object({ project: project('divinemc'), version: versionKey }),
+    params: z.object({ project: project, version: versionKey }),
     body: { content: { 'application/json': { schema: VersionPatchSchema.openapi('VersionPatch') } } },
   },
   responses: { 200: json(OkSchema), ...invalid, ...denied, ...missing },
@@ -219,7 +167,7 @@ export const deleteBuild = createRoute({
   tags: ['Publishing'],
   summary: 'Remove a build and the objects it published',
   security,
-  request: { params: z.object({ project: project('divinemc'), version: versionKey, build: buildNumber }) },
+  request: { params: z.object({ project: project, version: versionKey, build: buildNumber }) },
   responses: { 200: json(OkSchema), ...invalid, ...denied, ...missing },
 });
 
@@ -257,13 +205,8 @@ function contract(app: OpenAPIHono) {
     .openapi(getVersion, handler)
     .openapi(getLatestBuild, handler)
     .openapi(getBuild, handler)
-    .openapi(listReleases, handler)
-    .openapi(getLatestRelease, handler)
-    .openapi(getRelease, handler)
     .openapi(nextBuild, handler)
     .openapi(publishBuild, handler)
-    .openapi(publishRelease, handler)
-    .openapi(deleteRelease, handler)
     .openapi(patchProject, handler)
     .openapi(patchVersion, handler)
     .openapi(deleteBuild, handler)

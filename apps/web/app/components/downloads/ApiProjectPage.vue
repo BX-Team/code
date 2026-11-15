@@ -4,19 +4,15 @@ import { ArrowUpRight, BookOpen, Download } from '@lucide/vue';
 import { useRoute } from 'vue-router';
 import BuildsList from '@/components/downloads/BuildsList.vue';
 import DownloadsHeader from '@/components/downloads/DownloadsHeader.vue';
-import ReleaseList from '@/components/downloads/ReleaseList.vue';
 import {
   BUILDS_PER_PAGE,
-  type Build,
   commitUrl,
   fetchLatestBuild,
   fetchProject,
-  fetchReleases,
   fetchVersion,
   fetchVersions,
   getChannelColor,
   primaryDownload,
-  type Release,
   repoUrl,
   type VersionSummary,
 } from '@/lib/builds';
@@ -24,7 +20,7 @@ import { formatBytes } from '@/lib/format';
 import githubSvgRaw from '~/assets/external/github.svg?raw';
 import { findProject } from '~/config/projects';
 
-/** A project the downloads API publishes: builds per Minecraft version, or its own tagged releases. */
+/** A project the downloads API publishes: builds per Minecraft version. */
 const props = defineProps<{ projectKey: string }>();
 
 const route = useRoute();
@@ -40,23 +36,8 @@ const { data } = await useAsyncData(`project:${projectKey}`, async () => {
     throw createError({ statusCode: 404, statusMessage: 'Project not found', fatal: true });
   }
 
-  // A release project has no versions at all, so nothing below applies to it.
-  if (project.kind === 'release') {
-    const releases = await fetchReleases(project.key).catch(() => [] as Release[]);
-    return {
-      project,
-      releases,
-      versions: [] as string[],
-      versionsMetadata: [] as VersionSummary[],
-      latestBuild: null as Build | null,
-      initialVersion: '',
-      initialBuilds: [] as Build[],
-      initialNext: null as string | null,
-    };
-  }
-
   // Already newest first from the server; re-sorting here would only disagree.
-  const versions = project.versions ?? [];
+  const versions = project.versions;
   const requested = queryVersion.value && versions.includes(queryVersion.value) ? queryVersion.value : null;
   const initialVersion = requested ?? project.latest ?? versions[0] ?? '';
 
@@ -70,7 +51,6 @@ const { data } = await useAsyncData(`project:${projectKey}`, async () => {
 
   return {
     project,
-    releases: [] as Release[],
     versions,
     versionsMetadata,
     latestBuild,
@@ -83,17 +63,14 @@ const { data } = await useAsyncData(`project:${projectKey}`, async () => {
 if (!data.value) throw createError({ statusCode: 500, statusMessage: 'Failed to load project', fatal: true });
 
 const project = computed(() => data.value!.project);
-const isRelease = computed(() => project.value.kind === 'release');
 const latestBuild = computed(() => data.value!.latestBuild);
-const latestRelease = computed(() => data.value!.releases[0] ?? null);
 
 const headline = computed(() => {
-  const source = isRelease.value ? latestRelease.value : latestBuild.value;
+  const source = latestBuild.value;
   if (!source) return null;
-  const label = isRelease.value ? (source as Release).tag : `#${(source as Build).build}`;
   return {
-    label,
-    version: isRelease.value ? null : (source as Build).version,
+    label: `#${source.build}`,
+    version: source.version,
     channel: source.channel,
     at: source.created_at,
     file: primaryDownload(source.downloads),
@@ -101,7 +78,6 @@ const headline = computed(() => {
   };
 });
 
-const releases = computed(() => data.value!.releases);
 const versions = computed(() => data.value!.versions);
 const versionsMetadata = computed(() => data.value!.versionsMetadata);
 const initialVersion = computed(() => data.value!.initialVersion);
@@ -117,11 +93,7 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: computed(() =>
-        isRelease.value
-          ? `Download the latest ${project.value.name} releases.`
-          : `Download the latest ${project.value.name} builds.`,
-      ),
+      content: computed(() => `Download the latest ${project.value.name} builds.`),
     },
   ],
 });
@@ -176,7 +148,7 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
       <div v-if="headline" class="dlp-wrap">
       <section class="dlp-latest" aria-labelledby="dlp-latest-title">
         <div class="dlp-latest__main">
-          <p id="dlp-latest-title" class="dlp-eyebrow">{{ isRelease ? 'Latest release' : 'Latest build' }}</p>
+          <p id="dlp-latest-title" class="dlp-eyebrow">Latest build</p>
           <div class="dlp-latest__id">
             <span class="dlp-latest__label bx-text-grad">{{ headline.label }}</span>
             <span v-if="headline.version" class="dlp-latest__version">{{ headline.version }}</span>
@@ -212,13 +184,8 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
       </section>
       </div>
 
-      <Section
-        :title="isRelease ? 'All releases' : 'All builds'"
-        :lede="isRelease ? 'Every tagged release, newest first.' : 'Every build for the selected Minecraft version, newest first.'"
-      >
-        <ReleaseList v-if="isRelease" :project="project" :releases="releases" />
+      <Section title="All builds" lede="Every build for the selected Minecraft version, newest first.">
         <BuildsList
-          v-else
           :project="project"
           :versions="versions"
           :default-version="initialVersion"

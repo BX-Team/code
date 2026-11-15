@@ -1,10 +1,9 @@
-import type { Channel, ProjectKind, Support } from '@bx-team/types/schema/downloads';
+import type { Channel, Support } from '@bx-team/types/schema/downloads';
 import type { D1Database } from '@cloudflare/workers-types';
 
 export interface ProjectRow {
   key: string;
   name: string;
-  kind: ProjectKind;
   description: string | null;
   repo: string | null;
   latest_version: string | null;
@@ -30,16 +29,6 @@ export interface BuildRow {
   created_at: string;
 }
 
-export interface ReleaseRow {
-  id: number;
-  project: string;
-  tag: string;
-  channel: Channel;
-  commit_sha: string | null;
-  notes: string | null;
-  created_at: string;
-}
-
 export interface CommitRow {
   owner_id: number;
   sha: string;
@@ -60,14 +49,6 @@ export interface TokenRow {
   id: number;
   project: string;
 }
-
-/** Which pair of child tables a build or a release owns. */
-export type Owner = 'build' | 'release';
-
-export const CHILD_TABLES: Record<Owner, { commits: string; downloads: string; column: string }> = {
-  build: { commits: 'build_commits', downloads: 'build_downloads', column: 'build_id' },
-  release: { commits: 'release_commits', downloads: 'release_downloads', column: 'release_id' },
-};
 
 /** D1 refuses more than 100 bound parameters in one statement. */
 const IDS_PER_STATEMENT = 90;
@@ -132,57 +113,34 @@ export function buildCount(db: D1Database, versionId: number): Promise<number> {
   );
 }
 
-/** Newest first: releases are ordered by insertion, because a tag has no ordering. */
-export function releases(db: D1Database, projectKey: string): Promise<ReleaseRow[]> {
-  return all<ReleaseRow>(db, 'select * from releases where project = ? order by id desc', projectKey);
-}
-
-export function release(db: D1Database, projectKey: string, tag: string): Promise<ReleaseRow | null> {
-  return first<ReleaseRow>(db, 'select * from releases where project = ? and tag = ?', projectKey, tag);
-}
-
-export function latestRelease(db: D1Database, projectKey: string): Promise<ReleaseRow | null> {
-  return first<ReleaseRow>(db, 'select * from releases where project = ? order by id desc limit 1', projectKey);
-}
-
-/** The newest publish of either shape, which is what a project's `updated_at` reports. */
+/** The newest build, which is what a project's `updated_at` reports. */
 export async function lastPublished(db: D1Database, projectKey: string): Promise<string | null> {
   const row = await first<{ at: string | null }>(
     db,
-    `select max(at) as at from (
-       select max(b.created_at) as at from builds b
-         join versions v on v.id = b.version_id where v.project = ?
-       union all
-       select max(created_at) as at from releases where project = ?
-     )`,
-    projectKey,
+    'select max(b.created_at) as at from builds b join versions v on v.id = b.version_id where v.project = ?',
     projectKey,
   );
   return row?.at ?? null;
 }
 
-export async function commitsOf(db: D1Database, owner: Owner, ids: number[]): Promise<Map<number, CommitRow[]>> {
-  const table = CHILD_TABLES[owner];
-
+export async function commitsOf(db: D1Database, ids: number[]): Promise<Map<number, CommitRow[]>> {
   return groupByOwner(
     await inChunks<CommitRow>(
       db,
       ids,
-      chunk => `select ${table.column} as owner_id, sha, summary, at from ${table.commits}
-         where ${table.column} in (${placeholders(chunk)}) order by ${table.column}, position`,
+      chunk => `select build_id as owner_id, sha, summary, at from build_commits
+         where build_id in (${placeholders(chunk)}) order by build_id, position`,
     ),
   );
 }
 
-export async function downloadsOf(db: D1Database, owner: Owner, ids: number[]): Promise<Map<number, DownloadRow[]>> {
-  const table = CHILD_TABLES[owner];
-
+export async function downloadsOf(db: D1Database, ids: number[]): Promise<Map<number, DownloadRow[]>> {
   return groupByOwner(
     await inChunks<DownloadRow>(
       db,
       ids,
-      chunk => `select ${table.column} as owner_id, name, file_name, file_path, size, sha256 from ${table.downloads}
-         where ${table.column} in (${placeholders(chunk)}) order by ${table.column}, name`,
+      chunk => `select build_id as owner_id, name, file_name, file_path, size, sha256 from build_downloads
+         where build_id in (${placeholders(chunk)}) order by build_id, name`,
     ),
   );
 }
@@ -225,18 +183,7 @@ export function allVersionKeys(db: D1Database): Promise<{ project: string; key: 
 export function allLastPublished(db: D1Database): Promise<{ project: string; at: string }[]> {
   return all<{ project: string; at: string }>(
     db,
-    `select project, max(at) as at from (
-       select v.project as project, max(b.created_at) as at from builds b
-         join versions v on v.id = b.version_id group by v.project
-       union all
-       select project, max(created_at) as at from releases group by project
-     ) group by project`,
-  );
-}
-
-export function allNewestTags(db: D1Database): Promise<{ project: string; tag: string }[]> {
-  return all<{ project: string; tag: string }>(
-    db,
-    'select project, tag from releases where id in (select max(id) from releases group by project)',
+    `select v.project as project, max(b.created_at) as at from builds b
+       join versions v on v.id = b.version_id group by v.project`,
   );
 }
