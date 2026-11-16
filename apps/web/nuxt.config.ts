@@ -32,17 +32,12 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       {
-        name: 'Obel Mono',
-        src: 'https://typographic.systems/fonts/ObelMono-VF.woff2',
-        weight: '100 900',
-        style: 'normal',
+        name: 'Inter',
+        provider: 'google',
+        weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        styles: ['normal', 'italic'],
       },
-      {
-        name: 'Obel Mono',
-        src: 'https://typographic.systems/fonts/ObelMono-Italic-VF.woff2',
-        weight: '100 900',
-        style: 'italic',
-      },
+      { name: 'JetBrains Mono', provider: 'google', weights: [400, 500, 600] },
     ],
   },
 

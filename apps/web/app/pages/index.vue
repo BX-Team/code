@@ -102,8 +102,8 @@ function tileColor(i: number) {
 .home__title {
 	position: relative;
 	margin: 0;
-	font: 900 clamp(56px, 9vw, 112px) / 0.95 var(--font-sans);
-	letter-spacing: -0.045em;
+	font: 700 clamp(56px, 9vw, 112px) / 0.95 var(--font-sans);
+	letter-spacing: -0.04em;
 	color: var(--fg);
 }
 
@@ -113,7 +113,7 @@ function tileColor(i: number) {
 	max-width: 46ch;
 	font: 400 17px/1.6 var(--font-sans);
 	color: var(--dim);
-	text-wrap: pretty;
+	text-wrap: balance;
 }
 
 .home__cta {
