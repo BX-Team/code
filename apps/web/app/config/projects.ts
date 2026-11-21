@@ -115,6 +115,7 @@ export const PROJECTS: Project[] = [
     tagline: 'A Purpur fork that puts every core to work',
     lede: 'Spreads chunks, worlds and entity work across your CPU cores, so a busy server keeps its tick rate. Swap your previous jar: every setting stays, and your Bukkit, Spigot and Paper plugins run as they are.',
     downloads: '/downloads/divinemc',
+    logo: '/projects/divinemc/logo.png',
     channels: [{ label: 'MCJars', href: 'https://mcjars.app/DIVINEMC/versions' }],
     features: [
       {

@@ -157,6 +157,13 @@ Auto allocation needs at least 6 CPU threads; on smaller machines it logs a warn
   Block events and block entities (pistons, hoppers, furnaces, redstone components that are block entities) still run on the world thread. On redstone-heavy servers they can take most of the tick, and RCT will not speed that part up.
 ::
 
+## For plugin developers
+
+- `Bukkit.getServer().isRegionizedChunkTickingEnabled()` tells whether the feature is on.
+- Event listeners of block and entity ticks run on the region threads (`Region Ticking`), several at a time.
+- On a region thread, `Server#isOwnedByCurrentRegion(...)` returns `true` only for chunks of the group that thread is ticking, and `Server#isOwnedByCurrentThread(World)` returns `false`: other threads tick the rest of the world at the same time. Schedule work outside the group with the `RegionScheduler` or the entity's `EntityScheduler`.
+- `World#getTickStatistics()` reports how many groups ticked in parallel in the last tick and how long that took; see [Using DivineMC API](/docs/divinemc/development/using-api#parallel-world-ticking-and-regionized-chunk-ticking).
+
 ## Debugging
 
 Starting the server with `-Ddivinemc.rct.checkOwnership=true` turns on ownership checks for the tile layout. Whenever a region thread places a block or adds an entity in a different tile of the same colour, the server logs a warning with a stack trace, once per call site.

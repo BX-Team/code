@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { PROJECTS } from '~/config/projects';
 import { MARKS } from '~/lib/marks';
 
 const props = withDefaults(defineProps<{ slug: string; size?: number }>(), { size: 20 });
 
 const layers = computed(() => MARKS[props.slug]);
+const logo = computed(() => (layers.value ? undefined : PROJECTS.find(p => p.slug === props.slug)?.logo));
 </script>
 
 <template>
@@ -18,6 +20,7 @@ const layers = computed(() => MARKS[props.slug]);
 	>
 		<path v-for="(l, i) in layers" :key="i" :d="l.d" :style="{ fill: l.fill }" />
 	</svg>
+	<img v-else-if="logo" :src="logo" alt="" :width="size" :height="size" class="mark" />
 </template>
 
 <style scoped>

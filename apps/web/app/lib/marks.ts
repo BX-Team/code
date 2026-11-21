@@ -12,21 +12,6 @@ const light = (token: string, amount: number) => `color-mix(in srgb, ${token} ${
  * for the site's token that plays the same part, so the marks sit in the accent gradient.
  */
 export const MARKS: Record<string, MarkLayer[]> = {
-  // An isometric block: lit top, the two sides in the accent pair.
-  divinemc: [
-    {
-      fill: 'var(--fg)',
-      d: 'M6 0h4v1h-4zM4 1h8v1h-8zM2 2h12v1h-12zM0 3h16v1h-16zM2 4h12v1h-12zM4 5h8v1h-8zM6 6h4v1h-4z',
-    },
-    {
-      fill: 'var(--accent)',
-      d: 'M0 4h2v1h-2zM0 5h4v1h-4zM0 6h6v1h-6zM0 7h8v1h-8zM0 8h8v1h-8zM0 9h8v1h-8zM0 10h8v1h-8zM0 11h8v1h-8zM0 12h8v1h-8zM2 13h6v1h-6zM4 14h4v1h-4zM6 15h2v1h-2z',
-    },
-    {
-      fill: deep('var(--accent-2)', 70),
-      d: 'M14 4h2v1h-2zM12 5h4v1h-4zM10 6h6v1h-6zM8 7h8v1h-8zM8 8h8v1h-8zM8 9h8v1h-8zM8 10h8v1h-8zM8 11h8v1h-8zM8 12h8v1h-8zM8 13h6v1h-6zM8 14h4v1h-4zM8 15h2v1h-2z',
-    },
-  ],
   // Three particles, each with a highlight.
   quark: [
     {

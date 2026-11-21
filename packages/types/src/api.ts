@@ -36,7 +36,7 @@ const invalid = { 400: error('A parameter, query or body did not validate') };
 const param = (name: string, example: string) => z.string().openapi({ param: { name, in: 'path' }, example });
 
 const project = param('project', 'divinemc');
-const versionKey = param('version', '26.2');
+const versionKey = param('version', '26.3');
 const buildNumber = z
   .string()
   .regex(/^\d+$/, 'Build number must be a positive integer')

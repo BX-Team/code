@@ -116,6 +116,7 @@ The options `parallel-world-ticking.disable-hard-throw` and `parallel-world-tick
 
 ## For plugin developers
 
-- `Bukkit.getServer().isParallelWorldTickingEnabled()` tells whether the feature is on; `World#getTickTimes()` and `World#getAverageTickTime()` give per-world tick times.
+- `Bukkit.getServer().isParallelWorldTickingEnabled()` tells whether the feature is on; `World#getTickTimes()` and `World#getAverageTickTime()` give per-world tick times. `Server#getCurrentTickingWorld()`, `Server#isOwnedByCurrentThread(World)` and `World#getTickStatistics()` tell which world the current thread ticks, what it may change and how often worlds wait for each other; see [Using DivineMC API](/docs/divinemc/development/using-api#parallel-world-ticking-and-regionized-chunk-ticking).
+- With `folia-supported: true`, the tasks of your `RegionScheduler` and `EntityScheduler` run on the thread of their world, in parallel with the other worlds, instead of on the main thread.
 - Code running in a world's event is on that world's thread. Prefer working in the world of the event; touching another world is supported but makes those two worlds tick one after the other.
 - Keep your own data structures thread-safe, or declare nothing and let server owners enable `serialize-plugin-listeners`. Declare `folia-supported: true` only if your listeners really are safe to run concurrently.

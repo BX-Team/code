@@ -59,7 +59,7 @@ export const PublishEventSchema = z.object({
 /** `url` points at the bucket, never at the API. */
 export const DownloadSchema = z
   .object({
-    name: z.string().openapi({ example: 'divinemc-26.2-11.jar' }),
+    name: z.string().openapi({ example: 'divinemc-26.3-8.jar' }),
     size: z.number().int(),
     sha256: z.string(),
     url: z.string().openapi({ format: 'uri' }),
@@ -94,7 +94,7 @@ export const ProjectSchema = ProjectSummarySchema.extend({
 
 export const VersionSummarySchema = z
   .object({
-    version: z.string().openapi({ example: '26.2' }),
+    version: z.string().openapi({ example: '26.3' }),
     support: SupportSchema,
     java_min: z.number().int().nullable(),
     latest_build: z.number().int().nullable(),
