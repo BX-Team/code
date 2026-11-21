@@ -7,6 +7,8 @@ export const RESOURCES = {
   /** The downloads API this bot reads a publish back from. */
   api: 'https://api.bxteam.org',
   github: 'https://github.com/BX-Team',
+  /** This bot; serves the anonymous artifact downloads linked from pull requests. */
+  bot: 'https://bot.bxteam.org',
 } as const;
 
 /** Projects that have a documentation section under `apps/web/content/docs`. */

@@ -27,6 +27,9 @@ export const TYPE_LABELS: Record<string, string> = {
 /** Put on every release PR; the same entry is in the organisation's `labels.json`. */
 export const RELEASE_LABEL = '🚀 release';
 
+/** Asks the pull request's CI to upload its build, and the bot to comment with the downloads. */
+export const ARTIFACTS_LABEL = '📦 upload artifacts';
+
 /** Where the changelog grouping lives; the second path is the layout before `.github/release/`. */
 export const CHANGELOG_PATHS = ['.github/release/changelog.json', '.github/changelog_configuration.json'];
 

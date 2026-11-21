@@ -96,6 +96,7 @@ export const WorkflowRunEventSchema = z.object({
   action: z.string(),
   workflow_run: z.object({
     id: z.number().int(),
+    workflow_id: z.number().int(),
     name: z.string().nullish(),
     html_url: z.string(),
     /** The tag name, for a run started by a tag push. */
@@ -104,6 +105,9 @@ export const WorkflowRunEventSchema = z.object({
     event: z.string(),
     conclusion: z.string().nullish(),
     run_attempt: z.number().int().default(1),
+    /** Empty for a pull request from a fork. */
+    pull_requests: z.array(z.object({ number: z.number().int() })).default([]),
+    head_repository: z.object({ owner: z.object({ login: z.string() }) }).nullish(),
   }),
 });
 
@@ -131,6 +135,13 @@ export const RestReleaseListSchema = z.array(RestReleaseSchema);
 export const RestTreeSchema = z.object({
   truncated: z.boolean(),
   tree: z.array(z.object({ path: z.string(), type: z.string() })),
+});
+
+/** The path of the bot's anonymous download of a pull request's artifact: `/artifacts/{owner}/{repo}/{id}`. */
+export const ArtifactPathSchema = z.object({
+  owner: z.string().regex(/^[\w.-]+$/),
+  repo: z.string().regex(/^[\w.-]+$/),
+  id: z.coerce.number().int().positive(),
 });
 
 export type Repository = z.infer<typeof RepositorySchema>;

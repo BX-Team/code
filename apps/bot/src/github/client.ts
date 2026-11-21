@@ -37,6 +37,14 @@ export class Github {
     }
   }
 
+  /** Where a redirecting endpoint points, such as the short-lived URL of an artifact's download. */
+  async location(path: string): Promise<string> {
+    const response = await this.send('GET', path, undefined, 'application/vnd.github+json', 'manual');
+    const location = response.headers.get('Location');
+    if (!location) throw new GithubApiError(response.status, path, 'No redirect');
+    return location;
+  }
+
   async graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
     const result = await this.request<{ data?: T; errors?: { message: string }[] }>('POST', '/graphql', {
       query,
@@ -48,7 +56,13 @@ export class Github {
     return result.data as T;
   }
 
-  private async send(method: string, path: string, body: unknown, accept: string): Promise<Response> {
+  private async send(
+    method: string,
+    path: string,
+    body: unknown,
+    accept: string,
+    redirect: 'follow' | 'manual' = 'follow',
+  ): Promise<Response> {
     const response = await fetch(`${API}${path}`, {
       method,
       headers: {
@@ -59,9 +73,10 @@ export class Github {
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
+      redirect,
     });
 
-    if (!response.ok) {
+    if (!response.ok && !(redirect === 'manual' && response.status === 302)) {
       const text = await response.text();
       let message = text;
       try {

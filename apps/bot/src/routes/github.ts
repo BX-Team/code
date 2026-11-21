@@ -18,6 +18,7 @@ import type { BotEnv } from '../context';
 import { postEmbeds } from '../discord/rest';
 import { installationClient } from '../github/app';
 import { mergedEmbed, pushEmbed, releaseEmbed, releaseRunEmbed } from '../github/embeds';
+import { onArtifactsRun } from '../handlers/artifacts';
 import { onComment } from '../handlers/commands';
 import { labelByType } from '../handlers/labels';
 import { addToProject, moveClosed } from '../handlers/project';
@@ -99,10 +100,12 @@ github.post('/webhook', async c => {
 
     case 'workflow_run': {
       const payload = parse(WorkflowRunEventSchema, json);
-      const run = await onReleaseRun(await client(payload.installation), payload);
+      const gh = await client(payload.installation);
+      const run = await onReleaseRun(gh, payload);
       return c.json({
         ok: true,
         run,
+        artifacts: await onArtifactsRun(gh, payload),
         announced: await announce(rest, payload.repository.full_name, releaseRunEmbed(payload, run)),
       });
     }

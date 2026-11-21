@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { type BotEnv, withRest } from '../context';
 import { api } from './api';
+import { artifacts } from './artifacts';
 import { discord } from './discord';
 import { github } from './github';
 
@@ -13,3 +14,4 @@ routes.get('/health', c => c.json({ status: 'ok' }));
 routes.route('/github', github);
 routes.route('/discord', discord);
 routes.route('/api', api);
+routes.route('/artifacts', artifacts);
