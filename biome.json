@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.9/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -19,7 +19,7 @@
     "lineWidth": 120,
     "attributePosition": "auto",
     "bracketSpacing": true,
-    "includes": ["**", "!**/bun.lock", "!**/content/docs", "!apps/web/public/demo"]
+    "includes": ["**", "!**/bun.lock", "!**/content/docs", "!apps/web/public/demo", "!**/*.md"]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {

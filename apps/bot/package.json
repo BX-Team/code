@@ -17,15 +17,15 @@
     "@bx-team/projects": "workspace:*",
     "@bx-team/types": "workspace:*",
     "@bx-team/worker": "workspace:*",
-    "@discordjs/builders": "^1.14.1",
+    "@discordjs/builders": "^1.15.0",
     "@discordjs/rest": "^2.6.3",
-    "discord-api-types": "^0.38.57",
-    "hono": "^4.13.13",
+    "discord-api-types": "^0.38.60",
+    "hono": "^4.13.21",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261019.1",
+    "@cloudflare/workers-types": "^5.20261124.2",
     "typescript": "^7.0.2",
-    "wrangler": "^4.151.3"
+    "wrangler": "^4.168.0"
   }
 }
