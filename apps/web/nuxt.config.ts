@@ -41,7 +41,7 @@ export default defineNuxtConfig({
     ],
   },
 
-  css: ['~/assets/css/tailwind.css'],
+  css: ['~/assets/css/tailwind.css', '~/assets/css/bxid.css'],
 
   build: {
     transpile: ['@bx-team/ui'],
@@ -113,6 +113,10 @@ export default defineNuxtConfig({
     '/docs/api/**': { ssr: false },
     // Each tool restores its form from the query string, which a prerendered page cannot know.
     '/tools/*': { ssr: false },
+    // The session lives in a cookie on the id Worker's host, which only the browser can send.
+    '/login': { ssr: false },
+    '/account': { ssr: false },
+    '/account/**': { ssr: false },
   },
 
   sourcemap: { server: false },

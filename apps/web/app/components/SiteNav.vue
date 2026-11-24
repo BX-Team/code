@@ -60,6 +60,11 @@ const active = computed(() => {
 			<a class="icon-btn" :href="DISCORD_URL" target="_blank" rel="noopener" title="Discord" aria-label="Discord">
 				<span class="raw-icon" v-html="discordSvgRaw" />
 			</a>
+			<!-- The session lives in the browser, so the prerendered bar holds the corner until it is known. -->
+			<ClientOnly>
+				<NavAccount />
+				<template #fallback><span class="account-slot" aria-hidden="true" /></template>
+			</ClientOnly>
 		</template>
 	</Navbar>
 </template>
@@ -77,6 +82,14 @@ const active = computed(() => {
 .icon-btn:hover {
 	background: var(--surface-2);
 	color: var(--fg-hi);
+}
+
+.account-slot {
+	width: 28px;
+	height: 28px;
+	margin: 0 4px 0 8px;
+	border-radius: var(--r-pill);
+	background: var(--surface-2);
 }
 
 .raw-icon {
