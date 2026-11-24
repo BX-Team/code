@@ -1,0 +1,51 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "id",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "api.bxteam.org/v1/auth/*", "zone_name": "bxteam.org" },
+    { "pattern": "api.bxteam.org/v1/play/*", "zone_name": "bxteam.org" }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "BASE_URL": "https://api.bxteam.org",
+    "SITE_URL": "https://bxteam.org",
+    "TRUSTED_ORIGINS": "https://bxteam.org",
+    "SMTP_HOST": "stockholm.bxteam.org",
+    "SMTP_PORT": "465",
+    "SMTP_USERNAME": "noreply@bxteam.org",
+    "MAIL_FROM": "noreply@bxteam.org",
+    "MOJANG_PROXY_URL": "https://mojang.bxteam.org"
+  },
+  "secrets": {
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "SMTP_PASSWORD",
+      "MOJANG_PROXY_KEY",
+      "TURNSTILE_SECRET_KEY",
+      "DISCORD_CLIENT_ID",
+      "DISCORD_CLIENT_SECRET",
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET",
+      "TURN_KEY_ID",
+      "TURN_KEY_API_TOKEN"
+    ]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "HUB", "class_name": "UserHub" }, { "name": "LOBBY", "class_name": "Lobby" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["UserHub", "Lobby"] }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "id-db",
+      "database_id": "29d54987-06db-40eb-a268-74a9fa9d6462",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

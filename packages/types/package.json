@@ -4,9 +4,11 @@
   "license": "AGPL-3.0-only",
   "exports": {
     "./api": "./src/api.ts",
+    "./schema/bxid": "./src/schemas/bxid.ts",
     "./schema/downloads": "./src/schemas/downloads.ts",
     "./schema/github": "./src/schemas/github.ts",
-    "./schema/mojang": "./src/schemas/mojang.ts"
+    "./schema/mojang": "./src/schemas/mojang.ts",
+    "./schema/play": "./src/schemas/play.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",

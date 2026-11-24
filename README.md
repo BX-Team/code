@@ -21,12 +21,13 @@ that ties them together. If you only want to *use* our projects, start at
 ## 📂 What is in here
 
 A [bun workspaces](https://bun.sh/docs/pm/workspaces) monorepo. Each app is a Cloudflare
-Worker deployed on its own domain; the packages are consumed from source, never published.
+Worker deployed on its own domain or path; the packages are consumed from source, never published.
 
 | App | Domain | What it is |
 | --- | ------ | ---------- |
 | [`apps/web`](apps/web) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
 | [`apps/api`](apps/api) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
+| [`apps/id`](apps/id) | `api.bxteam.org/v1/auth`, `/v1/play` | BX ID, the account system, and playing together — Hono and Better Auth on D1, Durable Objects: sign-in by email code, Discord or GitHub, the device flow for the launcher, Minecraft profile linking, friends, presence, lobbies and WebRTC signalling for Riven Launcher, TURN credentials |
 | [`apps/bot`](apps/bot) | `bot.bxteam.org` | The GitHub App and Discord bot — Hono, release PRs and `/release` commands, the organisation board, PR title checks, announcements, slash commands |
 
 | Package | What it is |
@@ -36,11 +37,12 @@ Worker deployed on its own domain; the packages are consumed from source, never 
 | [`packages/worker`](packages/worker) | What every Worker shares — the error type and handlers, hex, HMAC signatures |
 | [`packages/ui`](packages/ui) | Shared Vue 3 components and design tokens |
 
-`api` is the only app that stores anything — every project, version and build,
+`api` stores the downloads — every project, version and build,
 with the artifacts in R2 and the download URLs pointing straight at the bucket.
 `web` reads it for `/downloads`, and `bot` reads a publish back from it to
 announce. Nothing here builds an artifact: that happens in a release workflow in the
-project's own repository, which uploads through `api` with a project token.
+project's own repository, which uploads through `api` with a project token. `id`
+keeps the accounts and friendships in a D1 of its own.
 
 ## 🚀 Getting started
 
@@ -57,10 +59,11 @@ Then run whichever app you are working on:
 bun dev             # everything in parallel
 bun dev:web         # the site, on nuxt dev
 bun dev:api         # the downloads API, on wrangler dev
+bun dev:id          # BX ID and play with seeded test accounts, and the site; --no-web without it
 bun dev:bot         # the GitHub App and Discord bot, on wrangler dev
 ```
 
-`api` and `bot` read local secrets from a `.dev.vars` — copy the
+`api`, `id` and `bot` read local secrets from a `.dev.vars` — copy the
 `.dev.vars.example` next to each as a starting point. Per-app notes live in each
 project's `CLAUDE.md`.
 
@@ -78,6 +81,7 @@ one project.
 bun run build       # every app
 bun build:web       # nuxt generate
 bun build:api       # wrangler deploy --dry-run
+bun build:id        # wrangler deploy --dry-run
 bun build:bot       # wrangler deploy --dry-run
 bunx biome check .  # formatting and lint, the source of truth
 ```

@@ -1,0 +1,214 @@
+import type { ExecutionContext } from '@cloudflare/workers-types';
+import { betterAuth } from 'better-auth';
+import { createAuthMiddleware } from 'better-auth/api';
+import { bearer } from 'better-auth/plugins/bearer';
+import { captcha } from 'better-auth/plugins/captcha';
+import { deviceAuthorization } from 'better-auth/plugins/device-authorization';
+import { emailOTP } from 'better-auth/plugins/email-otp';
+import { username } from 'better-auth/plugins/username';
+import type { Env } from './env';
+import { type Happened, origin, record, rememberApp } from './events';
+import { freshFriendCode } from './friend-code';
+import { sendCode } from './mail';
+import { freshUsername } from './username';
+
+export const BASE_PATH = '/v1/auth';
+
+const DEVICE_CLIENTS = new Set(['riven']);
+
+const SOCIAL = new Set(['discord', 'github']);
+
+/** Paths where the player ends another device's session, as opposed to signing this one out. */
+const REVOKES = new Set(['/revoke-session', '/revoke-sessions', '/revoke-other-sessions']);
+
+type HookContext = { path?: string; headers?: Headers; request?: Request; context?: { session?: unknown } } | null;
+
+function from(hook: HookContext) {
+  return origin(hook?.headers ?? hook?.request?.headers);
+}
+
+function pictureSource(image: string | null | undefined): string | null {
+  if (!image) return null;
+  const host = URL.parse(image)?.hostname ?? '';
+  return host.endsWith('discordapp.com') ? 'discord' : host.endsWith('githubusercontent.com') ? 'github' : 'other';
+}
+
+/** Built per request: D1 and the secrets exist only inside `fetch`. */
+export function createAuth(env: Env, ctx: ExecutionContext) {
+  // One request at a time builds this, so these carry state from a before hook to its after hook.
+  let signedUp = false;
+  let profileChanges: Happened[] = [];
+
+  return betterAuth({
+    appName: 'BX ID',
+    baseURL: env.BASE_URL,
+    basePath: BASE_PATH,
+    secret: env.BETTER_AUTH_SECRET,
+    database: env.DB,
+    trustedOrigins: trustedOrigins(env),
+    // The username plugin also adds password sign-in by username, which no account here can pass.
+    disabledPaths: ['/sign-in/username'],
+    socialProviders: {
+      // The handle becomes the first username to try; the create hook below makes it fit and unique.
+      discord: {
+        clientId: env.DISCORD_CLIENT_ID,
+        clientSecret: env.DISCORD_CLIENT_SECRET,
+        mapProfileToUser: profile => ({ username: profile.username }),
+      },
+      github: {
+        clientId: env.GITHUB_CLIENT_ID,
+        clientSecret: env.GITHUB_CLIENT_SECRET,
+        mapProfileToUser: profile => ({ username: profile.login }),
+      },
+    },
+    user: {
+      additionalFields: {
+        friendCode: { type: 'string', required: false, input: false },
+      },
+      // Without a password Better Auth asks for a fresh session (signed in within a day) instead.
+      deleteUser: { enabled: true },
+    },
+    hooks: {
+      after: createAuthMiddleware(async hook => {
+        if (hook.path !== '/device/token') return;
+        const userId = hook.context.newSession?.user.id;
+        const clientId = (hook.body as { client_id?: unknown } | undefined)?.client_id;
+        if (userId && typeof clientId === 'string') await rememberApp(env.DB, userId, clientId, from(hook));
+      }),
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async user => {
+            const handle = (user as { username?: string | null }).username;
+            const local = user.email.split('@')[0];
+            const names = await freshUsername(env.DB, [handle, user.name, local]);
+            return { data: { ...user, ...names, friendCode: await freshFriendCode(env.DB) } };
+          },
+          after: async (user, hook) => {
+            signedUp = true;
+            await record(env.DB, user.id, { kind: 'created', ...from(hook) });
+          },
+        },
+        update: {
+          before: async (data, hook) => {
+            const userId = (hook?.context?.session as { user?: { id?: string } } | null | undefined)?.user?.id;
+            if (!userId) return;
+            const old = await env.DB.prepare(
+              `select "name", "username", "displayUsername", "image" from "user" where "id" = ?1`,
+            )
+              .bind(userId)
+              .first<{ name: string; username: string | null; displayUsername: string | null; image: string | null }>();
+            if (!old) return;
+            const changes: Happened[] = [];
+            if (data.name !== undefined && data.name !== old.name)
+              changes.push({ kind: 'name', detail: { from: old.name || null, to: data.name || null } });
+            const was = old.displayUsername ?? old.username;
+            const now = (data.displayUsername ?? data.username) as string | undefined;
+            if (now !== undefined && now !== was) changes.push({ kind: 'username', detail: { from: was, to: now } });
+            if (data.image !== undefined && data.image !== old.image)
+              changes.push({ kind: 'picture', detail: { source: pictureSource(data.image as string | null) } });
+            profileChanges = changes;
+          },
+          after: async (user, hook) => {
+            const changes = profileChanges;
+            profileChanges = [];
+            for (const change of changes) await record(env.DB, user.id, { ...change, ...from(hook) });
+          },
+        },
+      },
+      session: {
+        create: {
+          after: async session => {
+            await record(env.DB, session.userId, {
+              kind: 'signed-in',
+              ipAddress: session.ipAddress,
+              userAgent: session.userAgent,
+            });
+          },
+        },
+        delete: {
+          // Expired sessions are deleted too, on a later look-up; only a player's own action is logged.
+          after: async (session, hook) => {
+            const kind =
+              hook?.path === '/sign-out' ? 'signed-out' : REVOKES.has(hook?.path ?? '') ? 'device-removed' : null;
+            if (!kind) return;
+            await record(env.DB, session.userId, {
+              kind,
+              ipAddress: session.ipAddress,
+              userAgent: session.userAgent,
+            });
+          },
+        },
+      },
+      account: {
+        create: {
+          after: async (account, hook) => {
+            // Signing up with Discord or GitHub makes the account too; that is the "created" event.
+            if (signedUp || !SOCIAL.has(account.providerId)) return;
+            await record(env.DB, account.userId, {
+              kind: 'linked',
+              detail: { provider: account.providerId },
+              ...from(hook),
+            });
+          },
+        },
+        delete: {
+          after: async (account, hook) => {
+            if (hook?.path !== '/unlink-account' || !SOCIAL.has(account.providerId)) return;
+            await record(env.DB, account.userId, {
+              kind: 'unlinked',
+              detail: { provider: account.providerId },
+              ...from(hook),
+            });
+          },
+        },
+      },
+    },
+    account: {
+      accountLinking: { enabled: true, trustedProviders: ['discord', 'github', 'email-otp'] },
+    },
+    rateLimit: {
+      enabled: true,
+      // An isolate's memory is not shared between requests, so the counters live in D1.
+      storage: 'database',
+      customRules: {
+        '/email-otp/send-verification-otp': { window: 60, max: 3 },
+        '/sign-in/email-otp': { window: 60, max: 5 },
+      },
+    },
+    advanced: {
+      ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
+    },
+    plugins: [
+      emailOTP({
+        expiresIn: 300,
+        storeOTP: 'hashed',
+        sendVerificationOTP: async ({ email, otp }) => {
+          if (new URL(env.BASE_URL).hostname === 'localhost') console.log(`BX ID code for ${email}: ${otp}`);
+          // `.test` is reserved (RFC 2606) and never receives mail.
+          if (email.endsWith('.test')) return;
+          // Answering before the mail is out keeps the response time from telling which addresses exist.
+          ctx.waitUntil(sendCode(env, email, otp));
+        },
+      }),
+      username(),
+      bearer(),
+      deviceAuthorization({
+        verificationUri: `${env.SITE_URL}/account/device`,
+        validateClient: clientId => DEVICE_CLIENTS.has(clientId),
+      }),
+      captcha({
+        provider: 'cloudflare-turnstile',
+        secretKey: env.TURNSTILE_SECRET_KEY,
+        endpoints: ['/email-otp/send-verification-otp'],
+      }),
+    ],
+  });
+}
+
+export type Auth = ReturnType<typeof createAuth>;
+
+export function trustedOrigins(env: Env) {
+  return env.TRUSTED_ORIGINS.split(',').map(origin => origin.trim());
+}
