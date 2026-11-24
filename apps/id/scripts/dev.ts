@@ -4,8 +4,11 @@ import { join, resolve } from 'node:path';
 import { $ } from 'bun';
 
 const PORT = 8787;
+/** Skins is its own Worker; it asks id who is signed in through the local dev registry. */
+const SKINS_PORT = 8788;
 const app = resolve(import.meta.dir, '..');
 const root = resolve(app, '../..');
+const skins = join(root, 'apps/skins');
 const web = !process.argv.includes('--no-web');
 /** `--crowd` befriends alice and bob with many made-up players, for checking long lists. */
 const crowd = process.argv.includes('--crowd');
@@ -62,6 +65,7 @@ function seed() {
 }
 
 devVars();
+if (!existsSync(join(skins, '.dev.vars'))) copyFileSync(join(skins, '.dev.vars.example'), join(skins, '.dev.vars'));
 await $`bunx wrangler d1 migrations apply id-db --local`
   .cwd(app)
   .env({ ...process.env, CI: '1' })
@@ -69,10 +73,18 @@ await $`bunx wrangler d1 migrations apply id-db --local`
 const seedFile = join(app, '.wrangler', 'dev-seed.sql');
 writeFileSync(seedFile, seed());
 await $`bunx wrangler d1 execute id-db --local --file ${seedFile}`.cwd(app).quiet();
+await $`bunx wrangler d1 migrations apply skins-db --local`
+  .cwd(skins)
+  .env({ ...process.env, CI: '1' })
+  .quiet();
 
 const children = [
   Bun.spawn(['bunx', 'wrangler', 'dev', '--port', String(PORT)], {
     cwd: app,
+    stdio: ['inherit', 'inherit', 'inherit'],
+  }),
+  Bun.spawn(['bunx', 'wrangler', 'dev', '--port', String(SKINS_PORT), '--inspector-port', '9230'], {
+    cwd: skins,
     stdio: ['inherit', 'inherit', 'inherit'],
   }),
 ];
@@ -99,7 +111,7 @@ while (children.every(child => child.exitCode === null)) {
   await Bun.sleep(500);
 }
 console.log(`
-BX ID and play on http://localhost:${PORT}${web ? ', the site on http://localhost:3000' : ''}.
+BX ID and play on http://localhost:${PORT}, skins on http://localhost:${SKINS_PORT}${web ? ', the site on http://localhost:3000' : ''}.
 Accounts: ${users.map(name => `${name}@bxid.test`).join(', ')}; sign-in codes for them are printed below.
 Friend codes: ${users.map(name => `${name} ${friendCode(name).replace(/(.{4})/, '$1-')}`).join(', ')}.
 Launchers for Alice and Bob, each in its own sandbox, from the Riven checkout:

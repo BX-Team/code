@@ -8,7 +8,8 @@
     "./schema/downloads": "./src/schemas/downloads.ts",
     "./schema/github": "./src/schemas/github.ts",
     "./schema/mojang": "./src/schemas/mojang.ts",
-    "./schema/play": "./src/schemas/play.ts"
+    "./schema/play": "./src/schemas/play.ts",
+    "./schema/skins": "./src/schemas/skins.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",

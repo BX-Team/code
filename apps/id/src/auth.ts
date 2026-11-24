@@ -66,7 +66,12 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
         friendCode: { type: 'string', required: false, input: false },
       },
       // Without a password Better Auth asks for a fresh session (signed in within a day) instead.
-      deleteUser: { enabled: true },
+      deleteUser: {
+        enabled: true,
+        afterDelete: async user => {
+          ctx.waitUntil(env.SKINS.forget(user.id));
+        },
+      },
     },
     hooks: {
       after: createAuthMiddleware(async hook => {

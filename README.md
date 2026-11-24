@@ -28,6 +28,7 @@ Worker deployed on its own domain or path; the packages are consumed from source
 | [`apps/web`](apps/web) | `bxteam.org` | The website and documentation — Nuxt 4, statically generated and served as Workers Static Assets |
 | [`apps/api`](apps/api) | `api.bxteam.org` | The downloads API — Hono, D1 and R2, publish tokens |
 | [`apps/id`](apps/id) | `api.bxteam.org/v1/auth`, `/v1/play` | BX ID, the account system, and playing together — Hono and Better Auth on D1, Durable Objects: sign-in by email code, Discord or GitHub, the device flow for the launcher, Minecraft profile linking, friends, presence, lobbies and WebRTC signalling for Riven Launcher, TURN credentials |
+| [`apps/skins`](apps/skins) | `api.bxteam.org/v1/skins` | BX ID skins — Hono, D1 and R2: the skin each account wears and the ones it uploaded, public by account id |
 | [`apps/bot`](apps/bot) | `bot.bxteam.org` | The GitHub App and Discord bot — Hono, release PRs and `/release` commands, the organisation board, PR title checks, announcements, slash commands |
 
 | Package | What it is |
@@ -42,7 +43,7 @@ with the artifacts in R2 and the download URLs pointing straight at the bucket.
 `web` reads it for `/downloads`, and `bot` reads a publish back from it to
 announce. Nothing here builds an artifact: that happens in a release workflow in the
 project's own repository, which uploads through `api` with a project token. `id`
-keeps the accounts and friendships in a D1 of its own.
+keeps the accounts and friendships in a D1 of its own, `skins` the skins in its own D1 and R2.
 
 ## 🚀 Getting started
 
@@ -63,7 +64,7 @@ bun dev:id          # BX ID and play with seeded test accounts, and the site; --
 bun dev:bot         # the GitHub App and Discord bot, on wrangler dev
 ```
 
-`api`, `id` and `bot` read local secrets from a `.dev.vars` — copy the
+`api`, `id`, `skins` and `bot` read local secrets from a `.dev.vars` — copy the
 `.dev.vars.example` next to each as a starting point. Per-app notes live in each
 project's `CLAUDE.md`.
 
@@ -82,6 +83,7 @@ bun run build       # every app
 bun build:web       # nuxt generate
 bun build:api       # wrangler deploy --dry-run
 bun build:id        # wrangler deploy --dry-run
+bun build:skins     # wrangler deploy --dry-run
 bun build:bot       # wrangler deploy --dry-run
 bunx biome check .  # formatting and lint, the source of truth
 ```

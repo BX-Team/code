@@ -1,4 +1,5 @@
-import type { D1Database, DurableObjectNamespace } from '@cloudflare/workers-types';
+import type { D1Database, DurableObjectNamespace, Service } from '@cloudflare/workers-types';
+import type { SkinsService } from '../../skins/src/service';
 import type { UserHub } from './play/hub';
 import type { Lobby } from './play/lobby';
 
@@ -6,6 +7,8 @@ export interface Env {
   DB: D1Database;
   HUB: DurableObjectNamespace<UserHub>;
   LOBBY: DurableObjectNamespace<Lobby>;
+  /** Skins keep their own storage; deleting a BX ID asks them to forget it. */
+  SKINS: Service<SkinsService>;
 
   BASE_URL: string;
   SITE_URL: string;

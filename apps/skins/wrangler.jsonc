@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skins",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-03-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "api.bxteam.org/v1/skins/*", "zone_name": "bxteam.org" }],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "BASE_URL": "https://api.bxteam.org",
+    "TRUSTED_ORIGINS": "https://bxteam.org"
+  },
+  "services": [{ "binding": "ID", "service": "id", "entrypoint": "IdService" }],
+  "r2_buckets": [{ "binding": "TEXTURES", "bucket_name": "skins" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "skins-db",
+      "database_id": "ebd7c0ac-d258-4e9c-bc22-8cd4c66d3270",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

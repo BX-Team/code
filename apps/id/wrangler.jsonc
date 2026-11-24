@@ -36,6 +36,7 @@
       "TURN_KEY_API_TOKEN"
     ]
   },
+  "services": [{ "binding": "SKINS", "service": "skins", "entrypoint": "SkinsService" }],
   "durable_objects": {
     "bindings": [{ "name": "HUB", "class_name": "UserHub" }, { "name": "LOBBY", "class_name": "Lobby" }]
   },
