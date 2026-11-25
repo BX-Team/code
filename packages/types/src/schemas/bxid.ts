@@ -24,6 +24,8 @@ export const ActivityKindSchema = z.enum([
   'linked',
   'unlinked',
   'skin',
+  'nick-added',
+  'nick-removed',
   'app',
 ]);
 

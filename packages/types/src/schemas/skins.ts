@@ -3,7 +3,7 @@ import { z } from 'zod';
 /** `classic` is Steve's 4-pixel arms, `slim` Alex's 3-pixel ones. */
 export const SkinModelSchema = z.enum(['classic', 'slim']);
 
-/** A skin a BX ID chose; `url` is immutable, so it may be cached forever. */
+/** A skin a nick wears; `url` is immutable, so it may be cached forever. */
 export const SkinSchema = z.object({
   model: SkinModelSchema,
   /** SHA-256 of the PNG, hex. */
@@ -11,21 +11,32 @@ export const SkinSchema = z.object({
   url: z.string(),
 });
 
-/** One BX ID's skin; `null` until they upload one, and clients fall back to their Minecraft profile. */
-export const UserSkinSchema = z.object({ skin: SkinSchema.nullable() });
-
-/** The signed-in BX ID's skin and the ones it used before, newest first. */
-export const MySkinsSchema = z.object({ skin: SkinSchema.nullable(), recent: z.array(SkinSchema) });
-
-export const SkinLookupSchema = z.object({ ids: z.array(z.string()).min(1).max(200) });
-
-/** Skins by BX ID; ids without one are left out. */
-export const SkinsByIdSchema = z.object({ skins: z.record(z.string(), SkinSchema) });
+/** The skins this BX ID uploaded, newest first: the library any of its nicks can wear. */
+export const MySkinsSchema = z.object({ recent: z.array(SkinSchema) });
 
 export const SelectSkinSchema = z.object({ hash: z.string().regex(/^[0-9a-f]{64}$/), model: SkinModelSchema });
 
+/** An offline nick as the vanilla client allows it; unique without regard to case. */
+export const NickSchema = z.string().regex(/^[A-Za-z0-9_]{3,16}$/, 'A nick is 3 to 16 letters, digits or underscores');
+
+export const ClaimNickSchema = z.object({ name: NickSchema });
+
+/** An offline nick held by one BX ID; `id` is its offline UUID, undashed, as a server derives it. */
+export const ProfileSchema = z.object({ id: z.string(), name: z.string(), skin: SkinSchema.nullable() });
+
+/** A nick its owner removed: until `until` only they can take it back. */
+export const HeldNickSchema = z.object({ name: z.string(), until: z.string() });
+
+export const MyProfilesSchema = z.object({
+  profiles: z.array(ProfileSchema),
+  held: z.array(HeldNickSchema),
+  /** How many nicks one BX ID may hold. */
+  limit: z.number(),
+});
+
 export type SkinModel = z.infer<typeof SkinModelSchema>;
 export type Skin = z.infer<typeof SkinSchema>;
-export type UserSkin = z.infer<typeof UserSkinSchema>;
 export type MySkins = z.infer<typeof MySkinsSchema>;
-export type SkinsById = z.infer<typeof SkinsByIdSchema>;
+export type Profile = z.infer<typeof ProfileSchema>;
+export type HeldNick = z.infer<typeof HeldNickSchema>;
+export type MyProfiles = z.infer<typeof MyProfilesSchema>;

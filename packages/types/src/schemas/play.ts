@@ -96,7 +96,7 @@ export const ServerEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('friend_request'), user: PlayUserSchema }),
   z.object({ type: z.literal('friend_added'), user: PlayUserSchema }),
   z.object({ type: z.literal('friend_removed'), userId: z.string() }),
-  /** A player changed their skin: their own launchers and their friends' fetch it again. */
+  /** This player's nicks or their skins changed: their own launchers fetch them again. */
   z.object({ type: z.literal('skin'), userId: z.string() }),
   z.object({ type: z.literal('invite'), lobby: LobbySchema, from: PlayUserSchema }),
   z.object({ type: z.literal('lobby'), lobby: LobbySchema }),

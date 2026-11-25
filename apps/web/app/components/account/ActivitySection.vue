@@ -1,6 +1,19 @@
 <script setup lang="ts">
 import type { ActivityEvent } from '@bx-team/types/schema/bxid';
-import { AtSign, Image, KeyRound, LogIn, LogOut, MonitorX, Shirt, Sparkles, Unlink, UserPen } from '@lucide/vue';
+import {
+  AtSign,
+  Image,
+  KeyRound,
+  LogIn,
+  LogOut,
+  MonitorX,
+  Shirt,
+  Sparkles,
+  Unlink,
+  UserMinus,
+  UserPen,
+  UserPlus,
+} from '@lucide/vue';
 import { type Component, onMounted, ref, watch } from 'vue';
 import { AGENT_ICONS, describeAgent } from '~/lib/agents';
 import { APPS, auth, fetchActivity, PROVIDER_NAMES } from '~/lib/auth';
@@ -67,7 +80,14 @@ function describe(event: ActivityEvent): { icon: Component; title: string } {
     case 'unlinked':
       return { icon: Unlink, title: `Disconnected ${provider}` };
     case 'skin':
-      return { icon: Shirt, title: d.change === 'reset' ? 'Removed the skin' : 'Changed skin' };
+      return {
+        icon: Shirt,
+        title: `${d.change === 'reset' ? 'Removed the skin of' : 'Changed the skin of'} ${d.name ?? 'a nick'}`,
+      };
+    case 'nick-added':
+      return { icon: UserPlus, title: `Added the nick ${d.name}` };
+    case 'nick-removed':
+      return { icon: UserMinus, title: `Removed the nick ${d.name}` };
     case 'app':
       return { icon: Sparkles, title: `Connected ${APPS[d.clientId ?? '']?.name ?? d.clientId}` };
   }

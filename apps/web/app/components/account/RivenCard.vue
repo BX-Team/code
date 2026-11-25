@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import type { Friend, Friends } from '@bx-team/types/schema/play';
-import type { Skin } from '@bx-team/types/schema/skins';
+import type { Profile } from '@bx-team/types/schema/skins';
 import { ArrowRight } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
 import { fetchFriends, playerName } from '~/lib/play';
-import { fetchMySkins } from '~/lib/skins';
+import { fetchProfiles } from '~/lib/skins';
 
-/** Riven Launcher on the overview: the skin and who is online, at a glance. */
+/** Riven Launcher on the overview: the nicks, a skin and who is online, at a glance. */
 const props = defineProps<{ connectedAt: string }>();
 
 const connected = computed(() =>
   new Date(props.connectedAt).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }),
 );
 
-const skin = ref<Skin | null>(null);
+const nicks = ref<Profile[]>([]);
 const friends = ref<Friends | null>(null);
 const loaded = ref(false);
 
 onMounted(async () => {
-  const [mine, list] = await Promise.all([fetchMySkins().catch(() => null), fetchFriends().catch(() => null)]);
-  skin.value = mine?.skin ?? null;
+  const [mine, list] = await Promise.all([fetchProfiles().catch(() => null), fetchFriends().catch(() => null)]);
+  nicks.value = mine?.profiles ?? [];
   friends.value = list;
   loaded.value = true;
 });
@@ -27,6 +27,8 @@ useLiveFriends(friends, async () => {
   friends.value = await fetchFriends().catch(() => friends.value);
 });
 
+/** The first nick that wears a skin stands for the account. */
+const skin = computed(() => nicks.value.find(n => n.skin)?.skin ?? null);
 const skinUrl = computed(() => skin.value?.url ?? null);
 
 const online = computed(() =>
@@ -75,9 +77,9 @@ function status(friend: Friend) {
 					</dd>
 				</div>
 				<div>
-					<dt>Skin</dt>
+					<dt>Nicks</dt>
 					<dd>
-						{{ !loaded ? '…' : skin ? (skin.model === 'slim' ? 'Slim · uploaded' : 'Classic · uploaded') : 'None' }}
+						{{ !loaded ? '…' : nicks.map(n => n.name).join(', ') || 'None yet' }}
 					</dd>
 				</div>
 			</dl>

@@ -2,7 +2,6 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 import { createAuth } from './auth';
 import type { Env } from './env';
 import { record } from './events';
-import { friendIds } from './play/friends';
 
 /** What other BX Team Workers may ask BX ID through a service binding; nothing private leaves it. */
 export class IdService extends WorkerEntrypoint<Env> {
@@ -15,20 +14,17 @@ export class IdService extends WorkerEntrypoint<Env> {
     return session?.user.id ?? null;
   }
 
-  /** Tells the player's own launchers and their friends' that the player's skin changed, and logs it. */
-  async skinChanged(
+  /** Logs a nick or skin change and tells the player's own launchers; friends see the BX ID picture, not skins. */
+  async profilesChanged(
     userId: string,
-    from: { change: 'wear' | 'reset'; ipAddress: string | null; userAgent: string | null },
+    event: {
+      kind: 'nick-added' | 'nick-removed' | 'skin';
+      detail: Record<string, string>;
+      ipAddress: string | null;
+      userAgent: string | null;
+    },
   ): Promise<void> {
-    await record(this.env, userId, {
-      kind: 'skin',
-      detail: { change: from.change },
-      ipAddress: from.ipAddress,
-      userAgent: from.userAgent,
-    });
-    const everyone = [userId, ...(await friendIds(this.env.DB, userId))];
-    await Promise.all(
-      everyone.map(id => this.env.HUB.get(this.env.HUB.idFromName(id)).deliver({ type: 'skin', userId })),
-    );
+    await record(this.env, userId, event);
+    await this.env.HUB.get(this.env.HUB.idFromName(userId)).deliver({ type: 'skin', userId });
   }
 }

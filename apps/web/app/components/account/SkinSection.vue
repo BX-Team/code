@@ -1,20 +1,29 @@
 <script setup lang="ts">
-import type { Skin, SkinModel } from '@bx-team/types/schema/skins';
-import { Upload } from '@lucide/vue';
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
-import { fetchMySkins, resetSkin, selectSkin, uploadSkin } from '~/lib/skins';
+import type { HeldNick, Profile, Skin, SkinModel } from '@bx-team/types/schema/skins';
+import { Plus, Upload } from '@lucide/vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import { claimNick, fetchMySkins, fetchProfiles, releaseNick, resetSkin, selectSkin, uploadSkin } from '~/lib/skins';
 
-const skin = ref<Skin | null>(null);
+const profiles = ref<Profile[]>([]);
+const held = ref<HeldNick[]>([]);
+const limit = ref(5);
+const picked = ref<string | null>(null);
 const recent = ref<Skin[]>([]);
 const model = ref<SkinModel>('classic');
 const loaded = ref(false);
 const busy = ref(false);
 const error = ref('');
+const adding = ref(false);
+const draft = ref('');
+const field = ref<HTMLInputElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const file = ref<HTMLInputElement | null>(null);
 const viewer = shallowRef<import('skinview3d').SkinViewer | null>(null);
 
+const current = computed(() => profiles.value.find(p => p.name === picked.value) ?? null);
+const skin = computed(() => current.value?.skin ?? null);
 const shown = computed(() => skin.value?.url ?? null);
+const full = computed(() => profiles.value.length >= limit.value);
 
 onMounted(async () => {
   const { SkinViewer, IdleAnimation } = await import('skinview3d');
@@ -23,10 +32,9 @@ onMounted(async () => {
   viewer.value.animation = new IdleAnimation();
   viewer.value.controls.enableZoom = false;
   try {
-    const mine = await fetchMySkins();
-    skin.value = mine.skin;
+    const [mine, nicks] = await Promise.all([fetchMySkins(), fetchProfiles()]);
     recent.value = mine.recent;
-    if (mine.skin) model.value = mine.skin.model;
+    take(nicks.profiles, nicks.held, nicks.limit);
   } catch {
     error.value = 'Skins are not reachable right now. Try again in a minute.';
   }
@@ -35,11 +43,22 @@ onMounted(async () => {
 
 onBeforeUnmount(() => viewer.value?.dispose());
 
+watch(skin, worn => {
+  if (worn) model.value = worn.model;
+});
+
 watch([shown, model, viewer], ([url, m, v]) => {
   if (!v) return;
   if (url) v.loadSkin(url, { model: m === 'slim' ? 'slim' : 'default' });
   else v.resetSkin();
 });
+
+function take(list: Profile[], released: HeldNick[], max: number) {
+  profiles.value = list;
+  held.value = released;
+  limit.value = max;
+  if (!list.some(p => p.name === picked.value)) picked.value = list[0]?.name ?? null;
+}
 
 async function act(work: () => Promise<void>) {
   busy.value = true;
@@ -53,54 +72,93 @@ async function act(work: () => Promise<void>) {
   }
 }
 
-function remember(worn: Skin) {
-  skin.value = worn;
-  recent.value = [worn, ...recent.value.filter(s => s.hash !== worn.hash)].slice(0, 12);
+async function reload() {
+  const nicks = await fetchProfiles();
+  take(nicks.profiles, nicks.held, nicks.limit);
 }
 
-async function picked(event: Event) {
+function update(next: Profile) {
+  profiles.value = profiles.value.map(p => (p.name === next.name ? next : p));
+  const worn = next.skin;
+  if (worn) recent.value = [worn, ...recent.value.filter(s => s.hash !== worn.hash)].slice(0, 12);
+}
+
+async function openAdd() {
+  adding.value = true;
+  await nextTick();
+  field.value?.focus();
+}
+
+async function claim(name: string) {
+  await act(async () => {
+    const claimed = await claimNick(name.trim());
+    await reload();
+    picked.value = claimed.name;
+    adding.value = false;
+    draft.value = '';
+  });
+}
+
+async function release() {
+  const name = picked.value;
+  if (!name) return;
+  await act(async () => {
+    await releaseNick(name);
+    await reload();
+  });
+}
+
+async function chosen(event: Event) {
   const input = event.target as HTMLInputElement;
-  const chosen = input.files?.[0];
+  const png = input.files?.[0];
   input.value = '';
-  if (!chosen) return;
-  await act(async () => remember(await uploadSkin(chosen, model.value)));
+  const name = picked.value;
+  if (!png || !name) return;
+  await act(async () => update(await uploadSkin(name, png, model.value)));
 }
 
 async function setModel(next: SkinModel) {
   model.value = next;
   const worn = skin.value;
-  if (!worn || worn.model === next) return;
-  await act(async () => remember(await selectSkin(worn.hash, next)));
+  const name = picked.value;
+  if (!worn || !name || worn.model === next) return;
+  await act(async () => update(await selectSkin(name, worn.hash, next)));
 }
 
 async function wear(choice: Skin) {
-  await act(async () => {
-    remember(await selectSkin(choice.hash, model.value));
-  });
+  const name = picked.value;
+  if (!name) return;
+  await act(async () => update(await selectSkin(name, choice.hash, model.value)));
 }
 
 async function reset() {
+  const name = picked.value;
+  if (!name) return;
   await act(async () => {
-    await resetSkin();
-    skin.value = null;
+    await resetSkin(name);
+    profiles.value = profiles.value.map(p => (p.name === name ? { ...p, skin: null } : p));
   });
 }
+
+const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'numeric', month: 'short' });
 </script>
 
 <template>
 	<section id="skin" class="sk">
 		<div class="sk__stage">
-			<canvas ref="canvas" aria-label="Your skin in 3D; drag to turn it" />
-			<p class="sk__note">{{ loaded && !shown ? 'No skin yet' : 'Drag to turn' }}</p>
+			<canvas ref="canvas" aria-label="The nick's skin in 3D; drag to turn it" />
+			<p class="sk__note">{{ !loaded ? '' : !current ? 'No nick yet' : shown ? 'Drag to turn' : 'No skin yet' }}</p>
 		</div>
 
 		<div class="sk__side">
 			<header class="sk__head">
 				<div>
-					<h2 class="sk__title">Skin</h2>
-					<p class="hint">Friends see it in Riven Launcher, on offline accounts too.</p>
+					<h2 class="sk__title">Nicks and skins</h2>
+					<p class="hint">
+						The offline nicks you play with in Riven Launcher. Nobody else can take them, and each wears its own skin.
+					</p>
 				</div>
-				<div class="seg" role="radiogroup" aria-label="Arms">
+				<div v-if="current" class="seg" role="radiogroup" aria-label="Arms">
 					<button
 						v-for="option in (['classic', 'slim'] as const)"
 						:key="option"
@@ -116,13 +174,56 @@ async function reset() {
 				</div>
 			</header>
 
-			<ul class="sk__lib">
+			<div class="nicks" role="tablist" aria-label="Nicks">
+				<button
+					v-for="profile in profiles"
+					:key="profile.id"
+					type="button"
+					role="tab"
+					class="nick"
+					:class="{ on: profile.name === picked }"
+					:aria-selected="profile.name === picked"
+					@click="picked = profile.name"
+				>
+					<span class="face face--sm">
+						<template v-if="profile.skin">
+							<span class="layer" :style="{ backgroundImage: `url(${profile.skin.url})` }" />
+							<span class="layer hat" :style="{ backgroundImage: `url(${profile.skin.url})` }" />
+						</template>
+					</span>
+					<span class="mono">{{ profile.name }}</span>
+				</button>
+				<form v-if="adding" class="nick nick--field" @submit.prevent="claim(draft)">
+					<input
+						ref="field"
+						v-model="draft"
+						class="mono"
+						maxlength="16"
+						placeholder="Nick"
+						aria-label="New nick"
+						:disabled="busy"
+						@keydown.esc="adding = false"
+					/>
+					<button type="submit" class="btn primary small" :disabled="busy || draft.trim().length < 3">Add</button>
+				</form>
+				<button v-else-if="!full" type="button" class="nick nick--add" :disabled="busy || !loaded" @click="openAdd">
+					<Plus :size="15" :stroke-width="1.8" />
+					Add nick
+				</button>
+			</div>
+
+			<p v-for="nick in held" :key="nick.name" class="hint held">
+				<span class="mono">{{ nick.name }}</span> is kept for you until {{ until(nick.until) }}.
+				<button type="button" class="link" :disabled="busy || full" @click="claim(nick.name)">Take it back</button>
+			</p>
+
+			<ul v-if="current" class="sk__lib">
 				<li>
 					<button type="button" class="tile tile--add" :disabled="busy" @click="file?.click()">
 						<Upload :size="20" :stroke-width="1.6" />
 						{{ busy ? 'Saving…' : 'Upload PNG' }}
 					</button>
-					<input ref="file" type="file" accept="image/png" hidden @change="picked" />
+					<input ref="file" type="file" accept="image/png" hidden @change="chosen" />
 				</li>
 				<li v-for="item in recent" :key="item.hash">
 					<button
@@ -130,7 +231,7 @@ async function reset() {
 						class="tile"
 						:class="{ on: skin?.hash === item.hash }"
 						:disabled="busy || skin?.hash === item.hash"
-						:aria-label="skin?.hash === item.hash ? 'The skin you wear' : 'Wear this skin'"
+						:aria-label="skin?.hash === item.hash ? 'The skin this nick wears' : 'Wear this skin'"
 						@click="wear(item)"
 					>
 						<span class="face">
@@ -141,13 +242,17 @@ async function reset() {
 					</button>
 				</li>
 			</ul>
+			<p v-else-if="loaded && !adding" class="empty">
+				Add the nick you play with on offline accounts. Up to {{ limit }}; a removed nick stays yours for a few days.
+			</p>
 
 			<footer class="sk__foot">
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 				<p v-else class="hint">A 64×64 PNG, or 64×32 from before 1.8. Click a skin to wear it.</p>
-				<button v-if="skin" type="button" class="btn quiet small" :disabled="busy" @click="reset">
-					Remove skin
-				</button>
+				<div v-if="current" class="sk__acts">
+					<button v-if="skin" type="button" class="btn quiet small" :disabled="busy" @click="reset">Remove skin</button>
+					<button type="button" class="btn quiet small" :disabled="busy" @click="release">Remove nick</button>
+				</div>
 			</footer>
 		</div>
 	</section>
@@ -292,6 +397,91 @@ async function reset() {
 	margin-top: auto;
 	padding-top: var(--s-4);
 	border-top: 1px solid var(--line);
+}
+
+.mono {
+	font-family: var(--font-mono);
+}
+
+.nicks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--s-2);
+}
+
+.nick {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 0 12px 0 6px;
+	border: 1px solid var(--line);
+	border-radius: var(--r-2);
+	background: var(--surface-1);
+	font: 500 13px/1 var(--font-sans);
+	color: var(--fg);
+	cursor: pointer;
+}
+
+.nick.on {
+	border-color: var(--accent);
+	color: var(--fg-hi);
+}
+
+.nick--add {
+	padding: 0 12px;
+	border-style: dashed;
+	border-color: var(--line-2);
+	background: transparent;
+	color: var(--dim);
+}
+
+.nick--field {
+	padding: 4px 4px 4px 10px;
+	cursor: default;
+}
+
+.nick--field input {
+	width: 150px;
+	border: 0;
+	outline: none;
+	background: none;
+	font-size: 13px;
+	color: var(--fg-hi);
+}
+
+.held {
+	margin: 0;
+}
+
+.link {
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	color: var(--accent);
+	cursor: pointer;
+}
+
+.link:disabled {
+	color: var(--mute);
+	cursor: default;
+}
+
+.empty {
+	margin: 0;
+	font: 400 14px/1.5 var(--font-sans);
+	color: var(--mute);
+}
+
+.sk__acts {
+	display: flex;
+	gap: var(--s-2);
+}
+
+.face--sm {
+	--size: 28px;
+	background: var(--surface-2);
 }
 
 /* The face is 8×8 at (8, 8) of the 64-wide texture, the hat layer the same at (40, 8). */

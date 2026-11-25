@@ -23,6 +23,8 @@ const LIMITS = {
   'otp-tries-per-minute': 5,
   'pending-friend-requests': 50,
   'activity-kept': 300,
+  'nicks-per-account': 5,
+  'nick-hold-days': 5,
 } as const;
 
 export type Switch = keyof typeof SWITCHES;
