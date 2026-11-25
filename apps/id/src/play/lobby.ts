@@ -4,7 +4,6 @@ import type { Env } from '../env';
 
 /** A lobby nobody closed is gone after a day; the host's launcher opens a new one per session. */
 const LIFETIME_MS = 24 * 60 * 60 * 1000;
-const MAX_MEMBERS = 16;
 
 type Input = Pick<LobbyState, 'name' | 'game'> & { open?: boolean };
 
@@ -57,12 +56,12 @@ export class Lobby extends DurableObject<Env> {
   }
 
   /** `friend` is the Worker's word that `userId` is the host's friend, which opens an open lobby. */
-  async join(userId: string, friend = false): Promise<Outcome<LobbyState>> {
+  async join(userId: string, friend: boolean, size: number): Promise<Outcome<LobbyState>> {
     const lobby = await this.state();
     if (!lobby) return missing;
     if (lobby.members.includes(userId)) return ok(lobby);
     if (!lobby.invited.includes(userId) && !(lobby.open && friend)) return missing;
-    if (lobby.members.length >= MAX_MEMBERS) return fail(400, 'The lobby is full');
+    if (lobby.members.length >= size) return fail(400, 'The lobby is full');
     lobby.invited = lobby.invited.filter(id => id !== userId);
     lobby.members.push(userId);
     await this.ctx.storage.put('lobby', lobby);

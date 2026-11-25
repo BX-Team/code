@@ -18,6 +18,7 @@ export const forbidden = (message: string) => new HttpError(403, 'Forbidden', me
 export const notFound = (message: string) => new HttpError(404, 'Not Found', message);
 export const payloadTooLarge = (message: string) => new HttpError(413, 'Payload Too Large', message);
 export const internal = (message: string) => new HttpError(500, 'Internal Server Error', message);
+export const unavailable = (message: string) => new HttpError(503, 'Service Unavailable', message);
 
 export function errorHandler(err: Error, c: Context) {
   if (err instanceof HttpError) {

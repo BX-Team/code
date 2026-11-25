@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ActivityEvent } from '@bx-team/types/schema/bxid';
-import { AtSign, Box, Image, KeyRound, LogIn, LogOut, MonitorX, Shirt, Sparkles, Unlink, UserPen } from '@lucide/vue';
+import { AtSign, Image, KeyRound, LogIn, LogOut, MonitorX, Shirt, Sparkles, Unlink, UserPen } from '@lucide/vue';
 import { type Component, onMounted, ref, watch } from 'vue';
 import { AGENT_ICONS, describeAgent } from '~/lib/agents';
 import { APPS, auth, fetchActivity, PROVIDER_NAMES } from '~/lib/auth';
@@ -66,12 +66,8 @@ function describe(event: ActivityEvent): { icon: Component; title: string } {
       return { icon: KeyRound, title: `Connected ${provider}` };
     case 'unlinked':
       return { icon: Unlink, title: `Disconnected ${provider}` };
-    case 'minecraft-linked':
-      return { icon: Box, title: `Linked Minecraft account ${d.name}` };
-    case 'minecraft-unlinked':
-      return { icon: Box, title: `Unlinked Minecraft account ${d.name}` };
     case 'skin':
-      return { icon: Shirt, title: d.change === 'reset' ? 'Went back to the Minecraft skin' : 'Changed skin' };
+      return { icon: Shirt, title: d.change === 'reset' ? 'Removed the skin' : 'Changed skin' };
     case 'app':
       return { icon: Sparkles, title: `Connected ${APPS[d.clientId ?? '']?.name ?? d.clientId}` };
   }

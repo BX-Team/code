@@ -43,7 +43,7 @@ async function signInAgain() {
 	<AccountSection id="delete" title="Delete BX ID">
 		<div class="del">
 			<p class="del__text">
-				Removes this account, its sign-in methods, friends, linked Minecraft profiles and skins, and signs out every
+				Removes this account, its sign-in methods, friends and skins, and signs out every
 				device. Apps you used lose what they kept for it. This cannot be undone.
 			</p>
 			<button v-if="!asking" type="button" class="btn small del__go" @click="asking = true">Delete BX ID</button>

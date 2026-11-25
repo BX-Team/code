@@ -61,7 +61,7 @@ const others = computed(() => (apps.value ?? []).filter(app => app.clientId !== 
 		<h2 class="none__title">Not connected to any app yet</h2>
 		<p class="none__text">
 			Sign in to a BX Team app with this BX ID and it gets its own tab here, with what it keeps for you. Riven Launcher,
-			for one, adds a skin, your Minecraft accounts and friends.
+			for one, adds a skin and friends.
 		</p>
 		<NuxtLink to="/riven" class="btn small none__go">About Riven Launcher</NuxtLink>
 	</section>

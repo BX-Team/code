@@ -4,6 +4,7 @@
   "license": "AGPL-3.0-only",
   "exports": {
     "./error": "./src/error.ts",
+    "./flags": "./src/flags.ts",
     "./hex": "./src/hex.ts",
     "./signature": "./src/signature.ts"
   },

@@ -9,6 +9,7 @@ import {
   type ServerEvent,
 } from '@bx-team/types/schema/play';
 import { badRequest, forbidden, HttpError, notFound } from '@bx-team/worker/error';
+import { isOn, limit } from '@bx-team/worker/flags';
 import { Hono } from 'hono';
 import type { z } from 'zod';
 import { trustedOrigins } from '../auth';
@@ -16,7 +17,7 @@ import type { Env } from '../env';
 import { normalizeFriendCode } from '../friend-code';
 import { signedIn, type Vars } from '../session';
 import { findByFriendCode, profiles } from '../users';
-import { accept, areFriends, friendships, MAX_FRIENDS, MAX_PENDING, remove, request } from './friends';
+import { accept, areFriends, friendships, MAX_FRIENDS, remove, request } from './friends';
 import { lobbyId } from './hub';
 import { iceServers } from './ice';
 import type { Outcome } from './lobby';
@@ -63,7 +64,8 @@ play.post('/friends', async c => {
 
   const mine = await friendships(c.env.DB, userId);
   if (mine.accepted.length >= MAX_FRIENDS) throw badRequest(`A BX ID has at most ${MAX_FRIENDS} friends`);
-  if (mine.outgoing.length >= MAX_PENDING) throw badRequest('Too many requests are waiting for an answer');
+  if (mine.outgoing.length >= (await limit(c.env.FLAGS, 'pending-friend-requests')))
+    throw badRequest('Too many requests are waiting for an answer');
 
   const outcome = await request(c.env.DB, userId, target.id);
   const [me] = await profiles(c.env.DB, [userId]);
@@ -93,6 +95,7 @@ play.delete('/friends/:id', async c => {
 
 play.post('/lobbies', async c => {
   const input = await parse(c.req.raw, CreateLobbySchema);
+  if (input.open) await requireOpenLobbies(c.env);
   const userId = c.get('userId');
   const stub = c.env.LOBBY.get(c.env.LOBBY.newUniqueId());
   const lobby = await stub.create(userId, input);
@@ -118,12 +121,14 @@ play.post('/lobbies/:id/join', async c => {
   const userId = c.get('userId');
   const stub = lobby(c.env, c.req.param('id'));
   const door = await stub.door();
-  const friend = !!door?.open && (await areFriends(c.env.DB, door.host, userId));
-  return c.json(unwrap(await stub.join(userId, friend)));
+  const walkIn = !!door?.open && (await isOn(c.env.FLAGS, 'open-lobbies'));
+  const friend = walkIn && !!door && (await areFriends(c.env.DB, door.host, userId));
+  return c.json(unwrap(await stub.join(userId, friend, await limit(c.env.FLAGS, 'lobby-size'))));
 });
 
 play.post('/lobbies/:id/open', async c => {
   const { open } = await parse(c.req.raw, LobbyOpenSchema);
+  if (open) await requireOpenLobbies(c.env);
   return c.json(unwrap(await lobby(c.env, c.req.param('id')).setOpen(c.get('userId'), open)));
 });
 
@@ -136,6 +141,11 @@ play.delete('/lobbies/:id', async c => {
   unwrap(await lobby(c.env, c.req.param('id')).close(c.get('userId')));
   return c.body(null, 204);
 });
+
+async function requireOpenLobbies(env: Env) {
+  if (!(await isOn(env.FLAGS, 'open-lobbies')))
+    throw forbidden('Worlds open to all friends are off for now; invite them');
+}
 
 function hub(env: Env, userId: string) {
   return env.HUB.get(env.HUB.idFromName(userId));

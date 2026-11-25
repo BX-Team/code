@@ -15,7 +15,9 @@ import {
   notFoundHandler,
   payloadTooLarge,
   unauthorized,
+  unavailable,
 } from '@bx-team/worker/error';
+import { isOn } from '@bx-team/worker/flags';
 import { sha256Hex } from '@bx-team/worker/hex';
 import type { ExportedHandler } from '@cloudflare/workers-types';
 import { Hono, type MiddlewareHandler } from 'hono';
@@ -102,6 +104,7 @@ app.get(`${PATH}/me`, async c => {
 /** The PNG is the body; `?model=slim` picks Alex's arms. */
 app.put(`${PATH}/me`, async c => {
   const userId = c.get('userId');
+  if (!(await isOn(c.env.FLAGS, 'skin-upload'))) throw unavailable('Skin uploads are off for now; try again later');
   const model = SkinModelSchema.safeParse(c.req.query('model') ?? 'classic');
   if (!model.success) throw badRequest('model is classic or slim');
   const bytes = new Uint8Array(await c.req.arrayBuffer());
@@ -133,7 +136,7 @@ app.post(`${PATH}/me/select`, async c => {
   return c.json(skin(c.env, userId, model, hash) satisfies Skin);
 });
 
-/** Back to the Minecraft profile's skin; the uploads stay among the recent ones. */
+/** Takes the skin off; the uploads stay among the recent ones. */
 app.delete(`${PATH}/me`, async c => {
   await c.env.DB.prepare(`delete from "skin" where "userId" = ?1`).bind(c.get('userId')).run();
   announce(c, c.get('userId'), 'reset');

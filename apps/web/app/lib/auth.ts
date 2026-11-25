@@ -3,8 +3,6 @@ import {
   ActivityPageSchema,
   type ConnectedApp,
   ConnectedAppsSchema,
-  type MinecraftProfile,
-  MinecraftProfilesSchema,
   type PictureSource,
 } from '@bx-team/types/schema/bxid';
 import {
@@ -31,7 +29,7 @@ export const auth = createAuthClient({
 
 /** The apps that sign in through the device flow, by client id, and where the account manages each. */
 export const APPS: Record<string, { name: string; about: string; page: string }> = {
-  riven: { name: 'Riven Launcher', about: 'Skin, Minecraft accounts and friends', page: '/account/riven' },
+  riven: { name: 'Riven Launcher', about: 'Skin and friends', page: '/account/riven' },
 };
 
 /** Social sign-in providers by Better Auth's provider id. */
@@ -61,17 +59,6 @@ export function safeNext(raw: unknown): string {
   return typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/\\')
     ? raw
     : '/account';
-}
-
-export async function fetchMinecraftProfiles(): Promise<MinecraftProfile[]> {
-  const response = await fetch(`${AUTH_BASE}/v1/auth/minecraft`, { credentials: 'include' });
-  if (!response.ok) throw new Error(`BX ID answered ${response.status}`);
-  return MinecraftProfilesSchema.parse(await response.json()).profiles;
-}
-
-export async function unlinkMinecraftProfile(id: string): Promise<void> {
-  const response = await fetch(`${AUTH_BASE}/v1/auth/minecraft/${id}`, { method: 'DELETE', credentials: 'include' });
-  if (!response.ok && response.status !== 404) throw new Error(`BX ID answered ${response.status}`);
 }
 
 /** Where the current picture came from, read off its host. */

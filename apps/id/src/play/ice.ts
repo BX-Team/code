@@ -1,11 +1,16 @@
 import { IceServersSchema } from '@bx-team/types/schema/play';
 import { internal } from '@bx-team/worker/error';
+import { isOn } from '@bx-team/worker/flags';
 import type { Env } from '../env';
 
 const TTL_SECONDS = 6 * 60 * 60;
 
+/** Address discovery only: players still connect directly, nothing is relayed through us. */
+const STUN_ONLY = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
+
 /** STUN and TURN (UDP, TCP and TLS on 443) from Cloudflare Realtime, with short-lived credentials. */
 export async function iceServers(env: Env) {
+  if (!(await isOn(env.FLAGS, 'turn-relay'))) return STUN_ONLY;
   const response = await fetch(
     `https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`,
     {

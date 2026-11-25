@@ -1,6 +1,7 @@
+import { isOn, limit, type Switch } from '@bx-team/worker/flags';
 import type { ExecutionContext } from '@cloudflare/workers-types';
 import { betterAuth } from 'better-auth';
-import { createAuthMiddleware } from 'better-auth/api';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { bearer } from 'better-auth/plugins/bearer';
 import { captcha } from 'better-auth/plugins/captcha';
 import { deviceAuthorization } from 'better-auth/plugins/device-authorization';
@@ -17,6 +18,11 @@ export const BASE_PATH = '/v1/auth';
 const DEVICE_CLIENTS = new Set(['riven']);
 
 const SOCIAL = new Set(['discord', 'github']);
+
+const PROVIDER_SWITCH: Record<string, Switch> = { discord: 'discord-sign-in', github: 'github-sign-in' };
+
+/** Social sign-in starts at the first two and finishes at the callback, `/callback/:id`. */
+const SOCIAL_PATHS = new Set(['/sign-in/social', '/link-social', '/callback/:id']);
 
 /** Paths where the player ends another device's session, as opposed to signing this one out. */
 const REVOKES = new Set(['/revoke-session', '/revoke-sessions', '/revoke-other-sessions']);
@@ -74,17 +80,31 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       },
     },
     hooks: {
+      before: createAuthMiddleware(async hook => {
+        if (hook.path === '/email-otp/send-verification-otp' && !(await isOn(env.FLAGS, 'email-otp')))
+          throw new APIError('SERVICE_UNAVAILABLE', {
+            message: 'Sign-in by email is off for now; use Discord or GitHub',
+          });
+        if (!SOCIAL_PATHS.has(hook.path)) return;
+        const provider =
+          hook.path === '/callback/:id' ? hook.params?.id : (hook.body as { provider?: unknown })?.provider;
+        const key = typeof provider === 'string' ? PROVIDER_SWITCH[provider] : undefined;
+        if (key && !(await isOn(env.FLAGS, key)))
+          throw new APIError('SERVICE_UNAVAILABLE', { message: `Sign-in with ${provider} is off for now` });
+      }),
       after: createAuthMiddleware(async hook => {
         if (hook.path !== '/device/token') return;
         const userId = hook.context.newSession?.user.id;
         const clientId = (hook.body as { client_id?: unknown } | undefined)?.client_id;
-        if (userId && typeof clientId === 'string') await rememberApp(env.DB, userId, clientId, from(hook));
+        if (userId && typeof clientId === 'string') await rememberApp(env, userId, clientId, from(hook));
       }),
     },
     databaseHooks: {
       user: {
         create: {
           before: async user => {
+            if (!(await isOn(env.FLAGS, 'sign-up')))
+              throw new APIError('FORBIDDEN', { message: 'New BX IDs cannot be made right now; try again later' });
             const handle = (user as { username?: string | null }).username;
             const local = user.email.split('@')[0];
             const names = await freshUsername(env.DB, [handle, user.name, local]);
@@ -92,7 +112,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           },
           after: async (user, hook) => {
             signedUp = true;
-            await record(env.DB, user.id, { kind: 'created', ...from(hook) });
+            await record(env, user.id, { kind: 'created', ...from(hook) });
           },
         },
         update: {
@@ -118,14 +138,14 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           after: async (user, hook) => {
             const changes = profileChanges;
             profileChanges = [];
-            for (const change of changes) await record(env.DB, user.id, { ...change, ...from(hook) });
+            for (const change of changes) await record(env, user.id, { ...change, ...from(hook) });
           },
         },
       },
       session: {
         create: {
           after: async session => {
-            await record(env.DB, session.userId, {
+            await record(env, session.userId, {
               kind: 'signed-in',
               ipAddress: session.ipAddress,
               userAgent: session.userAgent,
@@ -138,7 +158,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
             const kind =
               hook?.path === '/sign-out' ? 'signed-out' : REVOKES.has(hook?.path ?? '') ? 'device-removed' : null;
             if (!kind) return;
-            await record(env.DB, session.userId, {
+            await record(env, session.userId, {
               kind,
               ipAddress: session.ipAddress,
               userAgent: session.userAgent,
@@ -151,7 +171,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           after: async (account, hook) => {
             // Signing up with Discord or GitHub makes the account too; that is the "created" event.
             if (signedUp || !SOCIAL.has(account.providerId)) return;
-            await record(env.DB, account.userId, {
+            await record(env, account.userId, {
               kind: 'linked',
               detail: { provider: account.providerId },
               ...from(hook),
@@ -161,7 +181,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
         delete: {
           after: async (account, hook) => {
             if (hook?.path !== '/unlink-account' || !SOCIAL.has(account.providerId)) return;
-            await record(env.DB, account.userId, {
+            await record(env, account.userId, {
               kind: 'unlinked',
               detail: { provider: account.providerId },
               ...from(hook),
@@ -178,8 +198,11 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       // An isolate's memory is not shared between requests, so the counters live in D1.
       storage: 'database',
       customRules: {
-        '/email-otp/send-verification-otp': { window: 60, max: 3 },
-        '/sign-in/email-otp': { window: 60, max: 5 },
+        '/email-otp/send-verification-otp': async () => ({
+          window: 60,
+          max: await limit(env.FLAGS, 'otp-sends-per-minute'),
+        }),
+        '/sign-in/email-otp': async () => ({ window: 60, max: await limit(env.FLAGS, 'otp-tries-per-minute') }),
       },
     },
     advanced: {

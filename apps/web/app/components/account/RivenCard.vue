@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import type { MinecraftProfile } from '@bx-team/types/schema/bxid';
 import type { Friend, Friends } from '@bx-team/types/schema/play';
 import type { Skin } from '@bx-team/types/schema/skins';
 import { ArrowRight } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
-import { fetchMinecraftProfiles } from '~/lib/auth';
 import { fetchFriends, playerName } from '~/lib/play';
 import { fetchMySkins } from '~/lib/skins';
 
-/** Riven Launcher on the overview: the skin, who is online and the Minecraft account, at a glance. */
+/** Riven Launcher on the overview: the skin and who is online, at a glance. */
 const props = defineProps<{ connectedAt: string }>();
 
 const connected = computed(() =>
@@ -16,18 +14,12 @@ const connected = computed(() =>
 );
 
 const skin = ref<Skin | null>(null);
-const profiles = ref<MinecraftProfile[]>([]);
 const friends = ref<Friends | null>(null);
 const loaded = ref(false);
 
 onMounted(async () => {
-  const [mine, linked, list] = await Promise.all([
-    fetchMySkins().catch(() => null),
-    fetchMinecraftProfiles().catch(() => []),
-    fetchFriends().catch(() => null),
-  ]);
+  const [mine, list] = await Promise.all([fetchMySkins().catch(() => null), fetchFriends().catch(() => null)]);
   skin.value = mine?.skin ?? null;
-  profiles.value = linked;
   friends.value = list;
   loaded.value = true;
 });
@@ -35,10 +27,7 @@ useLiveFriends(friends, async () => {
   friends.value = await fetchFriends().catch(() => friends.value);
 });
 
-/** Without an upload, friends see the skin of the linked Minecraft profile. */
-const skinUrl = computed(
-  () => skin.value?.url ?? (profiles.value[0] ? `https://crafthead.net/skin/${profiles.value[0].id}` : null),
-);
+const skinUrl = computed(() => skin.value?.url ?? null);
 
 const online = computed(() =>
   (friends.value?.friends ?? [])
@@ -86,15 +75,9 @@ function status(friend: Friend) {
 					</dd>
 				</div>
 				<div>
-					<dt>Minecraft</dt>
-					<dd :class="{ mono: profiles.length }">
-						{{ loaded ? (profiles.map(p => p.name).join(', ') || 'Not linked') : '…' }}
-					</dd>
-				</div>
-				<div>
 					<dt>Skin</dt>
 					<dd>
-						{{ !loaded ? '…' : skin ? (skin.model === 'slim' ? 'Slim · uploaded' : 'Classic · uploaded') : profiles.length ? 'From Minecraft' : 'None' }}
+						{{ !loaded ? '…' : skin ? (skin.model === 'slim' ? 'Slim · uploaded' : 'Classic · uploaded') : 'None' }}
 					</dd>
 				</div>
 			</dl>
@@ -208,10 +191,6 @@ function status(friend: Friend) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-.rc__facts dd.mono {
-	font-family: var(--font-mono);
 }
 
 .rc__on {

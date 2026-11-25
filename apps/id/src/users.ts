@@ -7,7 +7,6 @@ interface UserRow {
   username: string | null;
   displayUsername: string | null;
   image: string | null;
-  minecraft: string | null;
 }
 
 /** `code` as stored, see `normalizeFriendCode`. */
@@ -30,12 +29,7 @@ export async function profiles(db: D1Database, ids: string[]): Promise<PlayUser[
 
 function query(db: D1Database, where: string, params: string[]) {
   return db
-    .prepare(
-      `select u."id", u."name", u."username", u."displayUsername", u."image",
-         (select json_group_array(json_object('id', m."id", 'name', m."name"))
-            from "minecraftProfile" m where m."userId" = u."id") as "minecraft"
-       from "user" u ${where}`,
-    )
+    .prepare(`select u."id", u."name", u."username", u."displayUsername", u."image" from "user" u ${where}`)
     .bind(...params);
 }
 
@@ -45,6 +39,5 @@ function toUser(row: UserRow): PlayUser {
     name: row.name,
     username: row.displayUsername ?? row.username,
     image: row.image,
-    minecraft: row.minecraft ? JSON.parse(row.minecraft) : [],
   };
 }

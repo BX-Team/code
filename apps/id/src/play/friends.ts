@@ -2,7 +2,6 @@ import type { D1Database } from '@cloudflare/workers-types';
 
 /** Keeps one account's fan-out (presence to every friend) bounded. */
 export const MAX_FRIENDS = 200;
-export const MAX_PENDING = 50;
 
 interface Row {
   userId: string;

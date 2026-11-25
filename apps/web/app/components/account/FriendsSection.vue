@@ -130,7 +130,6 @@ function remove(id: string) {
 						<AccountAvatar :id="user.id" :name="label(user)" :image="user.image" :size="36" />
 						<div class="grow">
 							<span class="name">{{ label(user) }}</span>
-							<span v-if="user.minecraft.length" class="sub">{{ user.minecraft.map(p => p.name).join(', ') }}</span>
 						</div>
 						<div class="actions">
 							<button type="button" class="btn primary small" :disabled="busy === user.id" @click="act(user.id, () => acceptFriend(user.id))">

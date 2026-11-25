@@ -1,21 +1,4 @@
 import { z } from 'zod';
-import { UsernameSchema } from './mojang';
-
-/** The `serverId` a launcher passes to Mojang's `join`, issued per account by BX ID. */
-export const ServerIdSchema = z.string().regex(/^[0-9a-f]{40}$/);
-
-/** Sent once the launcher has called `join` with the challenge's `serverId`. */
-export const MinecraftLinkSchema = z.object({ name: UsernameSchema, serverId: ServerIdSchema });
-
-/** A Minecraft profile linked to a BX ID; `id` is the undashed online UUID. */
-export const MinecraftProfileSchema = z.object({
-  id: z.string().regex(/^[0-9a-f]{32}$/),
-  name: z.string(),
-});
-
-export const MinecraftProfilesSchema = z.object({ profiles: z.array(MinecraftProfileSchema) });
-
-export type MinecraftProfile = z.infer<typeof MinecraftProfileSchema>;
 
 /** An app this BX ID has signed in to through the device flow, such as `riven`. */
 export const ConnectedAppSchema = z.object({ clientId: z.string(), connectedAt: z.string() });
@@ -40,8 +23,6 @@ export const ActivityKindSchema = z.enum([
   'picture',
   'linked',
   'unlinked',
-  'minecraft-linked',
-  'minecraft-unlinked',
   'skin',
   'app',
 ]);
@@ -60,3 +41,11 @@ export const ActivityPageSchema = z.object({ events: z.array(ActivityEventSchema
 
 export type ActivityEvent = z.infer<typeof ActivityEventSchema>;
 export type ActivityPage = z.infer<typeof ActivityPageSchema>;
+
+/** A line the site shows above every page, set from a Flagship flag; `null` shows nothing. */
+export const BannerSchema = z.object({ text: z.string().min(1).max(300), tone: z.enum(['info', 'warning']) });
+
+export const NoticeSchema = z.object({ banner: BannerSchema.nullable() });
+
+export type Banner = z.infer<typeof BannerSchema>;
+export type Notice = z.infer<typeof NoticeSchema>;

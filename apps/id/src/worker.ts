@@ -6,7 +6,7 @@ import { activity } from './activity';
 import { apps } from './apps';
 import { BASE_PATH, createAuth, trustedOrigins } from './auth';
 import type { Env } from './env';
-import { minecraft } from './minecraft';
+import { notice } from './notice';
 import { picture } from './picture';
 import { PLAY_PATH, play } from './play/routes';
 
@@ -24,10 +24,10 @@ const trusted: MiddlewareHandler<{ Bindings: Env }> = (c, next) =>
 app.use(`${BASE_PATH}/*`, trusted);
 app.use(`${PLAY_PATH}/*`, trusted);
 
-app.route(`${BASE_PATH}/minecraft`, minecraft);
 app.route(`${BASE_PATH}/apps`, apps);
 app.route(`${BASE_PATH}/activity`, activity);
 app.route(`${BASE_PATH}/picture`, picture);
+app.route(`${BASE_PATH}/notice`, notice);
 app.route(PLAY_PATH, play);
 
 app.on(['GET', 'POST'], `${BASE_PATH}/*`, c => createAuth(c.env, c.executionCtx as never).handler(c.req.raw));

@@ -15,6 +15,7 @@
   },
   "services": [{ "binding": "ID", "service": "id", "entrypoint": "IdService" }],
   "r2_buckets": [{ "binding": "TEXTURES", "bucket_name": "skins" }],
+  "flagship": [{ "binding": "FLAGS", "app_id": "bcad6546-ebdf-45f9-bab8-a695beb02755" }],
   "d1_databases": [
     {
       "binding": "DB",

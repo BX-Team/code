@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { MinecraftProfileSchema } from './bxid';
 
 /** A BX ID as other players see it: no email, nothing private. */
 export const PlayUserSchema = z.object({
@@ -8,7 +7,6 @@ export const PlayUserSchema = z.object({
   name: z.string(),
   username: z.string().nullable(),
   image: z.string().nullable(),
-  minecraft: z.array(MinecraftProfileSchema),
 });
 
 /** What a player is doing, set by their launcher; `null` while it is only open. */

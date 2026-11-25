@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import type { MinecraftProfile } from '@bx-team/types/schema/bxid';
 import type { Skin, SkinModel } from '@bx-team/types/schema/skins';
 import { Upload } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
-import { fetchMinecraftProfiles } from '~/lib/auth';
 import { fetchMySkins, resetSkin, selectSkin, uploadSkin } from '~/lib/skins';
 
 const skin = ref<Skin | null>(null);
 const recent = ref<Skin[]>([]);
-const profile = ref<MinecraftProfile | null>(null);
 const model = ref<SkinModel>('classic');
 const loaded = ref(false);
 const busy = ref(false);
@@ -17,10 +14,7 @@ const canvas = ref<HTMLCanvasElement | null>(null);
 const file = ref<HTMLInputElement | null>(null);
 const viewer = shallowRef<import('skinview3d').SkinViewer | null>(null);
 
-/** Without an upload, friends see the skin of the linked Minecraft profile. */
-const shown = computed(
-  () => skin.value?.url ?? (profile.value ? `https://crafthead.net/skin/${profile.value.id}` : null),
-);
+const shown = computed(() => skin.value?.url ?? null);
 
 onMounted(async () => {
   const { SkinViewer, IdleAnimation } = await import('skinview3d');
@@ -29,10 +23,9 @@ onMounted(async () => {
   viewer.value.animation = new IdleAnimation();
   viewer.value.controls.enableZoom = false;
   try {
-    const [mine, profiles] = await Promise.all([fetchMySkins(), fetchMinecraftProfiles().catch(() => [])]);
+    const mine = await fetchMySkins();
     skin.value = mine.skin;
     recent.value = mine.recent;
-    profile.value = profiles[0] ?? null;
     if (mine.skin) model.value = mine.skin.model;
   } catch {
     error.value = 'Skins are not reachable right now. Try again in a minute.';
@@ -153,7 +146,7 @@ async function reset() {
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 				<p v-else class="hint">A 64×64 PNG, or 64×32 from before 1.8. Click a skin to wear it.</p>
 				<button v-if="skin" type="button" class="btn quiet small" :disabled="busy" @click="reset">
-					Use the Minecraft one
+					Remove skin
 				</button>
 			</footer>
 		</div>

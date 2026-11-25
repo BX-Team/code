@@ -20,7 +20,7 @@ export class IdService extends WorkerEntrypoint<Env> {
     userId: string,
     from: { change: 'wear' | 'reset'; ipAddress: string | null; userAgent: string | null },
   ): Promise<void> {
-    await record(this.env.DB, userId, {
+    await record(this.env, userId, {
       kind: 'skin',
       detail: { change: from.change },
       ipAddress: from.ipAddress,
