@@ -39,9 +39,7 @@ function pictureSource(image: string | null | undefined): string | null {
   return host.endsWith('discordapp.com') ? 'discord' : host.endsWith('githubusercontent.com') ? 'github' : 'other';
 }
 
-/** Built per request: D1 and the secrets exist only inside `fetch`. */
 export function createAuth(env: Env, ctx: ExecutionContext) {
-  // One request at a time builds this, so these carry state from a before hook to its after hook.
   let signedUp = false;
   let profileChanges: Happened[] = [];
 
@@ -52,10 +50,8 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
     secret: env.BETTER_AUTH_SECRET,
     database: env.DB,
     trustedOrigins: trustedOrigins(env),
-    // The username plugin also adds password sign-in by username, which no account here can pass.
     disabledPaths: ['/sign-in/username'],
     socialProviders: {
-      // The handle becomes the first username to try; the create hook below makes it fit and unique.
       discord: {
         clientId: env.DISCORD_CLIENT_ID,
         clientSecret: env.DISCORD_CLIENT_SECRET,
@@ -71,7 +67,6 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       additionalFields: {
         friendCode: { type: 'string', required: false, input: false },
       },
-      // Without a password Better Auth asks for a fresh session (signed in within a day) instead.
       deleteUser: {
         enabled: true,
         afterDelete: async user => {
@@ -105,6 +100,8 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           before: async user => {
             if (!(await isOn(env.FLAGS, 'sign-up')))
               throw new APIError('FORBIDDEN', { message: 'New BX IDs cannot be made right now; try again later' });
+            if (!user.emailVerified)
+              throw new APIError('FORBIDDEN', { message: 'Verify your email with the provider first' });
             const handle = (user as { username?: string | null }).username;
             const local = user.email.split('@')[0];
             const names = await freshUsername(env.DB, [handle, user.name, local]);
@@ -191,11 +188,10 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       },
     },
     account: {
-      accountLinking: { enabled: true, trustedProviders: ['discord', 'github', 'email-otp'] },
+      accountLinking: { enabled: true },
     },
     rateLimit: {
       enabled: true,
-      // An isolate's memory is not shared between requests, so the counters live in D1.
       storage: 'database',
       customRules: {
         '/email-otp/send-verification-otp': async () => ({
