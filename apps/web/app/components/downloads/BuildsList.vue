@@ -16,6 +16,7 @@ const props = defineProps<{
   initialShowExperimental?: boolean;
 }>();
 
+const { t } = useI18n();
 const selectedVersion = ref(props.defaultVersion);
 const showExperimental = ref(!!props.initialShowExperimental);
 const builds = ref<Build[]>(props.initialBuilds);
@@ -42,7 +43,7 @@ watch(selectedVersion, async version => {
     builds.value = page.builds.items;
     next.value = page.builds.next;
   } catch (e: any) {
-    error.value = e?.message ?? 'Failed to load builds';
+    error.value = e?.message ?? t('builds.failed');
     builds.value = [];
     next.value = null;
   } finally {
@@ -59,7 +60,7 @@ async function loadMore() {
     builds.value = [...builds.value, ...page.builds.items];
     next.value = page.builds.next;
   } catch (e: any) {
-    error.value = e?.message ?? 'Failed to load builds';
+    error.value = e?.message ?? t('builds.failed');
   } finally {
     loadingMore.value = false;
   }
@@ -86,32 +87,32 @@ function onToggle(value: boolean) {
 		/>
 
 		<p v-if="selectedVersion === experimental" class="bx-callout bx-callout--exp notice">
-			<span class="bx-callout__mark">Experimental</span>
-			<span>Experimental builds may contain bugs or unstable features. Not recommended for production servers.</span>
+			<span class="bx-callout__mark">{{ t('builds.experimental') }}</span>
+			<span>{{ t('builds.experimentalBody') }}</span>
 		</p>
 
 		<p v-if="supportOf(selectedVersion) === 'deprecated'" class="bx-callout bx-callout--warn notice">
-			<span class="bx-callout__mark">Deprecated</span>
-			<span>This Minecraft version is deprecated. Consider upgrading to a newer version.</span>
+			<span class="bx-callout__mark">{{ t('builds.deprecated') }}</span>
+			<span>{{ t('builds.deprecatedBody') }}</span>
 		</p>
 
 		<p v-if="supportOf(selectedVersion) === 'unsupported'" class="bx-callout bx-callout--err notice">
-			<span class="bx-callout__mark">Unsupported</span>
-			<span>This Minecraft version is no longer supported. Please upgrade to a supported version.</span>
+			<span class="bx-callout__mark">{{ t('builds.unsupported') }}</span>
+			<span>{{ t('builds.unsupportedBody') }}</span>
 		</p>
 
 		<div v-if="loading" class="state">
 			<Loader2 class="spin" :size="28" :stroke-width="1.7" />
-			<p>Loading builds…</p>
+			<p>{{ t('builds.loading') }}</p>
 		</div>
 
 		<p v-else-if="error" class="bx-callout bx-callout--err notice">
-			<span class="bx-callout__mark">Error</span>
+			<span class="bx-callout__mark">{{ t('builds.error') }}</span>
 			<span>{{ error }}</span>
 		</p>
 
 		<div v-else-if="!builds.length" class="state">
-			<p>No builds available for this version.</p>
+			<p>{{ t('builds.none') }}</p>
 		</div>
 
 		<div v-else class="builds">
@@ -120,7 +121,7 @@ function onToggle(value: boolean) {
 			<div v-if="next" class="more">
 				<Button variant="secondary" :disabled="loadingMore" @click="loadMore">
 					<Loader2 v-if="loadingMore" class="spin" :size="16" :stroke-width="1.7" />
-					{{ loadingMore ? 'Loading…' : 'Load more builds' }}
+					{{ loadingMore ? t('common.loading') : t('builds.more') }}
 				</Button>
 			</div>
 		</div>

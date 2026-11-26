@@ -12,9 +12,11 @@ import {
 } from '@/lib/mojang';
 import { syncQuery } from '@/lib/query';
 
+const { t } = useI18n();
+
 useHead({
-  title: 'UUID lookup',
-  meta: [{ name: 'description', content: 'Online and offline UUIDs of a Minecraft player, with the skin.' }],
+  title: () => t('tools.uuid.name'),
+  meta: [{ name: 'description', content: () => t('tools.uuid.description') }],
 });
 
 const route = useRoute();
@@ -51,21 +53,21 @@ const groups = computed(() => {
   if (profile.value) {
     const id = profile.value.id;
     out.push({
-      title: 'Online',
+      title: t('tools.uuid.online'),
       rows: [
         { key: 'online', label: 'UUID', value: id },
-        { key: 'online-plain', label: 'No dashes', value: undashed(id) },
-        { key: 'online-int', label: 'Int array', value: intArray(id) },
+        { key: 'online-plain', label: t('tools.uuid.plain'), value: undashed(id) },
+        { key: 'online-int', label: t('tools.uuid.int'), value: intArray(id) },
       ],
     });
   }
   if (offline.value) {
     out.push({
-      title: 'Offline',
+      title: t('tools.uuid.offline'),
       rows: [
         { key: 'offline', label: 'UUID', value: offline.value },
-        { key: 'offline-plain', label: 'No dashes', value: undashed(offline.value) },
-        { key: 'offline-int', label: 'Int array', value: intArray(offline.value) },
+        { key: 'offline-plain', label: t('tools.uuid.plain'), value: undashed(offline.value) },
+        { key: 'offline-int', label: t('tools.uuid.int'), value: intArray(offline.value) },
       ],
     });
   }
@@ -82,7 +84,7 @@ async function look() {
     profile.value = await fetchProfile(input.value);
     missing.value = !profile.value;
   } catch (thrown) {
-    error.value = thrown instanceof LookupError ? thrown.message : 'Could not reach the lookup service.';
+    error.value = t(thrown instanceof LookupError ? 'tools.uuid.failed' : 'tools.uuid.unreachable');
   } finally {
     loading.value = false;
   }
@@ -108,19 +110,16 @@ onMounted(() => {
 });
 
 const status = computed(() => {
-  if (loading.value) return 'Looking up…';
-  if (profile.value) return `${profile.value.model === 'slim' ? 'Slim' : 'Classic'} model`;
-  if (missing.value) return isName.value ? 'No Mojang account; offline only' : 'No account has this UUID';
-  if (offline.value) return 'Press Look up for the online UUID';
+  if (loading.value) return t('tools.uuid.looking');
+  if (profile.value) return t(profile.value.model === 'slim' ? 'tools.uuid.slim' : 'tools.uuid.classic');
+  if (missing.value) return t(isName.value ? 'tools.uuid.noAccount' : 'tools.uuid.noUuid');
+  if (offline.value) return t('tools.uuid.pressLookUp');
   return '';
 });
 </script>
 
 <template>
-	<ToolsToolPage
-		title="UUID lookup"
-		lead="Turn a Minecraft username into the UUID a server stores it under, or a UUID back into a name. Online UUIDs come from Mojang; offline ones are derived from the name and work without an account."
-	>
+	<ToolsToolPage :title="$t('tools.uuid.name')" :lead="$t('tools.uuid.lead')">
 		<div class="uu">
 			<aside class="uu__player">
 				<div class="uu__stage" :class="{ empty: !profile }">
@@ -128,18 +127,18 @@ const status = computed(() => {
 						v-if="profile"
 						:key="profile.id"
 						:src="`https://crafthead.net/body/${undashed(profile.id)}`"
-						:alt="`${profile.name}'s skin`"
+						:alt="$t('tools.uuid.skinOf', { name: profile.name })"
 						class="uu__body"
 					/>
 					<UserRound v-else :size="56" :stroke-width="1.2" class="uu__ghost" />
 				</div>
 				<div class="uu__who">
-					<span class="uu__name">{{ profile?.name ?? (offlineName || 'Player') }}</span>
-					<span class="uu__status">{{ status || 'Type a username to start' }}</span>
+					<span class="uu__name">{{ profile?.name ?? (offlineName || $t('tools.uuid.player')) }}</span>
+					<span class="uu__status">{{ status || $t('tools.uuid.start') }}</span>
 				</div>
 				<div v-if="profile" class="uu__links">
-					<a v-if="profile.skin" :href="profile.skin" target="_blank" rel="noopener">Skin</a>
-					<a v-if="profile.cape" :href="profile.cape" target="_blank" rel="noopener">Cape</a>
+					<a v-if="profile.skin" :href="profile.skin" target="_blank" rel="noopener">{{ $t('tools.uuid.skin') }}</a>
+					<a v-if="profile.cape" :href="profile.cape" target="_blank" rel="noopener">{{ $t('tools.uuid.cape') }}</a>
 					<a :href="`https://namemc.com/profile/${profile.id}`" target="_blank" rel="noopener">
 						NameMC <ExternalLink :size="12" />
 					</a>
@@ -148,7 +147,7 @@ const status = computed(() => {
 
 			<section class="uu__main">
 				<form class="uu__search" @submit.prevent="look">
-					<label class="label" for="name">Username or online UUID</label>
+					<label class="label" for="name">{{ $t('tools.uuid.input') }}</label>
 					<div class="uu__row">
 						<input
 							id="name"
@@ -163,17 +162,15 @@ const status = computed(() => {
 						/>
 						<button type="submit" class="btn primary" :disabled="!valid || loading">
 							<Search :size="15" :stroke-width="1.9" />
-							<span>{{ loading ? 'Looking up' : 'Look up' }}</span>
+							<span>{{ loading ? $t('tools.uuid.lookingUp') : $t('tools.uuid.lookUp') }}</span>
 						</button>
 					</div>
-					<p v-if="input && !valid" class="hint bad">
-						A username is 1 to 16 letters, digits or underscores; a UUID is 32 hex digits, dashes optional.
-					</p>
-					<p v-else-if="error" class="hint bad">{{ error }} The offline UUID below needs no lookup.</p>
-					<p v-else class="hint">
-						Online: the account's UUID, used with <code>online-mode=true</code> and behind a proxy. Offline: what
-						<code>online-mode=false</code> derives from the name.
-					</p>
+					<p v-if="input && !valid" class="hint bad">{{ $t('tools.uuid.invalid') }}</p>
+					<p v-else-if="error" class="hint bad">{{ error }} {{ $t('tools.uuid.offlineStill') }}</p>
+					<i18n-t v-else keypath="tools.uuid.hint" tag="p" class="hint" scope="global">
+						<template #on><code>online-mode=true</code></template>
+						<template #off><code>online-mode=false</code></template>
+					</i18n-t>
 				</form>
 
 				<div v-if="groups.length" class="uu__groups">
@@ -186,7 +183,7 @@ const status = computed(() => {
 								<button
 									type="button"
 									class="uu__copy"
-									:aria-label="`Copy ${g.title.toLowerCase()} ${row.label}`"
+									:aria-label="$t('tools.uuid.copy', { group: g.title.toLowerCase(), label: row.label })"
 									@click="copy(row.key, row.value)"
 								>
 									<component :is="copied === row.key ? Check : Copy" :size="15" :stroke-width="1.8" />
@@ -196,7 +193,7 @@ const status = computed(() => {
 					</div>
 				</div>
 				<div v-else class="uu__empty">
-					<p>The UUIDs appear here: dashed, without dashes, and as the int array NBT and commands use.</p>
+					<p>{{ $t('tools.uuid.empty') }}</p>
 				</div>
 			</section>
 		</div>

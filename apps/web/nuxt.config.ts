@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { PROJECTS } from '@bx-team/projects';
 import tailwindcss from '@tailwindcss/vite';
+import { LOCALE_COOKIE } from './locale.ts';
 
 checkDocsAgainstRegistry();
 
@@ -15,7 +16,37 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/content', '@nuxt/fonts', '@scalar/nuxt'],
+  modules: [
+    '@nuxt/content',
+    '@nuxt/fonts',
+    '@scalar/nuxt',
+    (_, nuxt) => {
+      nuxt.hook('pages:extend', pages => {
+        for (const page of pages) {
+          if (page.path === '/docs' || page.path.startsWith('/docs/')) page.meta = { ...page.meta, i18n: false };
+        }
+      });
+    },
+    '@nuxtjs/i18n',
+  ],
+
+  i18n: {
+    baseUrl: 'https://bxteam.org',
+    // Messages hold literal markup like `<gradient>` and are never rendered as HTML.
+    compilation: { strictMessage: false },
+    defaultLocale: 'en',
+    strategy: 'prefix_except_default',
+    locales: [
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+      { code: 'ru', language: 'ru-RU', name: 'Русский', file: 'ru.json' },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: LOCALE_COOKIE,
+      cookieSecure: true,
+      redirectOn: 'no prefix',
+    },
+  },
 
   scalar: {
     darkMode: true,
@@ -109,20 +140,24 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/downloads/**': { ssr: false },
     '/docs/api/**': { ssr: false },
-    // Each tool restores its form from the query string, which a prerendered page cannot know.
-    '/tools/*': { ssr: false },
-    // The session lives in a cookie on the id Worker's host, which only the browser can send.
-    '/login': { ssr: false },
-    '/account': { ssr: false },
-    '/account/**': { ssr: false },
+    ...localized({
+      '/downloads/**': { ssr: false },
+      // Each tool restores its form from the query string, which a prerendered page cannot know.
+      '/tools/*': { ssr: false },
+      // The session lives in a cookie on the id Worker's host, which only the browser can send.
+      '/login': { ssr: false },
+      '/account': { ssr: false },
+      '/account/**': { ssr: false },
+    }),
   },
 
   sourcemap: { server: false },
 
   nitro: {
     preset: 'static',
+
+    prerender: { routes: ['/', '/ru'] },
 
     devProxy: {
       '/v1': { target: `${api}/v1`, changeOrigin: true },
@@ -143,6 +178,16 @@ export default defineNuxtConfig({
     nitroAutoImports: true,
   },
 });
+
+/** The same rules for the English pages and their Russian copies under /ru. */
+function localized<T>(rules: Record<string, T>): Record<string, T> {
+  return Object.fromEntries(
+    Object.entries(rules).flatMap(([path, rule]) => [
+      [path, rule],
+      [`/ru${path}`, rule],
+    ]),
+  );
+}
 
 /** A docs section and a registry entry are the same fact twice; fail the build when they drift. */
 function checkDocsAgainstRegistry() {

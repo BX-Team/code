@@ -59,7 +59,7 @@ function face(part: Part, at = { x: part.x, y: part.y }) {
 </script>
 
 <template>
-	<div class="sf" role="img" aria-label="Your skin from the front">
+	<div class="sf" role="img" :aria-label="$t('account.riven.front')">
 		<div v-for="(row, i) in rows" :key="i" class="sf__row">
 			<span v-for="part in row" :key="part.key" class="sf__part" :class="{ flip: part.flip }" :style="face(part)">
 				<span v-if="part.over" class="sf__part sf__over" :style="face(part, part.over)" />

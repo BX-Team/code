@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Navbar, type NavLink } from '@bx-team/ui';
+import { Navbar, type NavLink, type NavStrings } from '@bx-team/ui';
 import { computed, resolveComponent } from 'vue';
 import discordSvgRaw from '~/assets/external/discord.svg?raw';
 import githubSvgRaw from '~/assets/external/github.svg?raw';
@@ -18,19 +18,30 @@ defineEmits<{ search: [] }>();
 // Every section of the site is one Nuxt app, so the bar navigates without a reload.
 const link = resolveComponent('NuxtLink');
 
-const route = useRoute();
-const links: NavLink[] = [
-  { id: 'documentation', label: 'Docs', href: '/docs' },
-  { id: 'downloads', label: 'Downloads', href: '/downloads' },
-  { id: 'tools', label: 'Tools', href: '/tools' },
-  { id: 'team', label: 'Team', href: '/team' },
-];
+const { t } = useI18n();
+const path = useBarePath();
+const sitePath = useSitePath();
+
+const links = computed<NavLink[]>(() => [
+  { id: 'documentation', label: t('nav.docs'), href: '/docs' },
+  { id: 'downloads', label: t('nav.downloads'), href: sitePath('/downloads') },
+  { id: 'tools', label: t('nav.tools'), href: sitePath('/tools') },
+  { id: 'team', label: t('nav.team'), href: sitePath('/team') },
+]);
+
+const strings = computed<NavStrings>(() => ({
+  home: t('nav.home'),
+  main: t('nav.main'),
+  menu: t('nav.menu'),
+  closeMenu: t('nav.closeMenu'),
+  search: t('nav.searchSite'),
+}));
 
 const active = computed(() => {
-  if (route.path.startsWith('/docs')) return 'documentation';
-  if (route.path.startsWith('/downloads')) return 'downloads';
-  if (route.path.startsWith('/tools')) return 'tools';
-  if (route.path.startsWith('/team')) return 'team';
+  if (path.value.startsWith('/docs')) return 'documentation';
+  if (path.value.startsWith('/downloads')) return 'downloads';
+  if (path.value.startsWith('/tools')) return 'tools';
+  if (path.value.startsWith('/team')) return 'team';
   return '';
 });
 </script>
@@ -39,12 +50,14 @@ const active = computed(() => {
 	<Navbar
 		:active="active"
 		:links="links"
+		:brand-href="sitePath('/')"
+		:strings="strings"
 		:tag="tag"
 		:link-as="link"
 		:github-href="GITHUB_URL"
 		:discord-href="DISCORD_URL"
 		:search-enabled="searchEnabled"
-		:search-label="searchLabel"
+		:search-label="searchLabel ?? t('nav.search')"
 		:max-width="maxWidth"
 		:gutter="gutter"
 		@search="$emit('search')"
@@ -53,7 +66,12 @@ const active = computed(() => {
 			<slot name="lead" />
 		</template>
 
+		<template #menu>
+			<LocaleSwitch row />
+		</template>
+
 		<template #right>
+			<LocaleSwitch class="locale" />
 			<a class="icon-btn" :href="GITHUB_URL" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub">
 				<span class="raw-icon" v-html="githubSvgRaw" />
 			</a>
@@ -104,7 +122,8 @@ const active = computed(() => {
 }
 
 @media (max-width: 1023px) {
-	.icon-btn {
+	.icon-btn,
+	.locale {
 		display: none;
 	}
 }

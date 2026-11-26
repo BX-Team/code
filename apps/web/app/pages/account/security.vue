@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { auth } from '~/lib/auth';
 
-useHead({ title: 'Account & security' });
+const { t } = useI18n();
+
+useHead({ title: () => t('account.securityTab') });
 
 const session = auth.useSession();
 </script>
 
 <template>
-	<h1 class="sr-only">Account &amp; security</h1>
+	<h1 class="sr-only">{{ $t('account.securityTab') }}</h1>
 	<div class="sec">
 		<AccountProfileSection />
 		<AccountMethodsSection :email="session.data?.user.email ?? ''" />

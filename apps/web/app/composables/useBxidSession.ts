@@ -5,10 +5,12 @@ import { auth } from '~/lib/auth';
 export function useBxidSession() {
   const session = auth.useSession();
   const route = useRoute();
+  const sitePath = useSitePath();
   watch(
     () => session.value,
     ({ isPending, data }) => {
-      if (!isPending && !data) navigateTo(`/login?next=${encodeURIComponent(route.fullPath)}`, { replace: true });
+      if (!isPending && !data)
+        navigateTo(`${sitePath('/login')}?next=${encodeURIComponent(route.fullPath)}`, { replace: true });
     },
     { immediate: true },
   );

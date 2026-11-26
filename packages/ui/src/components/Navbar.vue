@@ -8,6 +8,15 @@ export interface NavLink {
   href?: string;
 }
 
+/** The bar's own words, for a site in another language. */
+export interface NavStrings {
+  home: string;
+  main: string;
+  menu: string;
+  closeMenu: string;
+  search: string;
+}
+
 const props = withDefaults(
   defineProps<{
     active?: string;
@@ -24,6 +33,7 @@ const props = withDefaults(
     gutter?: string;
     /** `NuxtLink` keeps navigation client-side; a plain anchor reloads the page. */
     linkAs?: string | Component;
+    strings?: NavStrings;
   }>(),
   {
     active: '',
@@ -40,6 +50,13 @@ const props = withDefaults(
     maxWidth: '1180px',
     gutter: '32px',
     linkAs: 'a',
+    strings: () => ({
+      home: 'BX Team home',
+      main: 'Main',
+      menu: 'Menu',
+      closeMenu: 'Close menu',
+      search: 'Search BX Team',
+    }),
   },
 );
 
@@ -113,13 +130,13 @@ function openSearch() {
 				<slot name="lead" />
 			</span>
 
-			<component :is="linkAs" :href="brandHref" class="bx-nav__brand" aria-label="BX Team home">
+			<component :is="linkAs" :href="brandHref" class="bx-nav__brand" :aria-label="strings.home">
 				<BrandMark :size="20" gradient />
 				<span class="bx-nav__name">BX Team</span>
 				<span v-if="tag" class="bx-nav__tag">{{ tag }}</span>
 			</component>
 
-			<nav ref="linksEl" class="bx-nav__links" :class="{ 'bx-nav__links--ready': pillReady }" aria-label="Main" @mouseleave="hovered = null">
+			<nav ref="linksEl" class="bx-nav__links" :class="{ 'bx-nav__links--ready': pillReady }" :aria-label="strings.main" @mouseleave="hovered = null">
 				<span class="bx-nav__pill" :class="{ 'bx-nav__pill--shown': pill }" :style="pill ?? undefined" aria-hidden="true" />
 				<component
 					:is="linkAs"
@@ -162,7 +179,7 @@ function openSearch() {
 					:class="{ 'bx-nav__toggle--open': menuOpen }"
 					aria-controls="bx-nav-menu"
 					:aria-expanded="menuOpen"
-					:aria-label="menuOpen ? 'Close menu' : 'Menu'"
+					:aria-label="menuOpen ? strings.closeMenu : strings.menu"
 					@click="menuOpen = !menuOpen"
 				>
 					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
@@ -180,7 +197,7 @@ function openSearch() {
 
 		<Transition name="bx-nav-menu">
 			<div v-show="menuOpen" id="bx-nav-menu" class="bx-nav__menu">
-				<nav class="bx-nav__menu-inner" aria-label="Main pages">
+				<nav class="bx-nav__menu-inner" :aria-label="strings.main">
 					<component
 						:is="linkAs"
 						v-for="link in links"
@@ -199,7 +216,7 @@ function openSearch() {
 							<circle cx="11" cy="11" r="7" />
 							<path d="m20 20-3.5-3.5" />
 						</svg>
-						Search BX Team
+						{{ strings.search }}
 					</button>
 
 					<div class="bx-nav__menu-actions">
@@ -216,6 +233,8 @@ function openSearch() {
 							Discord
 						</a>
 					</div>
+
+					<slot name="menu" />
 				</nav>
 			</div>
 		</Transition>

@@ -4,19 +4,21 @@ import type { Project } from '~/config/projects';
 defineProps<{ project: Project }>();
 
 const link = resolveComponent('NuxtLink');
+const { t } = useI18n();
+const sitePath = useSitePath();
 </script>
 
 <template>
-	<component :is="link" :to="`/${project.slug}`" class="showcase">
+	<component :is="link" :to="sitePath(`/${project.slug}`)" class="showcase">
 		<div class="showcase__head">
 			<span class="showcase__title">
 				<h2 class="showcase__name">{{ project.name }}</h2>
-				<span class="showcase__tag">{{ project.tag }}</span>
+				<span class="showcase__tag">{{ t(`projects.${project.slug}.tag`) }}</span>
 			</span>
-			<p class="showcase__summary">{{ project.summary }}</p>
+			<p class="showcase__summary">{{ t(`projects.${project.slug}.summary`) }}</p>
 		</div>
 		<div v-if="project.previews[0]" class="showcase__shot">
-			<img :src="project.previews[0].src" :alt="project.previews[0].alt" loading="lazy" />
+			<img :src="project.previews[0].src" :alt="t(`projects.${project.slug}.previews.${project.previews[0].id}.alt`)" loading="lazy" />
 		</div>
 		<div v-else-if="project.terminal" class="showcase__shot showcase__term" aria-hidden="true">
 			<span
@@ -27,16 +29,17 @@ const link = resolveComponent('NuxtLink');
 				>{{ line.text }}</span
 			>
 		</div>
-		<span class="showcase__more">Learn more <span aria-hidden="true">→</span></span>
+		<span class="showcase__more">{{ t('home.more') }} <span aria-hidden="true">→</span></span>
 	</component>
 </template>
 
 <style scoped>
 .showcase {
-	flex: 1 1 420px;
 	min-width: 0;
-	display: flex;
-	flex-direction: column;
+	/* Rows shared with the cards beside it, so a summary that wraps longer in one language does not push its shot out of line. */
+	display: grid;
+	grid-row: span 3;
+	grid-template-rows: subgrid;
 	gap: var(--s-5);
 	padding: var(--s-6);
 	border: 1px solid var(--line);
@@ -103,7 +106,6 @@ const link = resolveComponent('NuxtLink');
 }
 
 .showcase__term {
-	flex-grow: 1;
 	min-height: 220px;
 	display: flex;
 	flex-direction: column;
@@ -159,6 +161,7 @@ const link = resolveComponent('NuxtLink');
 }
 
 .showcase__more {
+	align-self: end;
 	font: 500 14px/1 var(--font-sans);
 	color: var(--accent);
 }

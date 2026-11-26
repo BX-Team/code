@@ -4,6 +4,8 @@ import { openCommandPalette } from '@/composables/useCommandPalette';
 import { DISCORD_URL } from '~/config/links';
 import { PROJECTS } from '~/config/projects';
 
+const { t } = useI18n();
+
 useHead({
   title: 'BX Team',
   titleTemplate: null,
@@ -36,12 +38,10 @@ function tileColor(i: number) {
 			<section class="home__hero">
 				<HomeHeroBeams />
 				<h1 class="home__title">BX <span class="bx-text-grad">Team</span></h1>
-				<p class="home__lede">
-					Open source community building server software, plugins and developer tools for Minecraft — and a few things beyond it
-				</p>
+				<p class="home__lede">{{ t('home.lede') }}</p>
 				<div class="home__cta">
-					<Button variant="primary" size="lg" href="#projects" @click="toProjects">Browse projects</Button>
-					<Button variant="accent" size="lg" :href="DISCORD_URL">Join our Discord</Button>
+					<Button variant="primary" size="lg" href="#projects" @click="toProjects">{{ t('home.browse') }}</Button>
+					<Button variant="accent" size="lg" :href="DISCORD_URL">{{ t('home.discord') }}</Button>
 				</div>
 			</section>
 
@@ -133,8 +133,8 @@ function tileColor(i: number) {
 }
 
 .home__showcases {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
 	gap: var(--s-6);
 }
 

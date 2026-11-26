@@ -1,9 +1,9 @@
 import type { ProjectDemo } from '~/config/projects';
 
 // Not a file in public/: Workers assets turn `/index.html` into a redirect, which breaks relative imports.
-export function demoPage(demo: ProjectDemo): string {
+export function demoPage(demo: ProjectDemo, text: { lang: string; starting: string; unsupported: string }): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="${text.lang}">
 <head>
 <meta charset="utf-8">
 <style>
@@ -14,7 +14,7 @@ body.ready #status { display: none; }
 </style>
 </head>
 <body>
-<div id="status">Starting ${demo.title}…</div>
+<div id="status">${text.starting}</div>
 <script type="module">
 import init from '${demo.script}';
 const status = document.getElementById('status');
@@ -26,7 +26,7 @@ new MutationObserver((_, observer) => {
 }).observe(document.body, { childList: true });
 init().catch(error => {
   console.error(error);
-  status.textContent = 'This browser cannot run the demo: it needs WebGPU or WebGL 2.';
+  status.textContent = ${JSON.stringify(text.unsupported)};
 });
 </script>
 </body>

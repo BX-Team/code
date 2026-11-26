@@ -6,6 +6,9 @@ import { auth } from '~/lib/auth';
 /** The bar's account corner: "Sign in", or the avatar with a small menu once signed in. */
 const session = auth.useSession();
 const route = useRoute();
+const path = useBarePath();
+const sitePath = useSitePath();
+const { t } = useI18n();
 const open = ref(false);
 const root = ref<HTMLElement>();
 
@@ -37,7 +40,7 @@ watch(
 async function signOut() {
   open.value = false;
   await auth.signOut();
-  if (route.path.startsWith('/account')) navigateTo('/');
+  if (path.value.startsWith('/account')) navigateTo(sitePath('/'));
 }
 </script>
 
@@ -45,7 +48,7 @@ async function signOut() {
 	<div ref="root" class="na">
 		<span v-if="session.isPending" class="na__wait" aria-hidden="true" />
 
-		<NuxtLink v-else-if="!session.data" to="/login" class="na__signin">Sign in</NuxtLink>
+		<NuxtLink v-else-if="!session.data" :to="sitePath('/login')" class="na__signin">{{ t('nav.signIn') }}</NuxtLink>
 
 		<template v-else>
 			<button
@@ -53,7 +56,7 @@ async function signOut() {
 				class="na__me"
 				:aria-expanded="open"
 				aria-haspopup="menu"
-				aria-label="Your BX ID"
+				:aria-label="t('nav.yourBxid')"
 				@click="open = !open"
 			>
 				<AccountAvatar
@@ -70,13 +73,13 @@ async function signOut() {
 						<strong>{{ session.data.user.displayUsername || session.data.user.name }}</strong>
 						<span>{{ session.data.user.email }}</span>
 					</div>
-					<NuxtLink to="/account" class="na__item" role="menuitem">
+					<NuxtLink :to="sitePath('/account')" class="na__item" role="menuitem">
 						<UserRound :size="16" :stroke-width="1.7" />
-						Account
+						{{ t('nav.account') }}
 					</NuxtLink>
 					<button type="button" class="na__item" role="menuitem" @click="signOut">
 						<LogOut :size="16" :stroke-width="1.7" />
-						Sign out
+						{{ t('nav.signOut') }}
 					</button>
 				</div>
 			</Transition>

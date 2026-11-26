@@ -4,7 +4,6 @@ import { ArrowUpRight, BookOpen, Download, Loader2 } from '@lucide/vue';
 import DownloadsHeader from '@/components/downloads/DownloadsHeader.vue';
 import githubSvgRaw from '~/assets/external/github.svg?raw';
 import type { Project } from '~/config/projects';
-import { formatBytes, formatDate } from '~/lib/format';
 import { renderNotes } from '~/lib/markdown';
 import {
   classify,
@@ -17,6 +16,10 @@ import {
 } from '~/lib/releases';
 
 const props = defineProps<{ project: Project }>();
+const { t } = useI18n();
+const sitePath = useSitePath();
+const format = useFormat();
+const kind = (f: ReleaseFile) => t(f.platform === 'cli' ? `releases.platforms.${f.kind}` : `releases.kinds.${f.kind}`);
 
 const repoUrl = `https://github.com/${props.project.repo}`;
 
@@ -35,7 +38,7 @@ const files = computed(() => (latest.value ? classify(latest.value) : []));
 const notes = computed(() => (latest.value?.body ? renderNotes(latest.value.body) : ''));
 
 function groupsOf(list: ReleaseFile[]) {
-  return PLATFORMS.map(p => ({ ...p, files: list.filter(f => f.platform === p.id) })).filter(g => g.files.length);
+  return PLATFORMS.map(id => ({ id, files: list.filter(f => f.platform === id) })).filter(g => g.files.length);
 }
 
 const groups = computed(() => groupsOf(files.value));
@@ -51,33 +54,31 @@ const current = computed(() => {
 const recommended = computed(() => {
   if (!detected) return null;
   const file = files.value.find(f => f.platform === detected && f.arch !== 'arm64');
-  return file ? { file, os: PLATFORMS.find(p => p.id === detected)!.label } : null;
+  return file ? { file, os: detected } : null;
 });
 
 const notesOf = (release: RestRelease) => (release.body ? renderNotes(release.body) : '');
 
 useHead({
-  title: `${props.project.name} downloads`,
-  meta: [
-    { name: 'description', content: `Download the latest ${props.project.name} release for Windows, macOS and Linux.` },
-  ],
+  title: () => t('releases.title', { name: props.project.name }),
+  meta: [{ name: 'description', content: () => t('releases.description', { name: props.project.name }) }],
 });
 </script>
 
 <template>
   <PageShell>
     <main>
-      <DownloadsHeader crumb :title="project.name" :description="project.summary">
+      <DownloadsHeader crumb :title="project.name" :description="t(`projects.${project.slug}.summary`)">
         <Button v-if="project.docs" :href="project.docs" variant="secondary">
           <BookOpen :size="16" :stroke-width="1.7" />
-          Documentation
+          {{ t('project.docs') }}
         </Button>
         <Button :href="`${repoUrl}/releases`" target="_blank" rel="noopener noreferrer" variant="ghost">
           <span class="gr-gh" v-html="githubSvgRaw" />
-          Releases on GitHub
+          {{ t('releases.onGithub') }}
         </Button>
-        <NuxtLink :to="`/${project.slug}`" class="bx-link gr-about">
-          About {{ project.name }}
+        <NuxtLink :to="sitePath(`/${project.slug}`)" class="bx-link gr-about">
+          {{ t('downloads.about', { name: project.name }) }}
           <ArrowUpRight :size="14" :stroke-width="1.7" />
         </NuxtLink>
       </DownloadsHeader>
@@ -85,54 +86,55 @@ useHead({
       <div class="gr-wrap">
         <div v-if="status === 'pending' || status === 'idle'" class="gr-state">
           <Loader2 class="gr-spin" :size="24" :stroke-width="1.7" />
-          <span>Loading releases from GitHub…</span>
+          <span>{{ t('releases.loading') }}</span>
         </div>
 
         <p v-else-if="error" class="bx-callout bx-callout--err">
-          <span class="bx-callout__mark">Unavailable</span>
-          <span>
-            GitHub could not be reached, or it is limiting requests from this network. The releases are also on
-            <a class="bx-link" :href="`${repoUrl}/releases`" target="_blank" rel="noopener noreferrer">GitHub</a>.
-          </span>
+          <span class="bx-callout__mark">{{ t('downloads.unavailable') }}</span>
+          <i18n-t keypath="releases.error" tag="span" scope="global">
+            <template #github>
+              <a class="bx-link" :href="`${repoUrl}/releases`" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </template>
+          </i18n-t>
         </p>
 
         <template v-else-if="latest">
           <section class="gr-latest" aria-labelledby="gr-latest-title">
             <div class="gr-latest__main">
-              <p id="gr-latest-title" class="gr-eyebrow">Latest release</p>
+              <p id="gr-latest-title" class="gr-eyebrow">{{ t('downloads.latestRelease') }}</p>
               <div class="gr-latest__id">
                 <span class="gr-latest__tag bx-text-grad">{{ latest.tag_name }}</span>
-                <span v-if="latest.prerelease" class="bx-channel bx-channel--beta">pre-release</span>
+                <span v-if="latest.prerelease" class="bx-channel bx-channel--beta">{{ t('releases.prerelease') }}</span>
               </div>
               <dl class="gr-facts">
-                <div><dt>Published</dt><dd>{{ latest.published_at ? formatDate(latest.published_at) : '—' }}</dd></div>
-                <div><dt>Files</dt><dd>{{ latest.assets.length }}</dd></div>
+                <div><dt>{{ t('releases.published') }}</dt><dd>{{ latest.published_at ? format.dateTime(latest.published_at) : '—' }}</dd></div>
+                <div><dt>{{ t('downloads.files') }}</dt><dd>{{ latest.assets.length }}</dd></div>
               </dl>
               <div class="gr-get">
                 <Button v-if="recommended" :href="recommended.file.url" variant="primary" size="lg">
                   <Download :size="16" :stroke-width="1.7" />
-                  Download for {{ recommended.os }}
+                  {{ t('releases.downloadFor', { os: t(`releases.platforms.${recommended.os}`) }) }}
                 </Button>
                 <span v-if="recommended" class="gr-file">
-                  {{ recommended.file.kind }} {{ recommended.file.ext }} · {{ formatBytes(recommended.file.size) }}
+                  {{ kind(recommended.file) }} {{ recommended.file.ext }} · {{ format.bytes(recommended.file.size) }}
                 </span>
-                <a v-else class="bx-link" href="#files">Pick a file below</a>
+                <a v-else class="bx-link" href="#files">{{ t('releases.pick') }}</a>
               </div>
               <a class="bx-link gr-ext" :href="latest.html_url" target="_blank" rel="noopener noreferrer">
-                This release on GitHub
+                {{ t('releases.thisOnGithub') }}
                 <ArrowUpRight :size="14" :stroke-width="1.7" />
               </a>
             </div>
 
             <div v-if="notes" class="gr-latest__notes">
-              <p class="gr-eyebrow">What's new in {{ latest.tag_name }}</p>
+              <p class="gr-eyebrow">{{ t('releases.whatsNew', { tag: latest.tag_name }) }}</p>
               <!-- eslint-disable-next-line vue/no-v-html -- sanitised in renderNotes; see app/lib/markdown.ts -->
               <div class="gr-notes" v-html="notes" />
             </div>
           </section>
 
-          <section v-if="groups.length" id="files" class="gr-files" aria-label="Files">
-            <div class="gr-tabs" role="tablist" aria-label="Platform">
+          <section v-if="groups.length" id="files" class="gr-files" :aria-label="t('downloads.files')">
+            <div class="gr-tabs" role="tablist" :aria-label="t('releases.platform')">
               <button
                 v-for="g in groups"
                 :key="g.id"
@@ -143,17 +145,17 @@ useHead({
                 :aria-selected="current?.id === g.id"
                 @click="tab = g.id"
               >
-                {{ g.label }}
+                {{ t(`releases.platforms.${g.id}`) }}
                 <span class="gr-tab__count">{{ g.files.length }}</span>
               </button>
             </div>
             <ul v-if="current" class="gr-list" role="tabpanel">
               <li v-for="f in current.files" :key="f.name">
                 <a class="gr-row" :href="f.url">
-                  <span class="gr-row__kind">{{ f.kind }}<span class="gr-row__ext">{{ f.ext }}</span></span>
+                  <span class="gr-row__kind">{{ kind(f) }}<span class="gr-row__ext">{{ f.ext }}</span></span>
                   <span class="gr-row__arch">{{ f.arch ?? '' }}</span>
                   <span class="gr-row__name">{{ f.name }}</span>
-                  <span class="gr-row__size">{{ formatBytes(f.size) }}</span>
+                  <span class="gr-row__size">{{ format.bytes(f.size) }}</span>
                   <Download class="gr-row__icon" :size="16" :stroke-width="1.7" aria-hidden="true" />
                 </a>
               </li>
@@ -162,33 +164,33 @@ useHead({
         </template>
 
         <p v-else class="bx-callout bx-callout--note">
-          <span class="bx-callout__mark">Empty</span>
-          <span>{{ project.name }} has no published releases yet.</span>
+          <span class="bx-callout__mark">{{ t('downloads.empty') }}</span>
+          <span>{{ t('releases.none', { name: project.name }) }}</span>
         </p>
       </div>
 
-      <Section v-if="older.length" title="Earlier releases" lede="Every release before the latest, newest first.">
+      <Section v-if="older.length" :title="t('releases.earlier')" :lede="t('releases.earlierLede')">
         <div class="gr-older">
           <details v-for="r in older" :key="r.tag_name" class="gr-release">
             <summary>
               <span class="gr-release__tag">{{ r.tag_name }}</span>
-              <span v-if="r.prerelease" class="bx-channel bx-channel--beta">pre-release</span>
+              <span v-if="r.prerelease" class="bx-channel bx-channel--beta">{{ t('releases.prerelease') }}</span>
               <span class="gr-release__meta">
-                {{ r.published_at ? formatDate(r.published_at) : '' }} · {{ r.assets.length }} files
+                {{ r.published_at ? format.dateTime(r.published_at) : '' }} · {{ t('releases.fileCount', r.assets.length) }}
               </span>
             </summary>
             <div class="gr-release__body">
               <!-- eslint-disable-next-line vue/no-v-html -- sanitised in renderNotes; see app/lib/markdown.ts -->
               <div v-if="r.body" class="gr-notes" v-html="notesOf(r)" />
               <div v-for="g in groupsOf(classify(r))" :key="g.id" class="gr-release__group">
-                <p class="gr-eyebrow">{{ g.label }}</p>
+                <p class="gr-eyebrow">{{ t(`releases.platforms.${g.id}`) }}</p>
                 <ul class="gr-list gr-list--flat">
                   <li v-for="f in g.files" :key="f.name">
                     <a class="gr-row" :href="f.url">
-                      <span class="gr-row__kind">{{ f.kind }}<span class="gr-row__ext">{{ f.ext }}</span></span>
+                      <span class="gr-row__kind">{{ kind(f) }}<span class="gr-row__ext">{{ f.ext }}</span></span>
                       <span class="gr-row__arch">{{ f.arch ?? '' }}</span>
                       <span class="gr-row__name">{{ f.name }}</span>
-                      <span class="gr-row__size">{{ formatBytes(f.size) }}</span>
+                      <span class="gr-row__size">{{ format.bytes(f.size) }}</span>
                       <Download class="gr-row__icon" :size="16" :stroke-width="1.7" aria-hidden="true" />
                     </a>
                   </li>

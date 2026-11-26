@@ -6,7 +6,9 @@ defineProps<{
   error: { statusCode?: number; statusMessage?: string; message?: string };
 }>();
 
-const handleError = () => clearError({ redirect: '/' });
+const { t } = useI18n();
+const sitePath = useSitePath();
+const handleError = () => clearError({ redirect: sitePath('/') });
 </script>
 
 <template>
@@ -23,28 +25,25 @@ const handleError = () => clearError({ redirect: '/' });
 				<h1>
 					{{
 						error.statusCode === 404
-							? 'Page not found'
+							? t('error.notFound')
 							: error.statusCode === 403
-								? 'Access denied'
-								: 'Something went wrong'
+								? t('error.denied')
+								: t('error.failed')
 					}}
 				</h1>
 				<p>
 					{{
-						error.statusMessage
-							|| (error.statusCode === 404
-								? "The page you're looking for doesn't exist or has been moved."
-								: 'An unexpected error occurred. Please try again or head back home.')
+						(error.statusCode === 404 ? t('error.notFoundBody') : error.statusMessage || t('error.failedBody'))
 					}}
 				</p>
 				<div class="err-cta">
 					<Button variant="primary" @click="handleError">
 						<Home :size="16" :stroke-width="1.7" />
-						Back home
+						{{ t('error.home') }}
 					</Button>
 					<Button variant="ghost" href="javascript:history.back()">
 						<ArrowLeft :size="16" :stroke-width="1.7" />
-						Go back
+						{{ t('error.back') }}
 					</Button>
 				</div>
 			</div>

@@ -4,6 +4,7 @@ import { UserPlus } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
 import { acceptFriend, addFriend, fetchFriends, PlayError, playerName, removeFriend } from '~/lib/play';
 
+const { t } = useI18n();
 const data = ref<Friends | null>(null);
 const loadError = ref('');
 const code = ref('');
@@ -28,7 +29,7 @@ async function load() {
   try {
     data.value = await fetchFriends();
   } catch {
-    loadError.value = 'Friends are not reachable right now. Try again in a minute.';
+    loadError.value = t('account.friends.unreachable');
   }
 }
 
@@ -38,9 +39,9 @@ function label(user: PlayUser) {
 
 function status(friend: Friend) {
   const { online, activity } = friend.presence;
-  if (!online) return 'Offline';
-  if (!activity) return 'Online in Riven';
-  return `Playing ${activity.name} · ${activity.minecraft}`;
+  if (!online) return t('account.friends.offline');
+  if (!activity) return t('account.friends.onlineRiven');
+  return t('account.friends.playing', { name: activity.name, minecraft: activity.minecraft });
 }
 
 async function add() {
@@ -52,18 +53,20 @@ async function add() {
     const result = await addFriend(typed);
     const who = label(result.user);
     addNote.value = {
-      text:
+      text: t(
         result.status === 'accepted'
-          ? `You and ${who} are friends now.`
+          ? 'account.friends.accepted'
           : result.status === 'exists'
-            ? `You have already asked ${who}, or you are friends.`
-            : `Asked ${who}. They will see it next time they open Riven or this page.`,
+            ? 'account.friends.exists'
+            : 'account.friends.asked',
+        { who },
+      ),
       bad: false,
     };
     code.value = '';
     await load();
   } catch (error) {
-    addNote.value = { text: error instanceof PlayError ? error.message : 'Could not send the request.', bad: true };
+    addNote.value = { text: error instanceof PlayError ? error.message : t('account.friends.sendFailed'), bad: true };
   } finally {
     adding.value = false;
   }
@@ -75,7 +78,7 @@ async function act(id: string, action: () => Promise<void>) {
     await action();
     await load();
   } catch {
-    loadError.value = 'That did not go through. Try again.';
+    loadError.value = t('account.friends.failed');
   } finally {
     busy.value = '';
     confirming.value = '';
@@ -94,15 +97,15 @@ function remove(id: string) {
 <template>
 	<AccountSection
 		id="friends"
-		title="Friends"
+		:title="$t('account.friends.title')"
 		:lead="
 			data
-				? `${data.friends.length} ${data.friends.length === 1 ? 'friend' : 'friends'}, ${online} online. Friends see when you are in Riven and can invite you into their world.`
-				: 'Friends see when you are in Riven and can invite you into their world.'
+				? `${$t('account.friends.count', { n: data.friends.length, online }, data.friends.length)} ${$t('account.friends.lede')}`
+				: $t('account.friends.lede')
 		"
 	>
 		<form class="form" @submit.prevent="add">
-			<label class="label" for="friend">Add by friend code</label>
+			<label class="label" for="friend">{{ $t('account.friends.addLabel') }}</label>
 			<div class="row">
 				<input
 					id="friend"
@@ -116,7 +119,7 @@ function remove(id: string) {
 				/>
 				<button type="submit" class="btn" :disabled="!code.trim() || adding">
 					<UserPlus :size="16" :stroke-width="1.8" />
-					{{ adding ? 'Sending…' : 'Add friend' }}
+					{{ adding ? $t('account.friends.sending') : $t('account.friends.add') }}
 				</button>
 			</div>
 			<p v-if="addNote" class="hint" :class="{ bad: addNote.bad }" role="status">{{ addNote.text }}</p>
@@ -124,7 +127,7 @@ function remove(id: string) {
 
 		<template v-if="data">
 			<div v-if="data.incoming.length" class="group">
-				<span class="label">Asking to be friends</span>
+				<span class="label">{{ $t('account.friends.incoming') }}</span>
 				<ul class="list">
 					<li v-for="user in data.incoming" :key="user.id">
 						<AccountAvatar :id="user.id" :name="label(user)" :image="user.image" :size="36" />
@@ -133,22 +136,22 @@ function remove(id: string) {
 						</div>
 						<div class="actions">
 							<button type="button" class="btn primary small" :disabled="busy === user.id" @click="act(user.id, () => acceptFriend(user.id))">
-								Accept
-							</button>
+								{{ $t('account.friends.accept') }}
+								</button>
 							<button type="button" class="btn quiet small" :disabled="busy === user.id" @click="act(user.id, () => removeFriend(user.id))">
-								Decline
-							</button>
+								{{ $t('account.friends.decline') }}
+								</button>
 						</div>
 					</li>
 				</ul>
 			</div>
 
-			<span v-if="sorted.length && (data.incoming.length || data.outgoing.length)" class="label">Friends</span>
+			<span v-if="sorted.length && (data.incoming.length || data.outgoing.length)" class="label">{{ $t('account.friends.title') }}</span>
 			<ul v-if="sorted.length" class="list">
 				<li v-for="friend in sorted" :key="friend.user.id">
 					<span class="who">
 						<AccountAvatar :id="friend.user.id" :name="label(friend.user)" :image="friend.user.image" :size="36" />
-						<span class="dot" :class="{ on: friend.presence.online }" :title="friend.presence.online ? 'Online' : 'Offline'" />
+						<span class="dot" :class="{ on: friend.presence.online }" :title="friend.presence.online ? $t('account.friends.online') : $t('account.friends.offline')" />
 					</span>
 					<div class="grow">
 						<span class="name">{{ label(friend.user) }}</span>
@@ -162,15 +165,15 @@ function remove(id: string) {
 							@click="remove(friend.user.id)"
 							@blur="confirming = ''"
 						>
-							{{ confirming === friend.user.id ? 'Remove?' : 'Remove' }}
+							{{ confirming === friend.user.id ? $t('account.friends.removeConfirm') : $t('account.friends.remove') }}
 						</button>
 					</div>
 				</li>
 			</ul>
-			<p v-else-if="!data.incoming.length" class="empty">No friends yet. Add someone by their friend code.</p>
+			<p v-else-if="!data.incoming.length" class="empty">{{ $t('account.friends.none') }}</p>
 
 			<div v-if="data.outgoing.length" class="group">
-				<span class="label">Waiting for an answer</span>
+				<span class="label">{{ $t('account.friends.outgoing') }}</span>
 				<ul class="list">
 					<li v-for="user in data.outgoing" :key="user.id">
 						<AccountAvatar :id="user.id" :name="label(user)" :image="user.image" :size="36" />
@@ -179,8 +182,8 @@ function remove(id: string) {
 						</div>
 						<div class="actions">
 							<button type="button" class="btn quiet small" :disabled="busy === user.id" @click="act(user.id, () => removeFriend(user.id))">
-								Cancel
-							</button>
+								{{ $t('account.friends.cancel') }}
+								</button>
 						</div>
 					</li>
 				</ul>
@@ -189,7 +192,7 @@ function remove(id: string) {
 
 		<p v-if="loadError" class="hint bad" role="alert">
 			{{ loadError }}
-			<button type="button" class="link" @click="load">Retry</button>
+			<button type="button" class="link" @click="load">{{ $t('account.friends.retry') }}</button>
 		</p>
 	</AccountSection>
 </template>

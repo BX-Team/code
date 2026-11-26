@@ -18,6 +18,7 @@ const emit = defineEmits<{
   'toggle-experimental': [v: boolean];
 }>();
 
+const { t } = useI18n();
 const open = ref(false);
 const dropdownRef = ref<HTMLElement>();
 onClickOutside(dropdownRef, () => {
@@ -37,7 +38,7 @@ function pick(v: string) {
 <template>
 	<div class="vs">
 		<div class="vs-head">
-			<label>Minecraft Version</label>
+			<label>{{ t('builds.version') }}</label>
 			<Button
 				v-if="experimentalVersion"
 				variant="ghost"
@@ -46,7 +47,7 @@ function pick(v: string) {
 				@click="emit('toggle-experimental', !showExperimental)"
 			>
 				<FlaskConical :size="14" :stroke-width="1.7" />
-				Toggle Experimental
+				{{ t('builds.toggleExperimental') }}
 			</Button>
 		</div>
 
@@ -55,10 +56,10 @@ function pick(v: string) {
 				<span class="val">
 					<strong>{{ selectedVersion }}</strong>
 					<span v-if="selectedVersion === experimentalVersion" class="badge badge-exp">
-						<FlaskConical :size="11" :stroke-width="1.8" /> Experimental
+						<FlaskConical :size="11" :stroke-width="1.8" /> {{ t('builds.experimental') }}
 					</span>
-					<span v-else-if="statusOf(selectedVersion) === 'deprecated'" class="badge badge-warn">Deprecated</span>
-					<span v-else-if="statusOf(selectedVersion) === 'unsupported'" class="badge badge-err">Unsupported</span>
+					<span v-else-if="statusOf(selectedVersion) === 'deprecated'" class="badge badge-warn">{{ t('builds.deprecated') }}</span>
+					<span v-else-if="statusOf(selectedVersion) === 'unsupported'" class="badge badge-err">{{ t('builds.unsupported') }}</span>
 				</span>
 				<ChevronDown :size="14" :stroke-width="1.7" class="caret" :class="{ flipped: open }" />
 			</button>
@@ -75,13 +76,13 @@ function pick(v: string) {
 					<span class="val">
 						<strong>{{ v }}</strong>
 						<span v-if="v === experimentalVersion" class="badge badge-exp">
-							<FlaskConical :size="11" :stroke-width="1.8" /> Experimental
+							<FlaskConical :size="11" :stroke-width="1.8" /> {{ t('builds.experimental') }}
 						</span>
 						<span v-else-if="statusOf(v) === 'deprecated'" class="badge badge-warn">
-							<AlertTriangle :size="11" :stroke-width="1.8" /> Deprecated
+							<AlertTriangle :size="11" :stroke-width="1.8" /> {{ t('builds.deprecated') }}
 						</span>
 						<span v-else-if="statusOf(v) === 'unsupported'" class="badge badge-err">
-							<XCircle :size="11" :stroke-width="1.8" /> Unsupported
+							<XCircle :size="11" :stroke-width="1.8" /> {{ t('builds.unsupported') }}
 						</span>
 					</span>
 					<span v-if="v === selectedVersion" class="check">✓</span>

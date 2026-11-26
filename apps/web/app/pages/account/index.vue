@@ -3,16 +3,19 @@ import { ArrowRight } from '@lucide/vue';
 import { computed } from 'vue';
 import { describeAgent } from '~/lib/agents';
 import { APPS, auth, PROVIDER_NAMES } from '~/lib/auth';
-import { relativeTime } from '~/utils/datetime';
 
-useHead({ title: 'Account' });
+const { t } = useI18n();
+const format = useFormat();
+const sitePath = useSitePath();
+
+useHead({ title: () => t('account.overview.title') });
 
 const session = auth.useSession();
 const { links, sessions, apps, appsFailed } = useAccountData();
 
 const user = computed(() => session.value.data?.user);
 const methods = computed(() =>
-  links.value ? ['Email', ...links.value.flatMap(l => PROVIDER_NAMES[l.providerId] ?? [])] : null,
+  links.value ? [t('account.overview.email'), ...links.value.flatMap(l => PROVIDER_NAMES[l.providerId] ?? [])] : null,
 );
 const lastDevice = computed(() => {
   const current = session.value.data?.session.id;
@@ -20,31 +23,29 @@ const lastDevice = computed(() => {
     .filter(s => s.id !== current)
     .sort((a, b) => +b.updatedAt - +a.updatedAt)[0];
   return other
-    ? `${describeAgent(other.userAgent).name}, ${relativeTime(other.updatedAt.toISOString())}`
-    : 'Only this one';
+    ? `${describeAgent(other.userAgent, t).name}, ${format.relative(other.updatedAt.toISOString())}`
+    : t('account.overview.onlyThis');
 });
-const since = computed(() =>
-  user.value ? new Date(user.value.createdAt).toLocaleDateString('en', { month: 'long', year: 'numeric' }) : '',
-);
+const since = computed(() => (user.value ? format.monthYear(user.value.createdAt) : ''));
 
 const riven = computed(() => apps.value?.find(app => app.clientId === 'riven') ?? null);
 const others = computed(() => (apps.value ?? []).filter(app => app.clientId !== 'riven' && APPS[app.clientId]));
 </script>
 
 <template>
-	<h1 class="sr-only">Account overview</h1>
+	<h1 class="sr-only">{{ $t('account.overview.heading') }}</h1>
 
-	<NuxtLink to="/account/security" class="glance" aria-label="Account and security">
+	<NuxtLink :to="sitePath('/account/security')" class="glance" :aria-label="$t('account.securityTab')">
 		<div class="glance__cell">
-			<span class="glance__label">Sign-in methods</span>
+			<span class="glance__label">{{ $t('account.overview.methods') }}</span>
 			<span class="glance__value">{{ methods ? methods.join(', ') : '…' }}</span>
 		</div>
 		<div class="glance__cell">
-			<span class="glance__label">Devices · {{ sessions?.length ?? '…' }}</span>
-			<span class="glance__value">{{ sessions ? `Last: ${lastDevice}` : '…' }}</span>
+			<span class="glance__label">{{ $t('account.overview.devices', { n: sessions?.length ?? '…' }) }}</span>
+			<span class="glance__value">{{ sessions ? $t('account.overview.last', { device: lastDevice }) : '…' }}</span>
 		</div>
 		<div class="glance__cell">
-			<span class="glance__label">Member since</span>
+			<span class="glance__label">{{ $t('account.overview.since') }}</span>
 			<span class="glance__value">{{ since }}</span>
 		</div>
 		<span class="glance__go" aria-hidden="true"><ArrowRight :size="16" :stroke-width="1.8" /></span>
@@ -52,20 +53,16 @@ const others = computed(() => (apps.value ?? []).filter(app => app.clientId !== 
 
 	<AccountRivenCard v-if="riven" :connected-at="riven.connectedAt" />
 
-	<NuxtLink v-for="app in others" :key="app.clientId" :to="APPS[app.clientId]?.page ?? '/account'" class="app">
+	<NuxtLink v-for="app in others" :key="app.clientId" :to="sitePath(APPS[app.clientId]?.page ?? '/account')" class="app">
 		<span class="app__name">{{ APPS[app.clientId]?.name }}</span>
-		<span class="app__sub">{{ APPS[app.clientId]?.about }}</span>
+		<span class="app__sub">{{ $t(`account.apps.${app.clientId}`) }}</span>
 	</NuxtLink>
 
 	<section v-if="apps && !apps.length" class="none">
-		<h2 class="none__title">Not connected to any app yet</h2>
-		<p class="none__text">
-			Sign in to a BX Team app with this BX ID and it gets its own tab here, with what it keeps for you. Riven Launcher,
-			for one, adds a skin and friends.
-		</p>
-		<NuxtLink to="/riven" class="btn small none__go">About Riven Launcher</NuxtLink>
+		<h2 class="none__title">{{ $t('account.overview.noneTitle') }}</h2>
+		<p class="none__text">{{ $t('account.overview.noneText') }}</p>
 	</section>
-	<p v-else-if="appsFailed" class="hint bad" role="alert">Your apps could not be loaded. Reload the page to try again.</p>
+	<p v-else-if="appsFailed" class="hint bad" role="alert">{{ $t('account.overview.appsFailed') }}</p>
 </template>
 
 <style scoped>
@@ -145,7 +142,9 @@ const others = computed(() => (apps.value ?? []).filter(app => app.clientId !== 
 .none {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: var(--s-2);
+	text-align: center;
 	padding: var(--s-6);
 	border: 1px dashed var(--line-2);
 	border-radius: var(--r-3);
@@ -162,11 +161,6 @@ const others = computed(() => (apps.value ?? []).filter(app => app.clientId !== 
 	max-width: 62ch;
 	font: 400 14px/1.6 var(--font-sans);
 	color: var(--mute);
-}
-
-.none__go {
-	align-self: flex-start;
-	margin-top: var(--s-2);
 }
 
 @media (max-width: 640px) {

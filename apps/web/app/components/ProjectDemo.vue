@@ -11,7 +11,14 @@ const box = ref<HTMLElement | null>(null);
 const frame = ref<HTMLIFrameElement | null>(null);
 const scale = ref(1);
 
-const page = computed(() => demoPage(props.demo));
+const { t, locale } = useI18n();
+const page = computed(() =>
+  demoPage(props.demo, {
+    lang: locale.value,
+    starting: t('demo.starting', { name: props.demo.title }),
+    unsupported: t('demo.unsupported'),
+  }),
+);
 
 // The interface is laid out for a desktop window; a narrow screen gets the same window, smaller.
 let observer: ResizeObserver | null = null;
@@ -47,23 +54,23 @@ function fullscreen() {
 				:key="run"
 				ref="frame"
 				class="demo__frame"
-				:title="`${demo.title} demo`"
+				:title="t('demo.frame', { name: demo.title })"
 				:srcdoc="page"
 				allow="fullscreen"
 				:style="{ width: `${demo.width}px`, height: `${demo.height}px`, transform: `scale(${scale})` }"
 			/>
 			<button v-else type="button" class="demo__poster" @click="start">
 				<img v-if="logo" :src="logo" alt="" width="56" height="56" />
-				<span class="demo__title">Try {{ demo.title }} in your browser</span>
-				<span class="demo__hint">The real interface, compiled to WebAssembly. Nothing is installed.</span>
-				<span class="demo__go"><Play :size="16" :stroke-width="2" /> Launch the demo</span>
+				<span class="demo__title">{{ t('demo.try', { name: demo.title }) }}</span>
+				<span class="demo__hint">{{ t('demo.hint') }}</span>
+				<span class="demo__go"><Play :size="16" :stroke-width="2" /> {{ t('demo.launch') }}</span>
 			</button>
 		</div>
 		<div v-if="started" class="demo__bar">
-			<span>Sample instances. Play goes through a launch without starting the game.</span>
+			<span>{{ t('demo.sample') }}</span>
 			<span class="demo__acts">
-				<button type="button" @click="start"><RotateCcw :size="14" /> Restart</button>
-				<button type="button" @click="fullscreen"><Maximize2 :size="14" /> Full screen</button>
+				<button type="button" @click="start"><RotateCcw :size="14" /> {{ t('demo.restart') }}</button>
+				<button type="button" @click="fullscreen"><Maximize2 :size="14" /> {{ t('demo.fullscreen') }}</button>
 			</span>
 		</div>
 	</div>

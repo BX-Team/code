@@ -4,6 +4,8 @@ import { Ban, Plus, Trash2, Undo2, Upload, UserPlus } from '@lucide/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { claimNick, fetchMySkins, fetchProfiles, releaseNick, resetSkin, selectSkin, uploadSkin } from '~/lib/skins';
 
+const { t } = useI18n();
+const format = useFormat();
 const profiles = ref<Profile[]>([]);
 const held = ref<HeldNick[]>([]);
 const limit = ref(5);
@@ -33,7 +35,7 @@ onMounted(async () => {
     recent.value = mine.recent;
     take(nicks.profiles, nicks.held, nicks.limit);
   } catch {
-    error.value = 'Skins are not reachable right now. Try again in a minute.';
+    error.value = t('account.skins.unreachable');
   }
   loaded.value = true;
 });
@@ -76,7 +78,7 @@ async function act(work: () => Promise<void>) {
   try {
     await work();
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Something went wrong.';
+    error.value = e instanceof Error ? e.message : t('account.skins.failed');
   } finally {
     busy.value = false;
   }
@@ -149,20 +151,18 @@ async function reset() {
     profiles.value = profiles.value.map(p => (p.name === name ? { ...p, skin: null } : p));
   });
 }
-
-const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'numeric', month: 'short' });
 </script>
 
 <template>
 	<section id="skin" class="sk">
 		<header class="sk__head">
-			<h2 class="sk__title">Nicks and skins</h2>
-			<p class="hint">Offline nicks you play with in Riven Launcher. Only you can use them, and each wears its own skin.</p>
+			<h2 class="sk__title">{{ $t('account.skins.title') }}</h2>
+			<p class="hint">{{ $t('account.skins.lede') }}</p>
 		</header>
 
 		<div class="sk__body">
-			<nav class="sk__nicks" aria-label="Nicks">
-				<span class="label">Nicks · {{ profiles.length }}/{{ limit }}</span>
+			<nav class="sk__nicks" :aria-label="$t('account.skins.nicks')">
+				<span class="label">{{ $t('account.skins.nicksCount', { n: profiles.length, limit }) }}</span>
 				<ul class="nk-list">
 					<li v-for="profile in profiles" :key="profile.id">
 						<button
@@ -185,8 +185,8 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 							type="button"
 							class="icon-btn"
 							:disabled="busy"
-							:aria-label="`Remove the nick ${profile.name}`"
-							title="Remove nick"
+							:aria-label="$t('account.skins.removeNick', { name: profile.name })"
+							:title="$t('account.skins.removeNickTitle')"
 							@click="release"
 						>
 							<Trash2 :size="15" :stroke-width="1.7" />
@@ -200,32 +200,32 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 						v-model="draft"
 						class="mono"
 						maxlength="16"
-						placeholder="Nick"
-						aria-label="New nick"
+						:placeholder="$t('account.skins.nick')"
+						:aria-label="$t('account.skins.newNick')"
 						:disabled="busy"
 						@keydown.esc="adding = false"
 					/>
-					<button type="submit" class="btn primary small" :disabled="busy || draft.trim().length < 3">Add</button>
+					<button type="submit" class="btn primary small" :disabled="busy || draft.trim().length < 3">{{ $t('account.skins.add') }}</button>
 				</form>
 				<button v-else-if="!full" type="button" class="nick nick--add" :disabled="busy || !loaded" @click="openAdd">
 					<Plus :size="15" :stroke-width="1.8" />
-					Add nick
+					{{ $t('account.skins.addNick') }}
 				</button>
 
 				<template v-if="held.length">
-					<span class="label label--gap">Removed</span>
+					<span class="label label--gap">{{ $t('account.skins.removed') }}</span>
 					<ul class="nk-list">
 						<li v-for="nick in held" :key="nick.name" class="held">
 							<span class="grow">
 								<span class="mono">{{ nick.name }}</span>
-								<span class="sub">Yours until {{ until(nick.until) }}</span>
+								<span class="sub">{{ $t('account.skins.until', { date: format.dayMonth(nick.until) }) }}</span>
 							</span>
 							<button
 								type="button"
 								class="icon-btn"
 								:disabled="busy || full"
-								:aria-label="`Take ${nick.name} back`"
-								title="Take it back"
+								:aria-label="$t('account.skins.takeBack', { name: nick.name })"
+								:title="$t('account.skins.takeBackTitle')"
 								@click="claim(nick.name)"
 							>
 								<Undo2 :size="15" :stroke-width="1.7" />
@@ -237,11 +237,21 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 
 			<div class="sk__stage">
 				<AccountSkinFigure v-if="flat && shown" :url="shown" :slim="model === 'slim'" :scale="7" class="sk__flat" />
-				<canvas v-show="!flat" ref="canvas" aria-label="The nick's skin in 3D; drag to turn it" />
+				<canvas v-show="!flat" ref="canvas" :aria-label="$t('account.skins.canvas')" />
 				<p class="sk__note">
-					{{ !loaded ? '' : !current ? 'No nick yet' : !shown ? 'No skin' : flat ? '' : 'Drag to turn' }}
+					{{
+						!loaded
+							? ''
+							: !current
+								? $t('account.skins.noNick')
+								: !shown
+									? $t('account.skins.noSkin')
+									: flat
+										? ''
+										: $t('account.skins.drag')
+					}}
 				</p>
-				<div v-if="current" class="seg" role="radiogroup" aria-label="Arms">
+				<div v-if="current" class="seg" role="radiogroup" :aria-label="$t('account.skins.arms')">
 					<button
 						v-for="option in (['classic', 'slim'] as const)"
 						:key="option"
@@ -252,19 +262,21 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 						:disabled="busy"
 						@click="setModel(option)"
 					>
-						{{ option === 'classic' ? 'Classic arms' : 'Slim arms' }}
+						{{ option === 'classic' ? $t('account.skins.classicArms') : $t('account.skins.slimArms') }}
 					</button>
 				</div>
 			</div>
 
 			<div class="sk__lib">
 				<template v-if="current">
-					<span class="label">Skins of <span class="mono">{{ current.name }}</span></span>
+					<i18n-t keypath="account.skins.skinsOf" tag="span" class="label" scope="global">
+						<template #name><span class="mono">{{ current.name }}</span></template>
+					</i18n-t>
 					<ul class="grid">
 						<li>
 							<button type="button" class="tile tile--add" :disabled="busy" @click="file?.click()">
 								<Upload :size="20" :stroke-width="1.6" />
-								{{ busy ? 'Saving…' : 'Upload PNG' }}
+								{{ busy ? $t('account.skins.saving') : $t('account.skins.upload') }}
 							</button>
 							<input ref="file" type="file" accept="image/png" hidden @change="chosen" />
 						</li>
@@ -274,11 +286,11 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 								class="tile"
 								:class="{ on: !skin }"
 								:disabled="busy || !skin"
-								:aria-label="skin ? 'Take the skin off' : 'This nick wears no skin'"
+								:aria-label="skin ? $t('account.skins.takeOff') : $t('account.skins.wearsNone')"
 								@click="reset"
 							>
 								<Ban :size="20" :stroke-width="1.6" />
-								No skin
+								{{ $t('account.skins.noSkin') }}
 							</button>
 						</li>
 						<li v-for="item in recent" :key="item.hash">
@@ -287,22 +299,28 @@ const until = (iso: string) => new Date(iso).toLocaleDateString('en', { day: 'nu
 								class="tile"
 								:class="{ on: skin?.hash === item.hash }"
 								:disabled="busy || skin?.hash === item.hash"
-								:aria-label="skin?.hash === item.hash ? 'The skin this nick wears' : 'Wear this skin'"
+								:aria-label="skin?.hash === item.hash ? $t('account.skins.wearingLabel') : $t('account.skins.wear')"
 								@click="wear(item)"
 							>
 								<span class="face">
 									<span class="layer" :style="{ backgroundImage: `url(${item.url})` }" />
 									<span class="layer hat" :style="{ backgroundImage: `url(${item.url})` }" />
 								</span>
-								{{ skin?.hash === item.hash ? 'Wearing' : item.model === 'slim' ? 'Slim' : 'Classic' }}
+								{{
+									skin?.hash === item.hash
+										? $t('account.skins.wearing')
+										: item.model === 'slim'
+											? $t('account.skins.slim')
+											: $t('account.skins.classic')
+								}}
 							</button>
 						</li>
 					</ul>
 				</template>
 				<div v-else-if="loaded" class="blank">
 					<UserPlus :size="28" :stroke-width="1.5" />
-					<p>Add the nick you play with on offline accounts, up to {{ limit }}. Its skins show up here.</p>
-					<button type="button" class="btn primary small" :disabled="busy || adding" @click="openAdd">Add nick</button>
+					<p>{{ $t('account.skins.blank', { limit }) }}</p>
+					<button type="button" class="btn primary small" :disabled="busy || adding" @click="openAdd">{{ $t('account.skins.addNick') }}</button>
 				</div>
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 			</div>

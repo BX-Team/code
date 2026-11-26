@@ -17,6 +17,7 @@
     "@lucide/vue": "^1.79.0",
     "@nuxt/content": "^3.17.0",
     "@nuxt/fonts": "^1.2.0",
+    "@nuxtjs/i18n": "10.6.0",
     "@shikijs/transformers": "^4.6.0",
     "@vueuse/core": "^15.1.0",
     "better-auth": "^1.7.28",

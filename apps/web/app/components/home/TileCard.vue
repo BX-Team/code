@@ -5,6 +5,8 @@ import { MARKS } from '~/lib/marks';
 const props = defineProps<{ project: Project; color: string }>();
 
 const link = resolveComponent('NuxtLink');
+const { t } = useI18n();
+const sitePath = useSitePath();
 
 /** A project's own pixel logo when it has one; otherwise an 8×8 glyph drawn here, or nothing. */
 const GLYPHS: Record<string, string[]> = {
@@ -33,7 +35,7 @@ const glyph = computed(() => {
 </script>
 
 <template>
-	<component :is="link" :to="`/${project.slug}`" class="tile">
+	<component :is="link" :to="sitePath(`/${project.slug}`)" class="tile">
 		<span class="tile__head">
 			<span class="tile__title">
 				<HomeProjectMark :slug="project.slug" :size="22" />
@@ -42,9 +44,9 @@ const glyph = computed(() => {
 				</svg>
 				<h3 class="tile__name">{{ project.name }}</h3>
 			</span>
-			<span class="tile__tag">{{ project.tag }}</span>
+			<span class="tile__tag">{{ t(`projects.${project.slug}.tag`) }}</span>
 		</span>
-		<p class="tile__summary">{{ project.summary }}</p>
+		<p class="tile__summary">{{ t(`projects.${project.slug}.summary`) }}</p>
 	</component>
 </template>
 

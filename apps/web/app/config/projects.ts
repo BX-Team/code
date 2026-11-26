@@ -28,17 +28,18 @@ import {
 } from '@lucide/vue';
 import type { CodeLang } from '~/lib/highlight';
 
+/** A project's words live in the locale files under `projects.<slug>`; features and start tabs by their `id`. */
 export interface ProjectFeature {
+  id: string;
   icon: LucideIcon;
-  title: string;
-  body: string;
   href?: string;
 }
 
+/** Alt text and caption are `projects.<slug>.previews.<id>.alt` and `.caption`. */
 export interface ProjectPreview {
+  id: string;
   src: string;
-  alt: string;
-  caption?: string;
+  caption?: boolean;
 }
 
 /** A line of the terminal a showcase card draws in place of a screenshot. */
@@ -57,22 +58,17 @@ export interface ProjectDemo {
   height: number;
 }
 
+/** A "Get started" tab: `label`, `title`, `body` and the button's `action` are in the locale files. */
 export interface ProjectStart {
-  label: string;
-  title: string;
-  body: string;
+  id: string;
   code?: string;
   lang?: CodeLang;
-  action?: { label: string; href: string };
+  href?: string;
 }
 
 export interface Project {
   slug: string;
   name: string;
-  tag: string;
-  summary: string;
-  tagline: string;
-  lede: string;
   repo: string;
   archived?: boolean;
   /** Where the home page shows it: the wide flagship card, a half card with its first preview, or a small tile. */
@@ -110,83 +106,66 @@ export const PROJECTS: Project[] = [
   {
     ...site('divinemc'),
     home: 'flagship',
-    tag: 'Server software',
-    summary: 'Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization.',
-    tagline: 'A Purpur fork that puts every core to work',
-    lede: 'Spreads chunks, worlds and entity work across your CPU cores, so a busy server keeps its tick rate. Swap your previous jar: every setting stays, and your Bukkit, Spigot and Paper plugins run as they are.',
     downloads: '/downloads/divinemc',
     logo: '/projects/divinemc/logo.png',
     channels: [{ label: 'MCJars', href: 'https://mcjars.app/DIVINEMC/versions' }],
     features: [
       {
         icon: Layers,
-        title: 'Regionized chunk ticking',
-        body: 'Chunks tick in parallel across regions, similar to how Folia does it, without giving up plugin compatibility.',
+        id: 'regionized-chunk-ticking',
         href: '/docs/divinemc/features/regionized-chunk-ticking',
       },
       {
         icon: Cpu,
-        title: 'Parallel world ticking',
-        body: 'Each world ticks on its own thread, so the Nether and the End stop queueing behind the overworld.',
+        id: 'parallel-world-ticking',
         href: '/docs/divinemc/features/parallel-world-ticking',
       },
       {
         icon: Workflow,
-        title: 'Parallel sensor phase',
-        body: 'The expensive read-only part of mob AI — entity scans, line-of-sight checks — runs on a thread pool.',
+        id: 'parallel-sensor-phase',
         href: '/docs/divinemc/features/parallel-sensor-phase',
       },
       {
         icon: Eye,
-        title: 'Raytrace entity culling',
-        body: 'Entities a player provably cannot see are never sent, saving bandwidth and blinding entity-ESP cheats.',
+        id: 'raytrace-entity-culling',
         href: '/docs/divinemc/features/raytrace-entity-culling',
       },
       {
         icon: Route,
-        title: 'Async operations',
-        body: 'Pathfinding, the entity tracker, mob spawning, joining, chunk sending and portal pre-loading move off the main thread.',
+        id: 'async-operations',
         href: '/docs/divinemc/features/parallel-entity-tracker',
       },
       {
         icon: KeyRound,
-        title: 'Secure seed',
-        body: 'A 1024-bit seed in place of the standard 64-bit one, so structures and ores cannot be cracked from the world.',
+        id: 'secure-seed',
       },
       {
         icon: HardDrive,
-        title: 'Linear region format',
-        body: 'Store worlds in the V1/V2 linear format or the new buffered one instead of Anvil.',
+        id: 'linear-region-format',
       },
       {
         icon: Gamepad2,
-        title: 'Mod protocols',
-        body: "Server-side support for Syncmatica, AppleSkin, Jade and Xaero's Map.",
+        id: 'mod-protocols',
       },
       {
         icon: ShieldCheck,
-        title: 'Sentry integration',
-        body: 'Detailed error tracking and monitoring, originally from Pufferfish.',
+        id: 'sentry-integration',
         href: '/docs/divinemc/guides/setting-up-sentry',
       },
     ],
     previews: [],
     start: [
       {
-        label: 'Run a server',
-        title: 'Download the jar',
-        body: 'Grab the latest build and start it with the command below. DivineMC needs Java 25 or newer.',
+        id: 'run-a-server',
         code: 'java -Xms4096M -Xmx4096M --add-modules=jdk.incubator.vector -jar server.jar --nogui',
         lang: 'bash',
-        action: { label: 'Download DivineMC', href: '/downloads/divinemc' },
+        href: '/downloads/divinemc',
       },
       {
-        label: 'Build a plugin',
-        title: 'Compile against the API',
-        body: 'The DivineMC API is a superset of Paper’s, published to the BX Team snapshots repository.',
-        code: 'repositories {\n    maven("https://repo.bxteam.org/snapshots")\n}\n\ndependencies {\n    compileOnly("org.bxteam.divinemc:divinemc-api:26.2.build.+")\n}',
+        id: 'build-a-plugin',
+        code: 'repositories {\n    maven("https://repo.bxteam.org/snapshots")\n}\n\ndependencies {\n    compileOnly("org.bxteam.divinemc:divinemc-api:26.3.build.+")\n}',
         lang: 'kotlin',
-        action: { label: 'Using the API', href: '/docs/divinemc/development/using-api' },
+        href: '/docs/divinemc/development/using-api',
       },
     ],
     benchmarks: { docs: '/docs/divinemc/benchmarks' },
@@ -194,78 +173,58 @@ export const PROJECTS: Project[] = [
   {
     ...site('quark'),
     home: 'tile',
-    tag: 'Framework',
-    summary:
-      'Small modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers.',
-    tagline: 'The parts every plugin needs, as modules you pick',
-    lede: 'Download dependencies when the plugin starts, keep configs in annotated classes, check for updates and run a test server straight from Gradle. Every module is optional and relocated into your own package.',
     channels: [{ label: 'Gradle Plugin Portal', href: 'https://plugins.gradle.org/plugin/org.bxteam.quark' }],
     features: [
       {
         icon: Download,
-        title: 'Runtime dependencies',
-        body: 'Libraries are downloaded, resolved transitively and loaded when the plugin starts, so the jar stays small.',
+        id: 'runtime-dependencies',
         href: '/docs/quark/dependencies/loading-dependencies',
       },
       {
         icon: Package,
-        title: 'Relocation',
-        body: 'Quark and your libraries move into the plugin’s package, so the server’s own copy of Gson or Guava never wins.',
+        id: 'relocation',
         href: '/docs/quark/dependencies/relocation',
       },
       {
         icon: FileCode2,
-        title: 'Annotated configs',
-        body: 'Plain classes saved as YAML in field order, with comments, validation, migrations and Bukkit types.',
+        id: 'annotated-configs',
         href: '/docs/quark/configs/creating-configs',
       },
       {
         icon: Bell,
-        title: 'Update checks',
-        body: 'Modrinth, Hangar, GitHub, SpigotMC or any JSON endpoint, with a console message and a join notification.',
+        id: 'update-checks',
         href: '/docs/quark/utilities/update-checker',
       },
       {
         icon: Server,
-        title: 'Platform adapters',
-        body: 'One Platform and Scheduler API for Paper, Folia, Bukkit, Velocity and BungeeCord.',
+        id: 'platform-adapters',
         href: '/docs/quark/getting-started/supported-platforms',
       },
       {
         icon: Blocks,
-        title: 'Gradle plugin',
-        body: 'Picks the adapter and modules, configures Shadow and starts a dev server with your plugin and others.',
+        id: 'gradle-plugin',
         href: '/docs/quark/gradle-plugin/configuration',
       },
     ],
     previews: [],
     start: [
       {
-        label: 'Gradle',
-        title: 'Apply the plugin',
-        body: 'Pick the platform and the modules you need, then declare runtime dependencies in the quark configuration.',
+        id: 'gradle',
         code: 'plugins {\n    id("com.gradleup.shadow") version "9.1.0"\n    id("org.bxteam.quark") version "2.0.0"\n}\n\nquark {\n    platform = ServerPlatform.PAPER\n    modules(QuarkModule.DEPENDENCY, QuarkModule.CONFIG)\n}\n\ndependencies {\n    quark("com.zaxxer:HikariCP:7.1.0")\n}',
         lang: 'kotlin',
-        action: { label: 'Installation guide', href: '/docs/quark/getting-started/installation' },
+        href: '/docs/quark/getting-started/installation',
       },
       {
-        label: 'Dev server',
-        title: 'Run a test server',
-        body: 'Quark downloads the server, installs your plugin and the plugins you list, and starts it in your terminal.',
+        id: 'dev-server',
         code: './gradlew runServer',
         lang: 'bash',
-        action: { label: 'Dev servers', href: '/docs/quark/gradle-plugin/dev-servers' },
+        href: '/docs/quark/gradle-plugin/dev-servers',
       },
     ],
   },
   {
     ...site('ndailyrewards'),
     home: 'tile',
-    tag: 'Plugin',
-    summary:
-      'Simple and lightweight plugin that allows you to reward your players for playing on your server every day.',
-    tagline: 'Reward players for coming back every day',
-    lede: 'A daily reward streak with a GUI you can reshape completely, MariaDB or SQLite storage, and actions for anything a reward should do.',
     channels: [
       { label: 'Modrinth', href: 'https://modrinth.com/plugin/ndailyrewards' },
       { label: 'Hangar', href: 'https://hangar.papermc.io/BX-Team/NDailyRewards' },
@@ -273,52 +232,42 @@ export const PROJECTS: Project[] = [
     features: [
       {
         icon: Database,
-        title: 'MariaDB and SQLite',
-        body: 'Keep streaks in a local SQLite file or share them across a network through MariaDB.',
+        id: 'mariadb-and-sqlite',
         href: '/docs/ndailyrewards/configuration/config',
       },
       {
         icon: Palette,
-        title: 'Custom GUI',
-        body: 'Every slot of the reward menu is configurable, including custom model data, item models and player heads.',
+        id: 'custom-gui',
       },
       {
         icon: Zap,
-        title: 'Reward actions',
-        body: 'Commands, messages, sounds and more — a reward is a list of actions, not a fixed item.',
+        id: 'reward-actions',
       },
       {
         icon: Plug,
-        title: 'PlaceholderAPI',
-        body: 'Streaks, cooldowns and claim state exposed as placeholders for scoreboards and menus.',
+        id: 'placeholderapi',
         href: '/docs/ndailyrewards/configuration/placeholders',
       },
       {
         icon: Bell,
-        title: 'Join notifications',
-        body: 'Remind players on join, or open the reward menu for them automatically, and claim on their behalf if you prefer.',
+        id: 'join-notifications',
       },
       {
         icon: Timer,
-        title: 'Time management',
-        body: 'Flexible cooldowns and reset times, with MiniMessage and ampersand colour codes in every message.',
+        id: 'time-management',
       },
     ],
     previews: [],
     start: [
       {
-        label: 'Install',
-        title: 'Drop it into plugins/',
-        body: 'Download from Modrinth or Hangar, put the jar in your plugins folder and restart. Spigot, Paper and Paper-based forks are supported.',
-        action: { label: 'Configuration', href: '/docs/ndailyrewards/configuration/config' },
+        id: 'install',
+        href: '/docs/ndailyrewards/configuration/config',
       },
       {
-        label: 'Developer API',
-        title: 'Listen to its events',
-        body: 'NDailyRewards is published to the BX Team releases repository.',
+        id: 'developer-api',
         code: 'repositories {\n    maven("https://repo.bxteam.org/releases")\n}\n\ndependencies {\n    compileOnly("org.bxteam:ndailyrewards:3.4.1")\n}',
         lang: 'kotlin',
-        action: { label: 'Events', href: '/docs/ndailyrewards/development/events' },
+        href: '/docs/ndailyrewards/development/events',
       },
     ],
   },
@@ -327,44 +276,34 @@ export const PROJECTS: Project[] = [
     home: 'showcase',
     downloads: '/downloads/riven',
     githubReleases: true,
-    tag: 'Desktop app',
-    summary: 'Native Minecraft launcher and modpack toolkit in pure Rust.',
-    tagline: 'A Minecraft launcher that builds packs too',
-    lede: 'Install a modpack from a link and get its updates on every launch — or build your own in the app or the CLI, publish it to GitHub Pages and run it headless on a server.',
     features: [
       {
         icon: Gamepad2,
-        title: 'Full launcher',
-        body: 'Instances, Microsoft and offline accounts, automatic Java, Vanilla, Fabric, Quilt, NeoForge and Forge.',
+        id: 'full-launcher',
       },
       {
         icon: Download,
-        title: 'Packs from a link',
-        body: 'Modrinth modpacks, .mrpack, Prism exports and Riven packs; a pack updates itself before every launch.',
+        id: 'packs-from-a-link',
         href: '/docs/riven/cli/installing',
       },
       {
         icon: FileCode2,
-        title: 'Developer mode',
-        body: 'Content table, dependency tree, config editor, releases, git and a test instance in one window.',
+        id: 'developer-mode',
         href: '/docs/riven/getting-started/first-pack',
       },
       {
         icon: ShieldCheck,
-        title: 'Signed, fast updates',
-        body: 'Release channels, a tiny pointer checked with ETag, content-addressed downloads and ed25519 signatures pinned on first install — no keys in links.',
+        id: 'signed-fast-updates',
         href: '/docs/riven/guides/signatures',
       },
       {
         icon: Server,
-        title: 'Servers',
-        body: 'riven install --side server --headless keeps a dedicated server on the latest release.',
+        id: 'servers',
         href: '/docs/riven/guides/servers',
       },
       {
         icon: Snowflake,
-        title: 'Nix without packHash',
-        body: 'lib.mkModpack fetches every file by the hash in riven.json — no fixed-output hash to bump.',
+        id: 'nix-without-packhash',
         href: '/docs/riven/guides/servers',
       },
     ],
@@ -391,18 +330,14 @@ export const PROJECTS: Project[] = [
     ],
     start: [
       {
-        label: 'Download',
-        title: 'Grab a release',
-        body: 'Installers for Windows, a DMG for macOS, AppImage, deb, rpm and Arch packages for Linux.',
-        action: { label: 'Downloads', href: '/downloads/riven' },
+        id: 'download',
+        href: '/downloads/riven',
       },
       {
-        label: 'CLI',
-        title: 'Build a pack',
-        body: 'The same binary works in the terminal.',
+        id: 'cli',
         code: 'riven init --mc 1.21.1 --loader neoforge\nriven add sodium\nriven build && riven deploy',
         lang: 'bash',
-        action: { label: 'CLI reference', href: '/docs/riven/cli/overview' },
+        href: '/docs/riven/cli/overview',
       },
     ],
   },
@@ -411,40 +346,30 @@ export const PROJECTS: Project[] = [
     home: 'showcase',
     downloads: '/downloads/nyx',
     githubReleases: true,
-    tag: 'Desktop app',
-    summary: 'Modern, lightweight desktop GUI for the Mihomo proxy core.',
-    tagline: 'A desktop client for Mihomo, in pure Rust',
-    lede: 'Manage profiles, proxy groups, rules and connections from a clean interface — with system proxy and TUN mode, a connection inspector and a built-in profile editor.',
     features: [
       {
         icon: Network,
-        title: 'System proxy and TUN',
-        body: 'Route one app or the whole machine; a helper service handles TUN mode after a one-time elevation.',
+        id: 'system-proxy-and-tun',
       },
       {
         icon: ScrollText,
-        title: 'Connection inspector',
-        body: 'Live connections grouped per process, with app icons, so you can see what is going where.',
+        id: 'connection-inspector',
       },
       {
         icon: FileCode2,
-        title: 'Profile editor',
-        body: 'Edit profiles, proxy groups and rules in the app instead of hand-editing YAML.',
+        id: 'profile-editor',
       },
       {
         icon: MonitorSmartphone,
-        title: 'Installer or portable',
-        body: 'Windows installer or zip; deb, rpm, Arch package or a tarball on Linux.',
+        id: 'installer-or-portable',
       },
       {
         icon: Snowflake,
-        title: 'Nix flake',
-        body: 'Run it with nix run, or use the NixOS module, which declares the service so TUN works without a password prompt.',
+        id: 'nix-flake',
       },
       {
         icon: Zap,
-        title: 'Lightweight',
-        body: 'A single native gpui application — no Electron, no bundled browser.',
+        id: 'lightweight',
       },
     ],
     previews: [],
@@ -460,59 +385,42 @@ export const PROJECTS: Project[] = [
     ],
     start: [
       {
-        label: 'Download',
-        title: 'Grab a release',
-        body: 'Installers and portable builds for Windows and Linux are attached to every GitHub release.',
-        action: { label: 'Downloads', href: '/downloads/nyx' },
+        id: 'download',
+        href: '/downloads/nyx',
       },
     ],
   },
   {
     ...site('vanilla-reimagined'),
     home: 'tile',
-    tag: 'Modpack',
-    summary: 'Fabric mods that heavily optimise the game and bring back OptiFine features.',
-    tagline: 'Vanilla, faster, with the OptiFine features back',
-    lede: 'A Fabric modpack built to optimise the game as much as possible and to bring back what people installed OptiFine for, without changing how vanilla plays.',
     channels: [{ label: 'Modrinth', href: 'https://modrinth.com/modpack/vred' }],
     features: [
       {
         icon: Zap,
-        title: 'Performance',
-        body: 'Sodium, Lithium, Moonrise, FerriteCore, ImmediatelyFast, Entity Culling and Dynamic FPS.',
+        id: 'performance',
       },
       {
         icon: Palette,
-        title: 'Visual features',
-        body: 'Iris for shaders, dynamic lights from LambDynamicLights and Sodium Extra’s video options.',
+        id: 'visual-features',
       },
       {
         icon: Eye,
-        title: 'OptiFine-like features',
-        body: 'Zoom, connected textures, custom entity models and textures, and OptiGUI for resource-pack GUIs.',
+        id: 'optifine-like-features',
       },
       {
         icon: Blocks,
-        title: 'Quality of life',
-        body: 'Mod Menu, no reloading screen and the config screens to tune all of it.',
+        id: 'quality-of-life',
       },
     ],
     previews: [],
     start: [
       {
-        label: 'Install',
-        title: 'Get it from Modrinth',
-        body: 'Install the pack with the Modrinth app or any launcher that reads .mrpack files. Versions are <Minecraft version>-x.y.z.',
-        action: { label: 'Open on Modrinth', href: 'https://modrinth.com/modpack/vred' },
+        id: 'install',
+        href: 'https://modrinth.com/modpack/vred',
       },
       {
-        label: 'Contribute',
-        title: 'Build it with Riven',
-        body: 'The pack is built with Riven; the repository explains how to add mods, change configs and test it.',
-        action: {
-          label: 'Contributing guide',
-          href: 'https://github.com/BX-Team/Vanilla-Reimagined/blob/master/CONTRIBUTING.md',
-        },
+        id: 'contribute',
+        href: 'https://github.com/BX-Team/Vanilla-Reimagined/blob/master/CONTRIBUTING.md',
       },
     ],
   },

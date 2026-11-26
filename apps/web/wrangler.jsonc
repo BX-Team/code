@@ -11,6 +11,18 @@
   "assets": {
     "directory": ".output/public",
     "binding": "ASSETS",
-    "html_handling": "drop-trailing-slash"
+    "html_handling": "drop-trailing-slash",
+    // English pages go through worker.ts first, which sends a visitor to their language; everything else is served directly.
+    "run_worker_first": [
+      "/*",
+      "!/_nuxt/*",
+      "!/_i18n/*",
+      "!/__nuxt_content/*",
+      "!/fonts/*",
+      "!/demo/*",
+      "!/projects/*",
+      "!/ru/*",
+      "!/docs/*"
+    ]
   }
 }

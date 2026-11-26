@@ -9,9 +9,10 @@ import { fetchProfiles } from '~/lib/skins';
 /** Riven Launcher on the overview: the nicks, a skin and who is online, at a glance. */
 const props = defineProps<{ connectedAt: string }>();
 
-const connected = computed(() =>
-  new Date(props.connectedAt).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' }),
-);
+const { t } = useI18n();
+const format = useFormat();
+const sitePath = useSitePath();
+const connected = computed(() => format.date(props.connectedAt));
 
 const nicks = ref<Profile[]>([]);
 const friends = ref<Friends | null>(null);
@@ -42,8 +43,8 @@ const asking = computed(() => friends.value?.incoming.length ?? 0);
 
 function status(friend: Friend) {
   const { activity, status: mode } = friend.presence;
-  if (activity) return `Playing ${activity.name} · ${activity.minecraft}`;
-  return mode === 'busy' ? 'Busy' : 'In the launcher';
+  if (activity) return t('account.friends.playing', { name: activity.name, minecraft: activity.minecraft });
+  return t(mode === 'busy' ? 'account.riven.busy' : 'account.riven.launcher');
 }
 </script>
 
@@ -51,46 +52,46 @@ function status(friend: Friend) {
 	<section class="rc">
 		<div class="rc__stage">
 			<AccountSkinFigure v-if="skinUrl" :url="skinUrl" :slim="skin?.model === 'slim'" :scale="7" />
-			<span v-else-if="loaded" class="rc__none">No skin yet</span>
+			<span v-else-if="loaded" class="rc__none">{{ $t('account.riven.noSkin') }}</span>
 		</div>
 
 		<div class="rc__body">
 			<header class="rc__head">
 				<div>
-					<span class="label">App</span>
+					<span class="label">{{ $t('account.riven.app') }}</span>
 					<h2 class="rc__title">Riven Launcher</h2>
-					<p class="rc__meta">Connected {{ connected }}</p>
+					<p class="rc__meta">{{ $t('account.riven.connected', { date: connected }) }}</p>
 				</div>
-				<NuxtLink to="/account/riven" class="btn small">
-					Open
+				<NuxtLink :to="sitePath('/account/riven')" class="btn small">
+					{{ $t('account.riven.open') }}
 					<ArrowRight :size="15" :stroke-width="1.8" />
 				</NuxtLink>
 			</header>
 
 			<dl class="rc__facts">
 				<div>
-					<dt>Friends</dt>
+					<dt>{{ $t('account.riven.friends') }}</dt>
 					<dd>
 						{{ loaded ? total : '…' }}<template v-if="online.length">
-							· <span class="rc__on">{{ online.length }} online</span></template
+							· <span class="rc__on">{{ $t('account.riven.online', { n: online.length }) }}</span></template
 						>
 					</dd>
 				</div>
 				<div>
-					<dt>Nicks</dt>
+					<dt>{{ $t('account.riven.nicks') }}</dt>
 					<dd>
-						{{ !loaded ? '…' : nicks.map(n => n.name).join(', ') || 'None yet' }}
+						{{ !loaded ? '…' : nicks.map(n => n.name).join(', ') || $t('account.riven.noneYet') }}
 					</dd>
 				</div>
 			</dl>
 
-			<NuxtLink v-if="asking" to="/account/riven#friends" class="rc__ask">
-				{{ asking }} {{ asking === 1 ? 'person wants' : 'people want' }} to be friends
+			<NuxtLink v-if="asking" :to="sitePath('/account/riven#friends')" class="rc__ask">
+				{{ $t('account.riven.asking', { n: asking }, asking) }}
 				<ArrowRight :size="14" :stroke-width="1.8" />
 			</NuxtLink>
 
 			<div class="rc__friends">
-				<span class="label">Online now</span>
+				<span class="label">{{ $t('account.riven.onlineNow') }}</span>
 				<ul v-if="shown.length" class="list">
 					<li v-for="friend in shown" :key="friend.user.id">
 						<AccountAvatar :id="friend.user.id" :name="playerName(friend.user)" :image="friend.user.image" :size="32" />
@@ -101,7 +102,7 @@ function status(friend: Friend) {
 					</li>
 				</ul>
 				<p v-else-if="loaded" class="hint">
-					{{ total ? 'None of your friends are online right now.' : 'No friends yet. Add them by friend code in Riven.' }}
+					{{ total ? $t('account.riven.noneOnline') : $t('account.riven.noFriends') }}
 				</p>
 			</div>
 		</div>

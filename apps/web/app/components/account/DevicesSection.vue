@@ -3,13 +3,15 @@ import { Plus } from '@lucide/vue';
 import { type Component, computed, ref } from 'vue';
 import { AGENT_ICONS, describeAgent } from '~/lib/agents';
 import { auth } from '~/lib/auth';
-import { relativeTime } from '~/utils/datetime';
 
 const props = defineProps<{ current: string }>();
 
 /** Rows shown before "Show all", so a long list does not stretch the card beside it. */
 const FOLDED = 5;
 
+const { t } = useI18n();
+const format = useFormat();
+const sitePath = useSitePath();
 const { sessions, refresh } = useAccountData();
 const busy = ref('');
 const error = ref('');
@@ -24,7 +26,7 @@ const shown = computed(() => (open.value ? sorted.value : sorted.value.slice(0, 
 const others = computed(() => sorted.value.filter(s => s.id !== props.current).length);
 
 function describe(ua?: string | null): { icon: Component; name: string } {
-  const { kind, name } = describeAgent(ua);
+  const { kind, name } = describeAgent(ua, t);
   return { icon: AGENT_ICONS[kind], name };
 }
 
@@ -32,7 +34,7 @@ async function revoke(token: string, id: string) {
   busy.value = id;
   error.value = '';
   const { error: failed } = await auth.revokeSession({ token });
-  if (failed) error.value = 'Could not sign that device out.';
+  if (failed) error.value = t('account.devices.revokeFailed');
   await refresh();
   busy.value = '';
 }
@@ -41,7 +43,7 @@ async function revokeOthers() {
   busy.value = 'others';
   error.value = '';
   const { error: failed } = await auth.revokeOtherSessions();
-  if (failed) error.value = 'Could not sign the other devices out.';
+  if (failed) error.value = t('account.devices.othersFailed');
   await refresh();
   busy.value = '';
 }
@@ -50,14 +52,16 @@ async function revokeOthers() {
 <template>
 	<AccountSection
 		id="devices"
-		:title="sessions ? `Devices · ${sessions.length}` : 'Devices'"
-		lead="Everywhere this BX ID is signed in."
+		:title="sessions ? $t('account.devices.titleCount', { n: sessions.length }) : $t('account.devices.title')"
+		:lead="$t('account.devices.lede')"
 	>
 		<template #actions>
 			<div class="acts">
-				<NuxtLink to="/account/device" class="btn small"><Plus :size="15" :stroke-width="1.8" /> Connect</NuxtLink>
+				<NuxtLink :to="sitePath('/account/device')" class="btn small">
+					<Plus :size="15" :stroke-width="1.8" /> {{ $t('account.devices.connect') }}
+				</NuxtLink>
 				<button v-if="others" type="button" class="btn small" :disabled="busy === 'others'" @click="revokeOthers">
-					Sign out others
+					{{ $t('account.devices.signOutOthers') }}
 				</button>
 			</div>
 		</template>
@@ -68,11 +72,15 @@ async function revokeOthers() {
 				<div class="grow">
 					<span class="name">{{ describe(row.userAgent).name }}</span>
 					<span class="sub">
-						{{ row.id === current ? 'Active now' : `Last active ${relativeTime(row.updatedAt.toISOString())}` }}
+						{{
+							row.id === current
+								? $t('account.devices.activeNow')
+								: $t('account.devices.lastActive', { when: format.relative(row.updatedAt.toISOString()) })
+						}}
 						<template v-if="row.ipAddress"> · {{ row.ipAddress }}</template>
 					</span>
 				</div>
-				<span v-if="row.id === current" class="badge">This device</span>
+				<span v-if="row.id === current" class="badge">{{ $t('account.devices.thisDevice') }}</span>
 				<div v-else class="actions">
 					<button
 						type="button"
@@ -80,13 +88,13 @@ async function revokeOthers() {
 						:disabled="busy === row.id"
 						@click="revoke(row.token, row.id)"
 					>
-						Sign out
-					</button>
+						{{ $t('account.devices.signOut') }}
+						</button>
 				</div>
 			</li>
 		</ul>
 		<button v-if="sorted.length > FOLDED" type="button" class="btn quiet small list-more" @click="open = !open">
-			{{ open ? 'Show fewer' : `Show all ${sorted.length}` }}
+			{{ open ? $t('account.devices.fewer') : $t('account.devices.all', { n: sorted.length }) }}
 		</button>
 		<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 	</AccountSection>

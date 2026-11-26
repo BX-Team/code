@@ -10,6 +10,12 @@ const props = withDefaults(
   { hideParity: false },
 );
 
+const { t } = useI18n();
+const path = useBarePath();
+/** The chart also sits in the docs, which stay English whatever the visitor's language. */
+const tr = (key: string, named: Record<string, unknown> = {}, plural?: number) =>
+  t(`bench.${key}`, named, { locale: isUnlocalized(path.value) ? 'en' : undefined, plural });
+
 interface Row {
   key: string;
   name: string;
@@ -20,6 +26,7 @@ interface Row {
   valueText: string;
   delta: number;
   deltaText: string;
+  base: boolean;
   cpuText: string;
   facts: [string, string][];
 }
@@ -35,19 +42,20 @@ function tickRow(r: TickRow, detail: string, key: string): Row {
     divine: r.build === 'divinemc',
     value: r.p50,
     whisker: r.p99,
-    valueText: `${r.p50.toFixed(1)} ms`,
+    valueText: tr('ms', { n: r.p50.toFixed(1) }),
     delta: -r.p50VsPaper,
-    deltaText: r.build === 'paper' ? 'baseline' : signedPct(-r.p50VsPaper, 0),
-    cpuText: `${r.cores.toFixed(2)} cores`,
+    base: r.build === 'paper',
+    deltaText: r.build === 'paper' ? tr('baseline') : signedPct(-r.p50VsPaper, 0),
+    cpuText: tr('cores', { n: r.cores.toFixed(2) }),
     facts: [
-      ['p50 tick', `${r.p50.toFixed(2)} ms`],
-      ['p99 tick', `${r.p99.toFixed(2)} ms`],
-      ['Worst tick', `${r.max.toFixed(1)} ms`],
-      ['p50 vs Paper', signedPct(-r.p50VsPaper)],
-      ['p99 vs Paper', signedPct(-r.p99VsPaper)],
-      ['Server CPU', `${r.cores.toFixed(2)} cores`],
-      ['CPU vs Paper', signedPct(r.cpuVsPaper)],
-      ['Run spread', `${r.spread.toFixed(1)}%`],
+      [tr('facts.p50'), tr('ms', { n: r.p50.toFixed(2) })],
+      [tr('facts.p99'), tr('ms', { n: r.p99.toFixed(2) })],
+      [tr('facts.worst'), tr('ms', { n: r.max.toFixed(1) })],
+      [tr('facts.p50Paper'), signedPct(-r.p50VsPaper)],
+      [tr('facts.p99Paper'), signedPct(-r.p99VsPaper)],
+      [tr('facts.cpu'), tr('cores', { n: r.cores.toFixed(2) })],
+      [tr('facts.cpuPaper'), signedPct(r.cpuVsPaper)],
+      [tr('facts.spread'), `${r.spread.toFixed(1)}%`],
     ],
   };
 }
@@ -59,18 +67,19 @@ function genRow(r: GenRow): Row {
     detail: r.build === 'divinemc' ? r.profile : '',
     divine: r.build === 'divinemc',
     value: r.seconds,
-    valueText: `${r.seconds.toFixed(1)} s`,
+    valueText: tr('s', { n: r.seconds.toFixed(1) }),
     delta: -r.vsPaper,
-    deltaText: r.build === 'paper' ? 'baseline' : signedPct(-r.vsPaper, 0),
-    cpuText: `${r.cpuSeconds} CPU-s`,
+    base: r.build === 'paper',
+    deltaText: r.build === 'paper' ? tr('baseline') : signedPct(-r.vsPaper, 0),
+    cpuText: tr('cpuS', { n: r.cpuSeconds }),
     facts: [
-      ['Wall time', `${r.seconds.toFixed(1)} s`],
-      ['Chunks per second', String(r.chunksPerSecond)],
-      ['Time vs Paper', signedPct(-r.vsPaper)],
-      ['CPU time', `${r.cpuSeconds} CPU-s`],
-      ['CPU vs Paper', signedPct(r.cpuVsPaper)],
-      ['Mean load', `${r.cores.toFixed(1)} cores`],
-      ['Run spread', `${r.spread.toFixed(1)}%`],
+      [tr('facts.wall'), tr('s', { n: r.seconds.toFixed(1) })],
+      [tr('facts.chunks'), String(r.chunksPerSecond)],
+      [tr('facts.timePaper'), signedPct(-r.vsPaper)],
+      [tr('facts.cpuTime'), tr('cpuS', { n: r.cpuSeconds })],
+      [tr('facts.cpuPaper'), signedPct(r.cpuVsPaper)],
+      [tr('facts.load'), tr('cores', { n: r.cores.toFixed(1) })],
+      [tr('facts.spread'), `${r.spread.toFixed(1)}%`],
     ],
   };
 }
@@ -85,7 +94,7 @@ const rows = computed<Row[]>(() => {
   if (props.scenario === 'rctclusters') {
     const sweep = ([4, 8, 12] as const).map(t => {
       const r = BENCHMARKS.rctclusters[t].find(x => x.build === 'divinemc');
-      return tickRow(r as TickRow, `rct · ${t} threads`, `divinemc-rct-${t}`);
+      return tickRow(r as TickRow, `rct · ${tr('threads', { n: t }, t)}`, `divinemc-rct-${t}`);
     });
     const base = BENCHMARKS.rctclusters[8].filter(r => r.build !== 'divinemc').map(r => tickRow(r, '', r.build));
     return [...sweep, ...base];
@@ -100,7 +109,7 @@ const scaleMax = computed(() => {
 });
 const ticks = computed(() => Array.from({ length: scaleMax.value / step.value + 1 }, (_, i) => i * step.value));
 const pct = (v: number) => `${(v / scaleMax.value) * 100}%`;
-const unit = computed(() => (isTick.value ? 'ms' : 's'));
+const unit = computed(() => tr(isTick.value ? 'unitMs' : 'unitS'));
 
 const active = ref<string | null>(null);
 
@@ -126,12 +135,12 @@ onMounted(() => {
 	<figure ref="root" class="bc" :class="{ 'bc--armed': armed }">
 		<div class="bc-legend" aria-hidden="true">
 			<span class="bc-key"><i class="bc-swatch bc-swatch--divine" />DivineMC</span>
-			<span class="bc-key"><i class="bc-swatch" />Paper / Purpur</span>
+			<span class="bc-key"><i class="bc-swatch" />{{ tr('paperPurpur') }}</span>
 			<template v-if="isTick">
 				<span class="bc-key"><i class="bc-whisker-key" />p99</span>
-				<span class="bc-key"><i class="bc-budget-key" />50 ms budget (20 TPS)</span>
+				<span class="bc-key"><i class="bc-budget-key" />{{ tr('budget') }}</span>
 			</template>
-			<span class="bc-key bc-key--note">lower is better</span>
+			<span class="bc-key bc-key--note">{{ tr('lower') }}</span>
 		</div>
 
 		<div class="bc-grid" role="list">
@@ -178,7 +187,7 @@ onMounted(() => {
 				</span>
 
 				<span class="bc-value">{{ r.valueText }}</span>
-				<span class="bc-delta" :class="{ 'bc-delta--good': r.delta < -0.5, 'bc-delta--base': r.deltaText === 'baseline' }">
+				<span class="bc-delta" :class="{ 'bc-delta--good': r.delta < -0.5, 'bc-delta--base': r.base }">
 					{{ r.deltaText }}
 				</span>
 				<span class="bc-cpu">{{ r.cpuText }}</span>
@@ -193,12 +202,12 @@ onMounted(() => {
 		</div>
 
 		<details class="bc-table">
-			<summary>All numbers</summary>
+			<summary>{{ tr('all') }}</summary>
 			<div class="bc-table__scroll">
 				<table>
 					<thead>
 						<tr>
-							<th>Server</th>
+							<th>{{ tr('server') }}</th>
 							<th v-for="[k] in rows[0]?.facts" :key="k">{{ k }}</th>
 						</tr>
 					</thead>

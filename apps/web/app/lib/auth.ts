@@ -27,9 +27,9 @@ export const auth = createAuthClient({
   ],
 });
 
-/** The apps that sign in through the device flow, by client id, and where the account manages each. */
-export const APPS: Record<string, { name: string; about: string; page: string }> = {
-  riven: { name: 'Riven Launcher', about: 'Skin and friends', page: '/account/riven' },
+/** The apps that sign in through the device flow, by client id, and where the account manages each; the line under each is `account.apps.<id>`. */
+export const APPS: Record<string, { name: string; page: string }> = {
+  riven: { name: 'Riven Launcher', page: '/account/riven' },
 };
 
 /** Social sign-in providers by Better Auth's provider id. */

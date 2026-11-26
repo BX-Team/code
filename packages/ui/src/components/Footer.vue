@@ -7,6 +7,14 @@ export interface FooterLink {
   external?: boolean;
 }
 
+/** The footer's own words, for a site in another language. */
+export interface FooterStrings {
+  site: string;
+  elsewhere: string;
+  legal: string;
+  hostedOn: string;
+}
+
 withDefaults(
   defineProps<{
     /** Site pages, beside the lockup. */
@@ -15,10 +23,17 @@ withDefaults(
     socials: FooterLink[];
     githubHref?: string;
     brandHref?: string;
+    strings?: FooterStrings;
   }>(),
   {
     githubHref: 'https://github.com/BX-Team',
     brandHref: '/',
+    strings: () => ({
+      site: 'Site',
+      elsewhere: 'Elsewhere',
+      legal: 'Not an official Minecraft service. Not approved by or associated with Mojang Studios or Microsoft.',
+      hostedOn: 'Hosted on',
+    }),
   },
 );
 </script>
@@ -32,17 +47,15 @@ withDefaults(
 						<BrandMark :size="20" />
 						<span>BX Team</span>
 					</a>
-					<nav class="bx-footer__links" aria-label="Site">
+					<nav class="bx-footer__links" :aria-label="strings.site">
 						<a v-for="link in links" :key="link.label" :href="link.href">{{ link.label }}</a>
 					</nav>
 				</div>
-				<p class="bx-footer__legal">
-					Not an official Minecraft service. Not approved by or associated with Mojang Studios or Microsoft.
-				</p>
+				<p class="bx-footer__legal">{{ strings.legal }}</p>
 			</div>
 
 			<div class="bx-footer__meta">
-				<nav class="bx-footer__socials" aria-label="Elsewhere">
+				<nav class="bx-footer__socials" :aria-label="strings.elsewhere">
 					<a
 						v-for="link in socials"
 						:key="link.label"
@@ -52,7 +65,7 @@ withDefaults(
 					>{{ link.label }}</a>
 				</nav>
 				<p>
-					© {{ new Date().getFullYear() }} BX Team · Hosted on
+					© {{ new Date().getFullYear() }} BX Team · {{ strings.hostedOn }}
 					<a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare</a>
 				</p>
 			</div>

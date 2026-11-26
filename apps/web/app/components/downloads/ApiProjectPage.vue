@@ -16,7 +16,6 @@ import {
   repoUrl,
   type VersionSummary,
 } from '@/lib/builds';
-import { formatBytes } from '@/lib/format';
 import githubSvgRaw from '~/assets/external/github.svg?raw';
 import { findProject } from '~/config/projects';
 
@@ -25,6 +24,9 @@ const props = defineProps<{ projectKey: string }>();
 
 const route = useRoute();
 const projectKey = props.projectKey;
+const { t } = useI18n();
+const sitePath = useSitePath();
+const format = useFormat();
 const queryVersion = computed(() => {
   const v = route.query.version;
   return typeof v === 'string' && v ? v : null;
@@ -93,7 +95,7 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: computed(() => `Download the latest ${project.value.name} builds.`),
+      content: computed(() => t('downloads.projectDescription', { name: project.value.name })),
     },
   ],
 });
@@ -101,11 +103,7 @@ useHead({
 const sourceUrl = computed(() => repoUrl(project.value));
 const about = computed(() => findProject(projectKey));
 
-const updated = computed(() =>
-  headline.value
-    ? new Date(headline.value.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : '',
-);
+const updated = computed(() => (headline.value ? format.date(headline.value.at) : ''));
 const docsUrl = computed(() => `/docs/${projectKey}`);
 
 // The content collection is the only thing that knows whether a project is documented.
@@ -124,11 +122,11 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
       <DownloadsHeader
         crumb
         :title="project.name"
-        :description="project.description || `Get the latest builds of ${project.name}.`"
+        :description="project.description || t('downloads.projectFallback', { name: project.name })"
       >
         <Button v-if="hasDocs" :href="docsUrl" variant="secondary">
           <BookOpen :size="16" :stroke-width="1.7" />
-          Documentation
+          {{ t('project.docs') }}
         </Button>
         <Button
           :href="sourceUrl"
@@ -137,10 +135,10 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
           variant="ghost"
         >
           <span class="dlp-gh" v-html="githubSvgRaw" />
-          Source
+          {{ t('downloads.source') }}
         </Button>
-        <NuxtLink v-if="about" :to="`/${about.slug}`" class="bx-link dlp-about">
-          About {{ about.name }}
+        <NuxtLink v-if="about" :to="sitePath(`/${about.slug}`)" class="bx-link dlp-about">
+          {{ t('downloads.about', { name: about.name }) }}
           <ArrowUpRight :size="14" :stroke-width="1.7" />
         </NuxtLink>
       </DownloadsHeader>
@@ -148,27 +146,27 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
       <div v-if="headline" class="dlp-wrap">
       <section class="dlp-latest" aria-labelledby="dlp-latest-title">
         <div class="dlp-latest__main">
-          <p id="dlp-latest-title" class="dlp-eyebrow">Latest build</p>
+          <p id="dlp-latest-title" class="dlp-eyebrow">{{ t('downloads.latestBuild') }}</p>
           <div class="dlp-latest__id">
             <span class="dlp-latest__label bx-text-grad">{{ headline.label }}</span>
             <span v-if="headline.version" class="dlp-latest__version">{{ headline.version }}</span>
             <span class="bx-channel" :class="getChannelColor(headline.channel)">{{ headline.channel }}</span>
           </div>
           <dl class="dlp-facts">
-            <div><dt>Size</dt><dd>{{ headline.file ? formatBytes(headline.file.size) : '—' }}</dd></div>
-            <div><dt>Published</dt><dd>{{ updated }}</dd></div>
+            <div><dt>{{ t('downloads.size') }}</dt><dd>{{ headline.file ? format.bytes(headline.file.size) : '—' }}</dd></div>
+            <div><dt>{{ t('releases.published') }}</dt><dd>{{ updated }}</dd></div>
           </dl>
           <div v-if="headline.file" class="dlp-get">
             <Button :href="headline.file.url" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
               <Download :size="16" :stroke-width="1.7" />
-              Download
+              {{ t('project.download') }}
             </Button>
             <code class="dlp-file">{{ headline.file.name }}</code>
           </div>
         </div>
 
         <div v-if="headline.commits.length" class="dlp-latest__changes">
-          <p class="dlp-eyebrow">What's new in {{ headline.label }}</p>
+          <p class="dlp-eyebrow">{{ t('releases.whatsNew', { tag: headline.label }) }}</p>
           <ul class="dlp-changes">
             <li v-for="c in headline.commits" :key="c.sha">
               <NuxtLink
@@ -184,7 +182,7 @@ const { data: hasDocs } = await useAsyncData(`project-docs:${projectKey}`, async
       </section>
       </div>
 
-      <Section title="All builds" lede="Every build for the selected Minecraft version, newest first.">
+      <Section :title="t('downloads.allBuilds')" :lede="t('downloads.allBuildsLede')">
         <BuildsList
           :project="project"
           :versions="versions"

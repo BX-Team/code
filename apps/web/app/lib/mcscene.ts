@@ -61,11 +61,5 @@ export function textShadow(hex: string, offset = 2): string {
 
 export type PreviewMode = 'chat' | 'title' | 'motd' | 'item' | 'nametag' | 'kick';
 
-export const PREVIEW_MODES: { id: PreviewMode; label: string }[] = [
-  { id: 'chat', label: 'Chat' },
-  { id: 'title', label: 'Title' },
-  { id: 'motd', label: 'MOTD' },
-  { id: 'item', label: 'Item' },
-  { id: 'nametag', label: 'Nametag' },
-  { id: 'kick', label: 'Disconnect' },
-];
+/** Tab names are `tools.color.modes.<id>`. */
+export const PREVIEW_MODES: PreviewMode[] = ['chat', 'title', 'motd', 'item', 'nametag', 'kick'];

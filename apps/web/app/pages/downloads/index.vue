@@ -13,7 +13,6 @@ import {
   type ProjectSummary,
   primaryDownload,
 } from '@/lib/builds';
-import { formatBytes } from '@/lib/format';
 import { findProject, PROJECTS } from '~/config/projects';
 import { fetchGithubReleases } from '~/lib/releases';
 
@@ -25,6 +24,10 @@ interface Entry {
   file?: File;
   commits: BuildCommit[];
 }
+
+const { t } = useI18n();
+const sitePath = useSitePath();
+const format = useFormat();
 
 async function latestOf(project: ProjectSummary): Promise<Entry | null> {
   if (!project.latest) return null;
@@ -66,46 +69,43 @@ const { data: githubEntries } = useLazyAsyncData(
 );
 
 useHead({
-  title: 'Downloads',
-  meta: [{ name: 'description', content: 'Download the latest builds and releases of our software.' }],
+  title: () => t('downloads.title'),
+  meta: [{ name: 'description', content: () => t('downloads.description') }],
 });
 </script>
 
 <template>
   <PageShell>
-    <DownloadsHeader
-      title="Downloads"
-      description="The newest version of every project. Open one for all of its builds, releases and files."
-    />
+    <DownloadsHeader :title="t('downloads.title')" :description="t('downloads.lede')" />
 
     <div class="dl-body">
       <div v-if="entries.length || githubEntries.length" class="dl-list">
         <article v-for="{ project, latest } in entries" :key="project.key" class="dl-card">
           <div class="dl-card__head">
-            <NuxtLink :to="`/downloads/${project.key}`" class="dl-card__title">
+            <NuxtLink :to="sitePath(`/downloads/${project.key}`)" class="dl-card__title">
               <h3>{{ project.name }}</h3>
             </NuxtLink>
             <span v-if="latest" class="bx-channel" :class="getChannelColor(latest.channel)">{{ latest.channel }}</span>
           </div>
-          <p class="dl-card__desc">{{ project.description || 'No description available.' }}</p>
+          <p class="dl-card__desc">{{ project.description || t('downloads.noDescription') }}</p>
 
           <dl v-if="latest" class="dl-card__facts">
             <div>
-              <dt>Latest build</dt>
+              <dt>{{ t('downloads.latestBuild') }}</dt>
               <dd>{{ latest.label }}</dd>
             </div>
             <div>
-              <dt>Size</dt>
-              <dd>{{ latest.file ? formatBytes(latest.file.size) : '—' }}</dd>
+              <dt>{{ t('downloads.size') }}</dt>
+              <dd>{{ latest.file ? format.bytes(latest.file.size) : '—' }}</dd>
             </div>
             <div>
-              <dt>Updated</dt>
-              <dd>{{ new Date(latest.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</dd>
+              <dt>{{ t('downloads.updated') }}</dt>
+              <dd>{{ format.date(latest.at) }}</dd>
             </div>
           </dl>
 
           <div v-if="latest?.commits.length" class="dl-card__changes">
-            <p class="bx-micro">Recent changes</p>
+            <p class="bx-micro">{{ t('downloads.recent') }}</p>
             <ul>
               <li v-for="c in latest.commits.slice(0, 3)" :key="c.sha">
                 <NuxtLink
@@ -122,14 +122,14 @@ useHead({
           <div class="dl-card__foot">
             <Button v-if="latest?.file" :href="latest.file.url" target="_blank" rel="noopener noreferrer" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
-              Download latest
+              {{ t('downloads.downloadLatest') }}
             </Button>
-            <Button :href="`/downloads/${project.key}`" variant="secondary">
+            <Button :href="sitePath(`/downloads/${project.key}`)" variant="secondary">
               <ArrowRight :size="16" :stroke-width="1.7" />
-              All builds
+              {{ t('downloads.allBuilds') }}
             </Button>
-            <NuxtLink v-if="findProject(project.key)" :to="`/${project.key}`" class="bx-link dl-card__about">
-              About {{ project.name }}
+            <NuxtLink v-if="findProject(project.key)" :to="sitePath(`/${project.key}`)" class="bx-link dl-card__about">
+              {{ t('downloads.about', { name: project.name }) }}
               <ArrowUpRight :size="14" :stroke-width="1.7" />
             </NuxtLink>
           </div>
@@ -137,35 +137,35 @@ useHead({
 
         <article v-for="{ site, latest } in githubEntries" :key="site.slug" class="dl-card">
           <div class="dl-card__head">
-            <NuxtLink :to="`/downloads/${site.slug}`" class="dl-card__title">
+            <NuxtLink :to="sitePath(`/downloads/${site.slug}`)" class="dl-card__title">
               <h3>{{ site.name }}</h3>
             </NuxtLink>
-            <span class="dl-card__source">GitHub releases</span>
+            <span class="dl-card__source">{{ t('downloads.githubReleases') }}</span>
           </div>
-          <p class="dl-card__desc">{{ site.summary }}</p>
+          <p class="dl-card__desc">{{ t(`projects.${site.slug}.summary`) }}</p>
 
           <dl v-if="latest" class="dl-card__facts">
             <div>
-              <dt>Latest release</dt>
+              <dt>{{ t('downloads.latestRelease') }}</dt>
               <dd>{{ latest.tag_name }}</dd>
             </div>
             <div>
-              <dt>Files</dt>
+              <dt>{{ t('downloads.files') }}</dt>
               <dd>{{ latest.assets.length }}</dd>
             </div>
             <div>
-              <dt>Updated</dt>
-              <dd>{{ latest.published_at ? new Date(latest.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' }}</dd>
+              <dt>{{ t('downloads.updated') }}</dt>
+              <dd>{{ latest.published_at ? format.date(latest.published_at) : '—' }}</dd>
             </div>
           </dl>
 
           <div class="dl-card__foot">
-            <Button :href="`/downloads/${site.slug}`" variant="primary">
+            <Button :href="sitePath(`/downloads/${site.slug}`)" variant="primary">
               <Download :size="16" :stroke-width="1.7" />
-              Choose a download
+              {{ t('downloads.choose') }}
             </Button>
-            <NuxtLink :to="`/${site.slug}`" class="bx-link dl-card__about">
-              About {{ site.name }}
+            <NuxtLink :to="sitePath(`/${site.slug}`)" class="bx-link dl-card__about">
+              {{ t('downloads.about', { name: site.name }) }}
               <ArrowUpRight :size="14" :stroke-width="1.7" />
             </NuxtLink>
           </div>
@@ -173,13 +173,13 @@ useHead({
       </div>
 
       <p v-if="error" class="bx-callout bx-callout--err">
-        <span class="bx-callout__mark">Unavailable</span>
-        <span>The downloads API could not be reached. Please try again in a moment.</span>
+        <span class="bx-callout__mark">{{ t('downloads.unavailable') }}</span>
+        <span>{{ t('downloads.apiDown') }}</span>
       </p>
 
       <p v-if="!error && !entries.length && !githubEntries.length" class="bx-callout bx-callout--note">
-        <span class="bx-callout__mark">Empty</span>
-        <span>There are currently no projects available for download.</span>
+        <span class="bx-callout__mark">{{ t('downloads.empty') }}</span>
+        <span>{{ t('downloads.noProjects') }}</span>
       </p>
     </div>
   </PageShell>

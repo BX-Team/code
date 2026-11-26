@@ -20,10 +20,10 @@ const busy = ref('');
 const { refresh } = useAccountData();
 const error = ref('');
 
+const { t } = useI18n();
+const sitePath = useSitePath();
 const route = useRoute();
-const returned = computed(() =>
-  typeof route.query.error === 'string' ? 'Connecting did not go through. Try again.' : '',
-);
+const returned = computed(() => (typeof route.query.error === 'string' ? t('account.methods.returned') : ''));
 
 onMounted(load);
 
@@ -37,12 +37,12 @@ async function connect(provider: Provider) {
   error.value = '';
   const { error: failed } = await auth.linkSocial({
     provider,
-    callbackURL: `${location.origin}/account/security`,
-    errorCallbackURL: `${location.origin}/account/security`,
+    callbackURL: `${location.origin}${sitePath('/account/security')}`,
+    errorCallbackURL: `${location.origin}${sitePath('/account/security')}`,
   });
   if (failed) {
     busy.value = '';
-    error.value = 'Could not start connecting.';
+    error.value = t('account.methods.startFailed');
   }
 }
 
@@ -54,7 +54,7 @@ async function disconnect(provider: Provider) {
   const { error: failed } = await auth.unlinkAccount({ accountId });
   busy.value = '';
   if (failed) {
-    error.value = failed.message ?? 'Could not disconnect.';
+    error.value = failed.message ?? t('account.methods.disconnectFailed');
     return;
   }
   await Promise.all([load(), refresh()]);
@@ -62,21 +62,21 @@ async function disconnect(provider: Provider) {
 </script>
 
 <template>
-	<AccountSection id="methods" title="Sign-in methods" lead="No passwords. Any of these opens this BX ID.">
+	<AccountSection id="methods" :title="$t('account.methods.title')" :lead="$t('account.methods.lede')">
 		<ul class="list">
 			<li>
 				<span class="mark"><Mail :size="18" :stroke-width="1.7" /></span>
 				<div class="grow">
-					<span class="name">Email code</span>
+					<span class="name">{{ $t('account.methods.emailCode') }}</span>
 					<span class="sub">{{ email }}</span>
 				</div>
-				<span class="badge">Always on</span>
+				<span class="badge">{{ $t('account.methods.alwaysOn') }}</span>
 			</li>
 			<li v-for="provider in PROVIDERS" :key="provider.id">
 				<span class="mark" aria-hidden="true" v-html="provider.icon" />
 				<div class="grow">
 					<span class="name">{{ provider.name }}</span>
-					<span class="sub">{{ linked?.has(provider.id) ? 'Connected' : 'Not connected' }}</span>
+					<span class="sub">{{ linked?.has(provider.id) ? $t('account.methods.connected') : $t('account.methods.notConnected') }}</span>
 				</div>
 				<div v-if="linked" class="actions">
 					<button
@@ -86,11 +86,11 @@ async function disconnect(provider: Provider) {
 						:disabled="busy === provider.id"
 						@click="disconnect(provider.id)"
 					>
-						Disconnect
-					</button>
+						{{ $t('account.methods.disconnect') }}
+						</button>
 					<button v-else type="button" class="btn small" :disabled="busy === provider.id" @click="connect(provider.id)">
-						Connect
-					</button>
+						{{ $t('account.methods.connect') }}
+						</button>
 				</div>
 			</li>
 		</ul>

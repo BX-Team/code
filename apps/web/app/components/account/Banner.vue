@@ -5,7 +5,8 @@ import { auth } from '~/lib/auth';
 
 /** The top of every account page: the picture with its source menu, the names, and the way out. */
 const session = auth.useSession();
-const route = useRoute();
+const sitePath = useSitePath();
+const path = useBarePath();
 
 const user = computed(() => session.value.data?.user);
 const username = computed(() => user.value?.displayUsername ?? user.value?.username ?? null);
@@ -23,7 +24,7 @@ async function copyCode() {
 
 async function signOut() {
   await auth.signOut();
-  navigateTo('/');
+  navigateTo(sitePath('/'));
 }
 </script>
 
@@ -42,19 +43,19 @@ async function signOut() {
 
 			<div class="bn__side">
 				<button
-					v-if="route.path === '/account/riven' && code"
+					v-if="path === '/account/riven' && code"
 					type="button"
 					class="bn__chip"
-					:aria-label="`Copy friend code ${code}`"
+					:aria-label="$t('account.banner.copyCode', { code })"
 					@click="copyCode"
 				>
-					Friend code <span class="bn__code">{{ code }}</span>
+					{{ $t('account.banner.friendCode') }} <span class="bn__code">{{ code }}</span>
 					<component :is="copied ? Check : Copy" :size="14" :stroke-width="1.8" />
 				</button>
 				<button type="button" class="btn quiet small" @click="signOut">
 					<LogOut :size="15" :stroke-width="1.8" />
-					Sign out
-				</button>
+					{{ $t('nav.signOut') }}
+					</button>
 			</div>
 		</div>
 	</section>

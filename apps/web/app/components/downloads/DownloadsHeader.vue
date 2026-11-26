@@ -1,12 +1,15 @@
 <script setup lang="ts">
 /** The light top of every downloads page: crumbs, a title and its line, and the page's links on the right. */
 defineProps<{ title: string; description?: string; crumb?: boolean }>();
+
+const { t } = useI18n();
+const sitePath = useSitePath();
 </script>
 
 <template>
 	<header class="dh">
-		<nav v-if="crumb" class="dh__crumbs" aria-label="Breadcrumb">
-			<NuxtLink to="/downloads">Downloads</NuxtLink>
+		<nav v-if="crumb" class="dh__crumbs" :aria-label="t('common.breadcrumb')">
+			<NuxtLink :to="sitePath('/downloads')">{{ t('downloads.title') }}</NuxtLink>
 			<span aria-hidden="true">/</span>
 			<span aria-current="page">{{ title }}</span>
 		</nav>

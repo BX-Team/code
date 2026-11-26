@@ -6,14 +6,11 @@ defineProps<{ title: string; lead?: string; pitch?: boolean }>();
 
 useHead({ meta: [{ name: 'robots', content: 'noindex' }] });
 
+/** Each point is `account.pitch.<key>` with its line under `<key>Text`. */
 const points = [
-  { icon: KeyRound, title: 'No password', text: 'A code by email, or the Discord or GitHub account you already have.' },
-  {
-    icon: LayoutGrid,
-    title: 'Every app, one sign-in',
-    text: 'The same account works across BX Team apps and this site.',
-  },
-  { icon: ShieldCheck, title: 'You stay in control', text: 'See your devices and sign them out from one page.' },
+  { icon: KeyRound, key: 'noPassword' },
+  { icon: LayoutGrid, key: 'oneSignIn' },
+  { icon: ShieldCheck, key: 'control' },
 ];
 </script>
 
@@ -22,13 +19,15 @@ const points = [
 		<main class="acct bxid" :class="{ 'acct--pitch': pitch }">
 			<aside v-if="pitch" class="acct__pitch">
 				<span class="acct__brand">BX ID</span>
-				<h2 class="acct__pitch-title">One account for <span class="bx-text-grad">BX Team</span></h2>
+				<i18n-t keypath="account.pitch.title" tag="h2" class="acct__pitch-title" scope="global">
+					<template #brand><span class="bx-text-grad">BX Team</span></template>
+				</i18n-t>
 				<ul class="acct__points">
-					<li v-for="point in points" :key="point.title">
+					<li v-for="point in points" :key="point.key">
 						<span class="acct__icon"><component :is="point.icon" :size="18" :stroke-width="1.7" /></span>
 						<div>
-							<strong>{{ point.title }}</strong>
-							<p>{{ point.text }}</p>
+							<strong>{{ $t(`account.pitch.${point.key}`) }}</strong>
+							<p>{{ $t(`account.pitch.${point.key}Text`) }}</p>
 						</div>
 					</li>
 				</ul>

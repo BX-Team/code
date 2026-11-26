@@ -82,9 +82,9 @@ const searchOpen = useState('docs:search', () => false);
 					<span class="dx__title">
 						<span class="dx__name">
 							<h2>{{ project.name }}</h2>
-							<span class="dx__tag">{{ project.tag }}</span>
+							<span class="dx__tag">{{ $t(`projects.${project.slug}.tag`, {}, { locale: 'en' }) }}</span>
 						</span>
-						<span class="dx__summary">{{ project.summary }}</span>
+						<span class="dx__summary">{{ $t(`projects.${project.slug}.summary`, {}, { locale: 'en' }) }}</span>
 					</span>
 					<span class="dx__open">
 						<span>{{ pages }} pages</span>

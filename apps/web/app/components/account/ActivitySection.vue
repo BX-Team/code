@@ -17,7 +17,9 @@ import {
 import { type Component, onMounted, ref, watch } from 'vue';
 import { AGENT_ICONS, describeAgent } from '~/lib/agents';
 import { APPS, auth, fetchActivity, PROVIDER_NAMES } from '~/lib/auth';
-import { relativeTime } from '~/utils/datetime';
+
+const { t } = useI18n();
+const format = useFormat();
 
 const events = ref<ActivityEvent[] | null>(null);
 const next = ref<string | null>(null);
@@ -34,7 +36,7 @@ async function load(before?: string | null) {
     events.value = before ? [...(events.value ?? []), ...page.events] : page.events;
     next.value = page.next;
   } catch {
-    error.value = 'Your activity could not be loaded.';
+    error.value = t('account.activity.failed');
   }
   busy.value = false;
 }
@@ -46,84 +48,111 @@ watch([links, sessions, () => session.value.data?.user.updatedAt?.toString()], (
   if (before.some(Boolean)) load();
 });
 
-const PICTURE_FROM: Record<string, string> = { discord: 'from Discord', github: 'from GitHub' };
-
 function describe(event: ActivityEvent): { icon: Component; title: string } {
   const d = event.detail ?? {};
-  const device = describeAgent(event.userAgent);
-  const provider = PROVIDER_NAMES[d.provider ?? ''] ?? d.provider ?? 'an account';
+  const device = describeAgent(event.userAgent, t);
+  const provider = PROVIDER_NAMES[d.provider ?? ''] ?? d.provider ?? t('account.activity.anAccount');
+  const key = (name: string) => `account.activity.${name}`;
   switch (event.kind) {
     case 'created':
-      return { icon: Sparkles, title: 'Created this BX ID' };
+      return { icon: Sparkles, title: t(key('created')) };
     case 'signed-in':
       return {
         icon: device.kind === 'riven' ? AGENT_ICONS.riven : LogIn,
-        title: device.kind === 'riven' ? 'Signed in to Riven Launcher' : `Signed in on ${device.name}`,
+        title: device.kind === 'riven' ? t(key('signedInRiven')) : t(key('signedIn'), { device: device.name }),
       };
     case 'signed-out':
-      return { icon: LogOut, title: `Signed out on ${device.name}` };
+      return { icon: LogOut, title: t(key('signedOut'), { device: device.name }) };
     case 'device-removed':
-      return { icon: MonitorX, title: `Signed ${device.name} out remotely` };
+      return { icon: MonitorX, title: t(key('removed'), { device: device.name }) };
     case 'name':
-      return { icon: UserPen, title: d.to ? `Changed display name to ${d.to}` : 'Removed the display name' };
+      return { icon: UserPen, title: d.to ? t(key('name'), { name: d.to }) : t(key('nameRemoved')) };
     case 'username':
-      return { icon: AtSign, title: `Changed username to @${d.to}` };
-    case 'picture':
+      return { icon: AtSign, title: t(key('username'), { name: `@${d.to}` }) };
+    case 'picture': {
+      const from = PROVIDER_NAMES[d.source ?? ''];
       return {
         icon: Image,
-        title: d.source
-          ? `Changed profile picture ${PICTURE_FROM[d.source] ?? ''}`.trim()
-          : 'Removed the profile picture',
+        title: !d.source
+          ? t(key('pictureRemoved'))
+          : from
+            ? t(key('pictureFrom'), { provider: from })
+            : t(key('picture')),
       };
+    }
     case 'linked':
-      return { icon: KeyRound, title: `Connected ${provider}` };
+      return { icon: KeyRound, title: t(key('linked'), { provider }) };
     case 'unlinked':
-      return { icon: Unlink, title: `Disconnected ${provider}` };
-    case 'skin':
+      return { icon: Unlink, title: t(key('unlinked'), { provider }) };
+    case 'skin': {
+      const reset = d.change === 'reset';
       return {
         icon: Shirt,
-        title: `${d.change === 'reset' ? 'Removed the skin of' : 'Changed the skin of'} ${d.name ?? 'a nick'}`,
+        title: d.name
+          ? t(key(reset ? 'skinReset' : 'skin'), { name: d.name })
+          : t(key(reset ? 'skinResetAny' : 'skinAny')),
       };
+    }
     case 'nick-added':
-      return { icon: UserPlus, title: `Added the nick ${d.name}` };
+      return { icon: UserPlus, title: t(key('nickAdded'), { name: d.name }) };
     case 'nick-removed':
-      return { icon: UserMinus, title: `Removed the nick ${d.name}` };
+      return { icon: UserMinus, title: t(key('nickRemoved'), { name: d.name }) };
     case 'app':
-      return { icon: Sparkles, title: `Connected ${APPS[d.clientId ?? '']?.name ?? d.clientId}` };
+      return { icon: Sparkles, title: t(key('app'), { app: APPS[d.clientId ?? '']?.name ?? d.clientId }) };
   }
 }
 
 /** Where it happened: the device, unless the title already names it, and the address. */
 function where(event: ActivityEvent): string {
   const named = ['signed-in', 'signed-out', 'device-removed'].includes(event.kind);
-  const device = event.userAgent && !named ? describeAgent(event.userAgent).name : '';
+  const device = event.userAgent && !named ? describeAgent(event.userAgent, t).name : '';
   return [device, event.ipAddress ?? ''].filter(Boolean).join(' · ');
 }
 </script>
 
 <template>
-	<AccountSection id="activity" title="Recent activity" lead="Sign-ins and changes to this BX ID, newest first.">
-		<ul v-if="events?.length" class="list">
-			<li v-for="event in events" :key="event.id">
-				<span class="mark"><component :is="describe(event).icon" :size="17" :stroke-width="1.7" /></span>
-				<div class="grow">
-					<span class="name">{{ describe(event).title }}</span>
-					<span v-if="where(event)" class="sub">{{ where(event) }}</span>
-				</div>
-				<span class="when">{{ relativeTime(event.createdAt) }}</span>
-			</li>
-		</ul>
+	<AccountSection
+		id="activity"
+		class="activity"
+		:title="$t('account.activity.title')"
+		:lead="$t('account.activity.lede')"
+	>
+		<div v-if="events?.length" class="scroll">
+			<ul class="list">
+				<li v-for="event in events" :key="event.id">
+					<span class="mark"><component :is="describe(event).icon" :size="17" :stroke-width="1.7" /></span>
+					<div class="grow">
+						<span class="name">{{ describe(event).title }}</span>
+						<span v-if="where(event)" class="sub">{{ where(event) }}</span>
+					</div>
+					<span class="when">{{ format.relative(event.createdAt) }}</span>
+				</li>
+			</ul>
+		</div>
 		<button v-if="next" type="button" class="btn quiet small list-more" :disabled="busy" @click="load(next)">
-			{{ busy ? 'Loading…' : 'Show older' }}
+			{{ busy ? $t('common.loading') : $t('account.activity.older') }}
 		</button>
 		<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 	</AccountSection>
 </template>
 
 <style scoped>
-.list {
-	max-height: 520px;
+/* The card takes the height of the card beside it instead of setting it, so the list scrolls inside rather than stretching the row. */
+.activity {
+	min-height: 440px;
+}
+
+.activity :deep(.as__body) {
+	flex: 1;
+	min-height: 0;
+}
+
+.scroll {
+	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
+	contain: size;
+	border-radius: var(--r-3);
 }
 
 .mark {

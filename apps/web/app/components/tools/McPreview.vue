@@ -19,6 +19,7 @@ const style = computed(() => ({
 
 /** Text the game draws itself, in one colour with its shadow. */
 const plain = (hex: string) => ({ color: hex, textShadow: textShadow(hex) });
+const { t } = useI18n();
 
 // A grass block, 8×8, for the server icon in the list.
 const ICON = ['gggggggg', 'gGggGggg', 'dgdddgdg', 'dddDdddd', 'dDdddddD', 'ddddDddd', 'dddddddd', 'dDdddDdd'];
@@ -29,8 +30,8 @@ const ICON_FILL: Record<string, string> = { g: '#5d9a3c', G: '#7cbd4f', d: '#6b4
 	<div class="mc" :class="`mc--${mode}`" :style="{ '--dirt': DIRT, '--land': LANDSCAPE }">
 		<template v-if="mode === 'chat'">
 			<div class="mc__chat">
-				<p><span :style="plain('#ffffff')">&lt;Alex&gt; anyone up for the nether?</span></p>
-				<p><span :style="plain('#ffffff')">&lt;Steve&gt; in a minute</span></p>
+				<p><span :style="plain('#ffffff')">&lt;Alex&gt; {{ t('tools.mc.chat1') }}</span></p>
+				<p><span :style="plain('#ffffff')">&lt;Steve&gt; {{ t('tools.mc.chat2') }}</span></p>
 				<p>
 					<span :style="plain('#ffffff')">&lt;Steve&gt; </span><span :style="style"><span
 						v-for="(g, i) in glyphs"
@@ -46,7 +47,7 @@ const ICON_FILL: Record<string, string> = { g: '#5d9a3c', G: '#7cbd4f', d: '#6b4
 				<p class="mc__big" :style="style">
 					<span v-for="(g, i) in glyphs" :key="i" :style="{ color: g.shown, textShadow: textShadow(g.shown, 4) }">{{ g.char }}</span>
 				</p>
-				<p class="mc__sub" :style="plain('#aaaaaa')">Welcome back, Steve</p>
+				<p class="mc__sub" :style="plain('#aaaaaa')">{{ t('tools.mc.welcome') }}</p>
 			</div>
 		</template>
 
@@ -60,7 +61,7 @@ const ICON_FILL: Record<string, string> = { g: '#5d9a3c', G: '#7cbd4f', d: '#6b4
 					</svg>
 					<div class="mc__entry">
 						<div class="mc__entry-top">
-							<span :style="plain('#ffffff')">A Minecraft Server</span>
+							<span :style="plain('#ffffff')">{{ t('tools.mc.server') }}</span>
 							<span class="mc__players" :style="plain('#aaaaaa')">12/100</span>
 						</div>
 						<p class="mc__motd" :style="style">
@@ -77,9 +78,9 @@ const ICON_FILL: Record<string, string> = { g: '#5d9a3c', G: '#7cbd4f', d: '#6b4
 					<span v-for="(g, i) in glyphs" :key="i" :style="plain(g.shown)">{{ g.char }}</span>
 				</p>
 				<p class="mc__gap" />
-				<p :style="plain('#aaaaaa')">When in Main Hand:</p>
-				<p :style="plain('#00aa00')">&nbsp;7 Attack Damage</p>
-				<p :style="plain('#00aa00')">&nbsp;1.6 Attack Speed</p>
+				<p :style="plain('#aaaaaa')">{{ t('tools.mc.mainHand') }}</p>
+				<p :style="plain('#00aa00')">&nbsp;{{ t('tools.mc.damage') }}</p>
+				<p :style="plain('#00aa00')">&nbsp;{{ t('tools.mc.speed') }}</p>
 			</div>
 		</template>
 
@@ -91,11 +92,11 @@ const ICON_FILL: Record<string, string> = { g: '#5d9a3c', G: '#7cbd4f', d: '#6b4
 
 		<template v-else>
 			<div class="mc__kick">
-				<p :style="plain('#aaaaaa')">Connection Lost</p>
+				<p :style="plain('#aaaaaa')">{{ t('tools.mc.lost') }}</p>
 				<p class="mc__reason" :style="style">
 					<span v-for="(g, i) in glyphs" :key="i" :style="plain(g.shown)">{{ g.char }}</span>
 				</p>
-				<span class="mc__button" :style="plain('#ffffff')">Back to server list</span>
+				<span class="mc__button" :style="plain('#ffffff')">{{ t('tools.mc.back') }}</span>
 			</div>
 		</template>
 	</div>

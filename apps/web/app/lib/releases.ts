@@ -16,19 +16,15 @@ export async function fetchGithubReleases(repo: string, perPage = 20): Promise<R
 
 export type Platform = 'windows' | 'macos' | 'linux' | 'cli';
 
-export const PLATFORMS: { id: Platform; label: string }[] = [
-  { id: 'windows', label: 'Windows' },
-  { id: 'macos', label: 'macOS' },
-  { id: 'linux', label: 'Linux' },
-  { id: 'cli', label: 'Command line' },
-];
+/** In the order the page shows them; names are `releases.platforms.<id>` in the locale files. */
+export const PLATFORMS: Platform[] = ['windows', 'macos', 'linux', 'cli'];
 
 export interface ReleaseFile {
   name: string;
   url: string;
   size: number;
   platform: Platform;
-  /** What the file is, in words a user picks by: "Installer", "Debian / Ubuntu". */
+  /** What the file is, as a key under `releases.kinds`: "Installer", "Debian / Ubuntu". */
   kind: string;
   /** The extension the kind is recognised by, shown beside it. */
   ext: string;
@@ -38,16 +34,16 @@ export interface ReleaseFile {
 }
 
 const FORMATS: { test: RegExp; platform: Exclude<Platform, 'cli'>; kind: string; ext: string; rank: number }[] = [
-  { test: /setup.*\.exe$|\.exe$/i, platform: 'windows', kind: 'Installer', ext: '.exe', rank: 0 },
-  { test: /\.msi$/i, platform: 'windows', kind: 'Installer', ext: '.msi', rank: 1 },
-  { test: /windows.*\.zip$/i, platform: 'windows', kind: 'Portable', ext: '.zip', rank: 2 },
-  { test: /\.dmg$/i, platform: 'macos', kind: 'Disk image', ext: '.dmg', rank: 0 },
-  { test: /\.app\.tar\.gz$/i, platform: 'macos', kind: 'App bundle', ext: '.app.tar.gz', rank: 1 },
-  { test: /\.appimage$/i, platform: 'linux', kind: 'AppImage', ext: '.AppImage', rank: 0 },
-  { test: /\.deb$/i, platform: 'linux', kind: 'Debian / Ubuntu', ext: '.deb', rank: 1 },
-  { test: /\.rpm$/i, platform: 'linux', kind: 'Fedora / openSUSE', ext: '.rpm', rank: 2 },
-  { test: /\.pkg\.tar\.(zst|xz)$/i, platform: 'linux', kind: 'Arch Linux', ext: '.pkg.tar', rank: 3 },
-  { test: /linux.*\.tar\.gz$/i, platform: 'linux', kind: 'Tarball', ext: '.tar.gz', rank: 4 },
+  { test: /setup.*\.exe$|\.exe$/i, platform: 'windows', kind: 'installer', ext: '.exe', rank: 0 },
+  { test: /\.msi$/i, platform: 'windows', kind: 'installer', ext: '.msi', rank: 1 },
+  { test: /windows.*\.zip$/i, platform: 'windows', kind: 'portable', ext: '.zip', rank: 2 },
+  { test: /\.dmg$/i, platform: 'macos', kind: 'diskImage', ext: '.dmg', rank: 0 },
+  { test: /\.app\.tar\.gz$/i, platform: 'macos', kind: 'appBundle', ext: '.app.tar.gz', rank: 1 },
+  { test: /\.appimage$/i, platform: 'linux', kind: 'appImage', ext: '.AppImage', rank: 0 },
+  { test: /\.deb$/i, platform: 'linux', kind: 'debian', ext: '.deb', rank: 1 },
+  { test: /\.rpm$/i, platform: 'linux', kind: 'fedora', ext: '.rpm', rank: 2 },
+  { test: /\.pkg\.tar\.(zst|xz)$/i, platform: 'linux', kind: 'arch', ext: '.pkg.tar', rank: 3 },
+  { test: /linux.*\.tar\.gz$/i, platform: 'linux', kind: 'tarball', ext: '.tar.gz', rank: 4 },
 ];
 
 function archOf(name: string): ReleaseFile['arch'] {
@@ -62,7 +58,7 @@ export function classify(release: RestRelease): ReleaseFile[] {
   for (const asset of release.assets) {
     const base = { name: asset.name, url: asset.browser_download_url, size: asset.size, arch: archOf(asset.name) };
     if (/-cli-/i.test(asset.name)) {
-      const os = /windows/i.test(asset.name) ? 'Windows' : /macos|darwin/i.test(asset.name) ? 'macOS' : 'Linux';
+      const os = /windows/i.test(asset.name) ? 'windows' : /macos|darwin/i.test(asset.name) ? 'macos' : 'linux';
       files.push({
         ...base,
         platform: 'cli',

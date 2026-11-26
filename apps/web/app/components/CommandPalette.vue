@@ -23,6 +23,8 @@ interface DocSection {
   content?: string;
 }
 
+const { t } = useI18n();
+const sitePath = useSitePath();
 const open = useCommandPaletteOpen();
 const query = ref('');
 const docsResults = ref<DocSection[]>([]);
@@ -31,13 +33,21 @@ const selectedIdx = ref(0);
 const inputRef = ref<HTMLInputElement | null>(null);
 const listRef = ref<HTMLDivElement | null>(null);
 
-const navItems: PaletteItem[] = [
-  { key: 'nav:home', group: 'nav', title: 'Home', subtitle: '/', icon: Home, to: '/' },
-  { key: 'nav:docs', group: 'nav', title: 'Documentation', subtitle: '/docs', icon: BookOpen, to: '/docs' },
-  { key: 'nav:downloads', group: 'nav', title: 'Downloads', subtitle: '/downloads', icon: Download, to: '/downloads' },
-  { key: 'nav:tools', group: 'nav', title: 'Tools', subtitle: '/tools', icon: Wrench, to: '/tools' },
-  { key: 'nav:team', group: 'nav', title: 'Team', subtitle: '/team', icon: Users, to: '/team' },
-];
+const navItems = computed<PaletteItem[]>(() =>
+  [
+    { id: 'home', title: t('palette.home'), icon: Home, path: '/' },
+    { id: 'docs', title: t('palette.docs'), icon: BookOpen, path: '/docs' },
+    { id: 'downloads', title: t('nav.downloads'), icon: Download, path: '/downloads' },
+    { id: 'tools', title: t('nav.tools'), icon: Wrench, path: '/tools' },
+    { id: 'team', title: t('nav.team'), icon: Users, path: '/team' },
+  ].map(({ id, path, ...item }) => ({
+    ...item,
+    key: `nav:${id}`,
+    group: 'nav' as const,
+    subtitle: sitePath(path),
+    to: sitePath(path),
+  })),
+);
 
 const docsItems = computed<PaletteItem[]>(() =>
   docsResults.value.map(r => ({
@@ -56,12 +66,12 @@ function matchesQuery(item: PaletteItem, q: string): boolean {
   return item.title.toLowerCase().includes(needle) || (item.subtitle?.toLowerCase().includes(needle) ?? false);
 }
 
-const filteredNav = computed(() => navItems.filter(i => matchesQuery(i, query.value.trim())));
+const filteredNav = computed(() => navItems.value.filter(i => matchesQuery(i, query.value.trim())));
 
 const groups = computed(() => {
   const out: { id: Group; label: string; items: PaletteItem[] }[] = [];
-  if (filteredNav.value.length) out.push({ id: 'nav', label: 'Navigation', items: filteredNav.value });
-  if (docsItems.value.length) out.push({ id: 'docs', label: 'Documentation', items: docsItems.value });
+  if (filteredNav.value.length) out.push({ id: 'nav', label: t('palette.navigation'), items: filteredNav.value });
+  if (docsItems.value.length) out.push({ id: 'docs', label: t('palette.docs'), items: docsItems.value });
   return out;
 });
 
@@ -180,7 +190,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 	<Teleport to="body">
 		<Transition name="cmdk">
 			<div v-if="open" class="cmdk-overlay" @click.self="closeCommandPalette()">
-				<div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Command palette">
+				<div class="cmdk-panel" role="dialog" aria-modal="true" :aria-label="$t('palette.label')">
 					<div class="cmdk-input-row">
 						<Search :size="16" :stroke-width="1.7" class="cmdk-input-icon" />
 						<input
@@ -188,7 +198,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 							v-model="query"
 							class="cmdk-input"
 							type="text"
-							placeholder="Search docs or jump to a page…"
+							:placeholder="$t('palette.placeholder')"
 							autocomplete="off"
 							spellcheck="false"
 						/>
@@ -219,14 +229,14 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown));
 							</button>
 						</template>
 
-						<div v-if="docsLoading && !groups.length" class="cmdk-state">Searching documentation…</div>
-						<div v-else-if="isEmpty" class="cmdk-state">No results for "{{ query }}"</div>
+						<div v-if="docsLoading && !groups.length" class="cmdk-state">{{ $t('palette.searching') }}</div>
+						<div v-else-if="isEmpty" class="cmdk-state">{{ $t('palette.empty', { query }) }}</div>
 					</div>
 
 					<div class="cmdk-foot">
-						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">↑</kbd><kbd class="cmdk-kbd">↓</kbd>navigate</span>
-						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">↵</kbd>open</span>
-						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">ESC</kbd>close</span>
+						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">↑</kbd><kbd class="cmdk-kbd">↓</kbd>{{ $t('palette.navigate') }}</span>
+						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">↵</kbd>{{ $t('palette.open') }}</span>
+						<span class="cmdk-foot__it"><kbd class="cmdk-kbd">ESC</kbd>{{ $t('palette.close') }}</span>
 						<span class="cmdk-foot__spacer" />
 						<span class="cmdk-foot__brand">
 							<kbd class="cmdk-kbd cmdk-kbd--accent">⌘</kbd><kbd class="cmdk-kbd cmdk-kbd--accent">K</kbd>

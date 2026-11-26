@@ -3,15 +3,11 @@ import { ArrowLeftRight } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { syncQuery } from '@/lib/query';
 
+const { t } = useI18n();
+
 useHead({
-  title: 'Coordinate calculator',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Convert coordinates between the Nether and the Overworld, and find a stronghold from two Eye of Ender throws.',
-    },
-  ],
+  title: () => t('tools.coords.name'),
+  meta: [{ name: 'description', content: () => t('tools.coords.description') }],
 });
 
 const route = useRoute();
@@ -37,7 +33,7 @@ const converted = computed(() => {
   return { x: Math.floor(px * factor), y: num(y.value), z: Math.floor(pz * factor) };
 });
 
-const target = computed(() => (dimension.value === 'overworld' ? 'Nether' : 'Overworld'));
+const target = computed(() => (dimension.value === 'overworld' ? 'nether' : 'overworld'));
 
 function swap() {
   if (converted.value) {
@@ -64,7 +60,15 @@ const direction = (yaw: number) => {
   return { dx: -Math.sin(radians), dz: Math.cos(radians) };
 };
 
-const stronghold = computed(() => {
+interface Estimate {
+  x: number;
+  z: number;
+  distance: number;
+  nether: { x: number; z: number };
+  shallow: boolean;
+}
+
+const stronghold = computed<Estimate | { error: 'parallel' | 'behind' } | null>(() => {
   const parsed = throws.value.map(t => ({ x: num(t.x), z: num(t.z), angle: num(t.angle) }));
   if (parsed.some(t => t.x === null || t.z === null || t.angle === null)) return null;
   const [a, b] = parsed as { x: number; z: number; angle: number }[] as [
@@ -75,15 +79,13 @@ const stronghold = computed(() => {
   const da = direction(a.angle);
   const db = direction(b.angle);
   const cross = da.dx * db.dz - da.dz * db.dx;
-  if (Math.abs(cross) < 1e-3)
-    return { error: 'The two throws point the same way. Walk sideways a few hundred blocks and throw again.' };
+  if (Math.abs(cross) < 1e-3) return { error: 'parallel' };
 
   const ox = b.x - a.x;
   const oz = b.z - a.z;
   const t = (ox * db.dz - oz * db.dx) / cross;
   const u = (ox * da.dz - oz * da.dx) / cross;
-  if (t < 0 || u < 0)
-    return { error: 'The lines cross behind you. Check that both angles were read while facing the eye.' };
+  if (t < 0 || u < 0) return { error: 'behind' };
 
   const sx = Math.round(a.x + t * da.dx);
   const sz = Math.round(a.z + t * da.dz);
@@ -97,6 +99,9 @@ const stronghold = computed(() => {
     shallow: Math.abs(Math.asin(Math.min(1, Math.abs(cross)))) < (10 * Math.PI) / 180,
   };
 });
+
+const found = computed(() => (stronghold.value && 'x' in stronghold.value ? stronghold.value : null));
+const failure = computed(() => (stronghold.value && 'error' in stronghold.value ? stronghold.value.error : null));
 
 watch(
   [dimension, x, y, z, throws],
@@ -120,18 +125,15 @@ watch(
 </script>
 
 <template>
-	<ToolsToolPage
-		title="Coordinate calculator"
-		lead="Line a Nether portal up with its Overworld side, or find a stronghold from two Eye of Ender throws."
-	>
+	<ToolsToolPage :title="$t('tools.coords.name')" :lead="$t('tools.coords.lead')">
 		<div class="grid">
 			<section class="panel card">
 				<header class="card__head">
-					<h2>Nether and Overworld</h2>
-					<p>One block in the Nether is eight in the Overworld. Y stays the same.</p>
+					<h2>{{ $t('tools.coords.portals') }}</h2>
+					<p>{{ $t('tools.coords.portalsLede') }}</p>
 				</header>
 
-				<div class="dims" role="radiogroup" aria-label="Coordinates are in">
+				<div class="dims" role="radiogroup" :aria-label="$t('tools.coords.from')">
 					<button
 						v-for="d in ['overworld', 'nether'] as const"
 						:key="d"
@@ -142,7 +144,7 @@ watch(
 						:aria-checked="dimension === d"
 						@click="dimension = d"
 					>
-						{{ d === 'overworld' ? 'Overworld' : 'Nether' }}
+						{{ $t(`tools.coords.${d}`) }}
 					</button>
 				</div>
 
@@ -153,78 +155,71 @@ watch(
 				</div>
 
 				<div class="out">
-					<span class="label">{{ target }}</span>
+					<span class="label">{{ $t(`tools.coords.${target}`) }}</span>
 					<p v-if="converted" class="out__coords">
 						<span>X <b>{{ converted.x }}</b></span>
 						<span v-if="converted.y !== null">Y <b>{{ converted.y }}</b></span>
 						<span>Z <b>{{ converted.z }}</b></span>
 					</p>
-					<p v-else class="hint">Enter X and Z.</p>
+					<p v-else class="hint">{{ $t('tools.coords.enter') }}</p>
 					<button type="button" class="btn swap" :disabled="!converted" @click="swap">
 						<ArrowLeftRight :size="15" :stroke-width="1.9" />
-						<span>Go the other way</span>
+						<span>{{ $t('tools.coords.swap') }}</span>
 					</button>
 				</div>
 			</section>
 
 			<section class="panel card">
 				<header class="card__head">
-					<h2>Stronghold</h2>
-					<p>Two throws, each with your position and the angle you faced. The lines cross at the stronghold.</p>
+					<h2>{{ $t('tools.coords.stronghold') }}</h2>
+					<p>{{ $t('tools.coords.strongholdLede') }}</p>
 				</header>
 
-				<div v-for="(t, i) in throws" :key="i" class="throw">
-					<span class="label">{{ i === 0 ? 'First throw' : 'Second throw' }}</span>
+				<div v-for="(th, i) in throws" :key="i" class="throw">
+					<span class="label">{{ i === 0 ? $t('tools.coords.first') : $t('tools.coords.second') }}</span>
 					<div class="xyz">
-						<label class="field"><span class="label sub">X</span><input v-model="t.x" class="input" inputmode="decimal" /></label>
-						<label class="field"><span class="label sub">Z</span><input v-model="t.z" class="input" inputmode="decimal" /></label>
-						<label class="field"><span class="label sub">Angle</span><input v-model="t.angle" class="input" inputmode="decimal" placeholder="-34.5" /></label>
+						<label class="field"><span class="label sub">X</span><input v-model="th.x" class="input" inputmode="decimal" /></label>
+						<label class="field"><span class="label sub">Z</span><input v-model="th.z" class="input" inputmode="decimal" /></label>
+						<label class="field"><span class="label sub">{{ $t('tools.coords.angle') }}</span><input v-model="th.angle" class="input" inputmode="decimal" placeholder="-34.5" /></label>
 					</div>
 				</div>
 
 				<div class="out">
-					<span class="label">Stronghold, approximately</span>
-					<template v-if="stronghold && 'x' in stronghold">
+					<span class="label">{{ $t('tools.coords.approx') }}</span>
+					<template v-if="found">
 						<p class="out__coords">
-							<span>X <b>{{ stronghold.x }}</b></span>
-							<span>Z <b>{{ stronghold.z }}</b></span>
+							<span>X <b>{{ found.x }}</b></span>
+							<span>Z <b>{{ found.z }}</b></span>
 						</p>
 						<p class="hint">
-							{{ stronghold.distance }} blocks from the second throw · Nether X {{ stronghold.nether.x }}, Z {{ stronghold.nether.z }}
+							{{ $t('tools.coords.distance', { n: found.distance }, found.distance) }} ·
+							{{ $t('tools.coords.inNether', { x: found.nether.x, z: found.nether.z }) }}
 						</p>
-						<p v-if="stronghold.shallow" class="hint bad">
-							The throws are nearly parallel, so the estimate is rough. Move further sideways for the second one.
-						</p>
+						<p v-if="found.shallow" class="hint bad">{{ $t('tools.coords.shallow') }}</p>
 					</template>
-					<p v-else-if="stronghold" class="hint bad">{{ stronghold.error }}</p>
-					<p v-else class="hint">Fill in both throws.</p>
+					<p v-else-if="failure" class="hint bad">{{ $t(`tools.coords.${failure}`) }}</p>
+					<p v-else class="hint">{{ $t('tools.coords.fill') }}</p>
 				</div>
 			</section>
 		</div>
 
 		<section class="section">
-			<h2>Finding a stronghold</h2>
+			<h2>{{ $t('tools.coords.howTitle') }}</h2>
 			<div class="explain">
 				<article>
-					<h3>1. First throw</h3>
-					<p>
-						Throw an Eye of Ender, look straight at it and open F3. Write down X and Z from <code>XYZ</code> and the first
-						number from <code>Facing</code>.
-					</p>
+					<h3>1. {{ $t('tools.coords.first') }}</h3>
+					<i18n-t keypath="tools.coords.how1" tag="p" scope="global">
+						<template #xyz><code>XYZ</code></template>
+						<template #facing><code>Facing</code></template>
+					</i18n-t>
 				</article>
 				<article>
-					<h3>2. Second throw</h3>
-					<p>
-						Walk 250 to 500 blocks to the side — not towards the eye — and do the same again. The wider the angle between
-						the two lines, the closer the result.
-					</p>
+					<h3>2. {{ $t('tools.coords.second') }}</h3>
+					<p>{{ $t('tools.coords.how2') }}</p>
 				</article>
 				<article>
-					<h3>3. Dig down</h3>
-					<p>
-						Go to the coordinates above and throw one more eye to confirm. When it falls, you are standing over the
-						stronghold.
-					</p>
+					<h3>3. {{ $t('tools.coords.dig') }}</h3>
+					<p>{{ $t('tools.coords.how3') }}</p>
 				</article>
 			</div>
 		</section>

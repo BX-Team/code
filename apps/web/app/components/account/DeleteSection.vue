@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue';
 import { auth } from '~/lib/auth';
 
+const { t } = useI18n();
+const sitePath = useSitePath();
 const session = auth.useSession();
 /** Typing this back confirms the deletion: the username, or the email when there is none. */
 const phrase = computed(() => {
@@ -25,32 +27,29 @@ async function remove() {
   busy.value = false;
   if (failed) {
     stale.value = failed.code === 'SESSION_EXPIRED';
-    error.value = stale.value
-      ? 'For safety, sign in again first: deleting needs a sign-in from the last day.'
-      : (failed.message ?? 'Could not delete the account.');
+    error.value = stale.value ? t('account.delete.stale') : (failed.message ?? t('account.delete.failed'));
     return;
   }
-  navigateTo('/');
+  navigateTo(sitePath('/'));
 }
 
 async function signInAgain() {
   await auth.signOut();
-  navigateTo(`/login?next=${encodeURIComponent('/account/security')}`);
+  navigateTo(`${sitePath('/login')}?next=${encodeURIComponent(sitePath('/account/security'))}`);
 }
 </script>
 
 <template>
-	<AccountSection id="delete" title="Delete BX ID">
+	<AccountSection id="delete" :title="$t('account.delete.title')">
 		<div class="del">
-			<p class="del__text">
-				Removes this account, its sign-in methods, friends and skins, and signs out every
-				device. Apps you used lose what they kept for it. This cannot be undone.
-			</p>
-			<button v-if="!asking" type="button" class="btn small del__go" @click="asking = true">Delete BX ID</button>
+			<p class="del__text">{{ $t('account.delete.body') }}</p>
+			<button v-if="!asking" type="button" class="btn small del__go" @click="asking = true">{{ $t('account.delete.title') }}</button>
 		</div>
 
 		<form v-if="asking" class="form del__form" @submit.prevent="remove">
-			<label class="label" for="delete-confirm">Type <span class="del__phrase">{{ phrase }}</span> to confirm</label>
+			<i18n-t keypath="account.delete.confirm" tag="label" class="label" for="delete-confirm" scope="global">
+				<template #phrase><span class="del__phrase">{{ phrase }}</span></template>
+			</i18n-t>
 			<div class="row">
 				<input
 					id="delete-confirm"
@@ -60,14 +59,14 @@ async function signInAgain() {
 					autocapitalize="off"
 					spellcheck="false"
 				/>
-				<button type="button" class="btn quiet" @click="(asking = false), (typed = ''), (error = '')">Cancel</button>
+				<button type="button" class="btn quiet" @click="(asking = false), (typed = ''), (error = '')">{{ $t('account.delete.cancel') }}</button>
 				<button type="submit" class="btn del__confirm" :disabled="!matches || busy">
-					{{ busy ? 'Deleting…' : 'Delete forever' }}
+					{{ busy ? $t('account.delete.deleting') : $t('account.delete.forever') }}
 				</button>
 			</div>
 			<p v-if="error" class="hint bad" role="alert">
 				{{ error }}
-				<button v-if="stale" type="button" class="link" @click="signInAgain">Sign in again</button>
+				<button v-if="stale" type="button" class="link" @click="signInAgain">{{ $t('account.delete.again') }}</button>
 			</p>
 		</form>
 	</AccountSection>

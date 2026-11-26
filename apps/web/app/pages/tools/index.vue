@@ -3,38 +3,20 @@ import { ArrowRight, Check, Copy, Download, Fingerprint, Map as MapIcon, Palette
 import { useClipboard } from '@vueuse/core';
 import { downloadSkill, MARKETPLACE, PLUGIN, REPOSITORY, SKILLS } from '@/lib/skills';
 
+const { t } = useI18n();
+const sitePath = useSitePath();
+
 useHead({
-  title: 'Tools',
-  meta: [
-    { name: 'description', content: 'Small utilities for Minecraft servers, and Claude skills that know our stack.' },
-  ],
+  title: () => t('tools.index.name'),
+  meta: [{ name: 'description', content: () => t('tools.index.description') }],
 });
 
+/** Names are `tools.<key>.name`, lines `tools.index.cards.<key>`. */
 const tools = [
-  {
-    to: '/tools/server-flags-generator',
-    icon: Terminal,
-    name: 'Server flags generator',
-    body: "Aikar's, MeowIce, brucethemoose and hilltty, for your heap, Java, OS and CPU.",
-  },
-  {
-    to: '/tools/color-text-generator',
-    icon: Palette,
-    name: 'Color text generator',
-    body: 'Gradients and colours for chat, MOTDs and plugin configs, as MiniMessage, hex or legacy codes.',
-  },
-  {
-    to: '/tools/uuid',
-    icon: Fingerprint,
-    name: 'UUID lookup',
-    body: 'The online UUID of an account and the offline one a cracked server derives from the name, with the skin.',
-  },
-  {
-    to: '/tools/coordinate-calculator',
-    icon: MapIcon,
-    name: 'Coordinate calculator',
-    body: 'Nether and Overworld coordinates for linking portals, and a stronghold from two Eye of Ender throws.',
-  },
+  { key: 'flags', to: '/tools/server-flags-generator', icon: Terminal },
+  { key: 'color', to: '/tools/color-text-generator', icon: Palette },
+  { key: 'uuid', to: '/tools/uuid', icon: Fingerprint },
+  { key: 'coords', to: '/tools/coordinate-calculator', icon: MapIcon },
 ];
 
 const commands = {
@@ -46,40 +28,33 @@ const { copy, copied, text: copiedText } = useClipboard({ legacy: true });
 </script>
 
 <template>
-	<ToolsToolPage
-		title="Tools"
-		lead="Small utilities for running a Minecraft server. Everything runs in your browser and nothing is uploaded."
-		:crumb="false"
-	>
+	<ToolsToolPage :title="$t('tools.index.name')" :lead="$t('tools.index.lead')" :crumb="false">
 		<div class="tools">
-			<NuxtLink v-for="t in tools" :key="t.to" :to="t.to" class="tools__card">
-				<span class="tools__icon"><component :is="t.icon" :size="18" :stroke-width="1.7" /></span>
-				<h2>{{ t.name }}</h2>
-				<p>{{ t.body }}</p>
-				<span class="tools__go">Open <ArrowRight :size="14" :stroke-width="1.8" /></span>
+			<NuxtLink v-for="tool in tools" :key="tool.to" :to="sitePath(tool.to)" class="tools__card">
+				<span class="tools__icon"><component :is="tool.icon" :size="18" :stroke-width="1.7" /></span>
+				<h2>{{ $t(`tools.${tool.key}.name`) }}</h2>
+				<p>{{ $t(`tools.index.cards.${tool.key}`) }}</p>
+				<span class="tools__go">{{ $t('tools.index.open') }} <ArrowRight :size="14" :stroke-width="1.8" /></span>
 			</NuxtLink>
 		</div>
 
 		<section id="skills" class="section">
-			<h2>Skills for Claude</h2>
-			<p class="section-lead">
-				The same knowledge, for when you would rather ask than fill in a form. Claude asks about your host, explains
-				its choices and reviews what you already run.
-			</p>
+			<h2>{{ $t('tools.index.skills') }}</h2>
+			<p class="section-lead">{{ $t('tools.index.skillsLede') }}</p>
 
 			<div class="skills">
 				<div class="skills__list">
 					<article v-for="s in SKILLS" :key="s.name" class="panel skill">
 						<header class="skill__head">
-							<h3>{{ s.title }}</h3>
+							<h3>{{ $t(`tools.skillList.${s.name}.title`) }}</h3>
 							<code>{{ s.name }}</code>
 						</header>
-						<p>{{ s.body }}</p>
+						<p>{{ $t(`tools.skillList.${s.name}.body`) }}</p>
 						<div class="skill__acts">
 							<button type="button" class="btn" @click="downloadSkill(s.name)">
 								<Download :size="15" :stroke-width="1.8" /> {{ s.name }}.zip
 							</button>
-							<NuxtLink v-if="s.tool" :to="s.tool.to" class="skill__tool">{{ s.tool.label }} →</NuxtLink>
+							<NuxtLink v-if="s.tool" :to="sitePath(s.tool.to)" class="skill__tool">{{ $t(`tools.${s.tool.key}.name`) }} →</NuxtLink>
 						</div>
 					</article>
 				</div>
@@ -87,39 +62,40 @@ const { copy, copied, text: copiedText } = useClipboard({ legacy: true });
 				<div class="panel install">
 					<div class="install__step">
 						<span class="label">Claude Code</span>
-						<p>Both skills come as one plugin. Run this in Claude Code; it updates with the repository.</p>
+						<p>{{ $t('tools.index.claudeCode') }}</p>
 						<div class="cmd">
 							<code>{{ commands.claudeCode }}</code>
 							<button
 								type="button"
 								class="cmd__copy"
-								aria-label="Copy the install command"
+								:aria-label="$t('tools.index.copyInstall')"
 								@click="copy(commands.claudeCode)"
 							>
 								<component :is="copied && copiedText === commands.claudeCode ? Check : Copy" :size="15" />
 							</button>
 						</div>
-						<p class="hint">On an older Claude Code, add the marketplace first:</p>
+						<p class="hint">{{ $t('tools.index.older') }}</p>
 						<div class="cmd">
 							<code>{{ commands.older }}</code>
-							<button type="button" class="cmd__copy" aria-label="Copy both commands" @click="copy(commands.older)">
+							<button type="button" class="cmd__copy" :aria-label="$t('tools.index.copyBoth')" @click="copy(commands.older)">
 								<component :is="copied && copiedText === commands.older ? Check : Copy" :size="15" />
 							</button>
 						</div>
 					</div>
 					<div class="install__step">
-						<span class="label">Claude apps</span>
-						<p>
-							Download a skill's zip, then in Claude open
-							<a href="https://claude.ai/customize/skills" target="_blank" rel="noopener">Customize → Skills</a>, choose
-							<em>Create skill</em> and upload it.
-						</p>
+						<span class="label">{{ $t('tools.index.apps') }}</span>
+						<i18n-t keypath="tools.index.appsBody" tag="p" scope="global">
+							<template #customize>
+								<a href="https://claude.ai/customize/skills" target="_blank" rel="noopener">{{ $t('tools.index.customize') }}</a>
+							</template>
+							<template #create><em>{{ $t('tools.index.create') }}</em></template>
+						</i18n-t>
 					</div>
-					<p class="hint">
-						The skills live in
-						<a :href="`https://github.com/${REPOSITORY}`" target="_blank" rel="noopener">{{ REPOSITORY }}</a>, along with
-						the ones we use to drive and record desktop apps.
-					</p>
+					<i18n-t keypath="tools.index.repo" tag="p" class="hint" scope="global">
+						<template #repo>
+							<a :href="`https://github.com/${REPOSITORY}`" target="_blank" rel="noopener">{{ REPOSITORY }}</a>
+						</template>
+					</i18n-t>
 				</div>
 			</div>
 		</section>

@@ -1,0 +1,1078 @@
+{
+  "projects": {
+    "divinemc": {
+      "tag": "Server software",
+      "summary": "Multi-functional fork of Purpur, which focuses on the flexibility of your server and its optimization.",
+      "tagline": "A Purpur fork that puts every core to work",
+      "lede": "Spreads chunks, worlds and entity work across your CPU cores, so a busy server keeps its tick rate. Swap your previous jar: every setting stays, and your Bukkit, Spigot and Paper plugins run as they are.",
+      "features": {
+        "regionized-chunk-ticking": {
+          "title": "Regionized chunk ticking",
+          "body": "Chunks tick in parallel across regions, similar to how Folia does it, without giving up plugin compatibility."
+        },
+        "parallel-world-ticking": {
+          "title": "Parallel world ticking",
+          "body": "Each world ticks on its own thread, so the Nether and the End stop queueing behind the overworld."
+        },
+        "parallel-sensor-phase": {
+          "title": "Parallel sensor phase",
+          "body": "The expensive read-only part of mob AI — entity scans, line-of-sight checks — runs on a thread pool."
+        },
+        "raytrace-entity-culling": {
+          "title": "Raytrace entity culling",
+          "body": "Entities a player provably cannot see are never sent, saving bandwidth and blinding entity-ESP cheats."
+        },
+        "async-operations": {
+          "title": "Async operations",
+          "body": "Pathfinding, the entity tracker, mob spawning, joining, chunk sending and portal pre-loading move off the main thread."
+        },
+        "secure-seed": {
+          "title": "Secure seed",
+          "body": "A 1024-bit seed in place of the standard 64-bit one, so structures and ores cannot be cracked from the world."
+        },
+        "linear-region-format": {
+          "title": "Linear region format",
+          "body": "Store worlds in the V1/V2 linear format or the new buffered one instead of Anvil."
+        },
+        "mod-protocols": {
+          "title": "Mod protocols",
+          "body": "Server-side support for Syncmatica, AppleSkin, Jade and Xaero's Map."
+        },
+        "sentry-integration": {
+          "title": "Sentry integration",
+          "body": "Detailed error tracking and monitoring, originally from Pufferfish."
+        }
+      },
+      "start": {
+        "run-a-server": {
+          "label": "Run a server",
+          "title": "Download the jar",
+          "body": "Grab the latest build and start it with the command below. DivineMC needs Java 25 or newer.",
+          "action": "Download DivineMC"
+        },
+        "build-a-plugin": {
+          "label": "Build a plugin",
+          "title": "Compile against the API",
+          "body": "The DivineMC API is a superset of Paper’s, published to the BX Team snapshots repository.",
+          "action": "Using the API"
+        }
+      }
+    },
+    "quark": {
+      "tag": "Framework",
+      "summary": "Small modular framework for Minecraft plugins: runtime dependencies, annotated configs, update checks and dev servers.",
+      "tagline": "The parts every plugin needs, as modules you pick",
+      "lede": "Download dependencies when the plugin starts, keep configs in annotated classes, check for updates and run a test server straight from Gradle. Every module is optional and relocated into your own package.",
+      "features": {
+        "runtime-dependencies": {
+          "title": "Runtime dependencies",
+          "body": "Libraries are downloaded, resolved transitively and loaded when the plugin starts, so the jar stays small."
+        },
+        "relocation": {
+          "title": "Relocation",
+          "body": "Quark and your libraries move into the plugin’s package, so the server’s own copy of Gson or Guava never wins."
+        },
+        "annotated-configs": {
+          "title": "Annotated configs",
+          "body": "Plain classes saved as YAML in field order, with comments, validation, migrations and Bukkit types."
+        },
+        "update-checks": {
+          "title": "Update checks",
+          "body": "Modrinth, Hangar, GitHub, SpigotMC or any JSON endpoint, with a console message and a join notification."
+        },
+        "platform-adapters": {
+          "title": "Platform adapters",
+          "body": "One Platform and Scheduler API for Paper, Folia, Bukkit, Velocity and BungeeCord."
+        },
+        "gradle-plugin": {
+          "title": "Gradle plugin",
+          "body": "Picks the adapter and modules, configures Shadow and starts a dev server with your plugin and others."
+        }
+      },
+      "start": {
+        "gradle": {
+          "label": "Gradle",
+          "title": "Apply the plugin",
+          "body": "Pick the platform and the modules you need, then declare runtime dependencies in the quark configuration.",
+          "action": "Installation guide"
+        },
+        "dev-server": {
+          "label": "Dev server",
+          "title": "Run a test server",
+          "body": "Quark downloads the server, installs your plugin and the plugins you list, and starts it in your terminal.",
+          "action": "Dev servers"
+        }
+      }
+    },
+    "ndailyrewards": {
+      "tag": "Plugin",
+      "summary": "Simple and lightweight plugin that allows you to reward your players for playing on your server every day.",
+      "tagline": "Reward players for coming back every day",
+      "lede": "A daily reward streak with a GUI you can reshape completely, MariaDB or SQLite storage, and actions for anything a reward should do.",
+      "features": {
+        "mariadb-and-sqlite": {
+          "title": "MariaDB and SQLite",
+          "body": "Keep streaks in a local SQLite file or share them across a network through MariaDB."
+        },
+        "custom-gui": {
+          "title": "Custom GUI",
+          "body": "Every slot of the reward menu is configurable, including custom model data, item models and player heads."
+        },
+        "reward-actions": {
+          "title": "Reward actions",
+          "body": "Commands, messages, sounds and more — a reward is a list of actions, not a fixed item."
+        },
+        "placeholderapi": {
+          "title": "PlaceholderAPI",
+          "body": "Streaks, cooldowns and claim state exposed as placeholders for scoreboards and menus."
+        },
+        "join-notifications": {
+          "title": "Join notifications",
+          "body": "Remind players on join, or open the reward menu for them automatically, and claim on their behalf if you prefer."
+        },
+        "time-management": {
+          "title": "Time management",
+          "body": "Flexible cooldowns and reset times, with MiniMessage and ampersand colour codes in every message."
+        }
+      },
+      "start": {
+        "install": {
+          "label": "Install",
+          "title": "Drop it into plugins/",
+          "body": "Download from Modrinth or Hangar, put the jar in your plugins folder and restart. Spigot, Paper and Paper-based forks are supported.",
+          "action": "Configuration"
+        },
+        "developer-api": {
+          "label": "Developer API",
+          "title": "Listen to its events",
+          "body": "NDailyRewards is published to the BX Team releases repository.",
+          "action": "Events"
+        }
+      }
+    },
+    "riven": {
+      "tag": "Desktop app",
+      "summary": "Native Minecraft launcher and modpack toolkit in pure Rust.",
+      "tagline": "A Minecraft launcher that builds packs too",
+      "lede": "Install a modpack from a link and get its updates on every launch — or build your own in the app or the CLI, publish it to GitHub Pages and run it headless on a server.",
+      "features": {
+        "full-launcher": {
+          "title": "Full launcher",
+          "body": "Instances, Microsoft and offline accounts, automatic Java, Vanilla, Fabric, Quilt, NeoForge and Forge."
+        },
+        "packs-from-a-link": {
+          "title": "Packs from a link",
+          "body": "Modrinth modpacks, .mrpack, Prism exports and Riven packs; a pack updates itself before every launch."
+        },
+        "developer-mode": {
+          "title": "Developer mode",
+          "body": "Content table, dependency tree, config editor, releases, git and a test instance in one window."
+        },
+        "signed-fast-updates": {
+          "title": "Signed, fast updates",
+          "body": "Release channels, a tiny pointer checked with ETag, content-addressed downloads and ed25519 signatures pinned on first install — no keys in links."
+        },
+        "servers": {
+          "title": "Servers",
+          "body": "riven install --side server --headless keeps a dedicated server on the latest release."
+        },
+        "nix-without-packhash": {
+          "title": "Nix without packHash",
+          "body": "lib.mkModpack fetches every file by the hash in riven.json — no fixed-output hash to bump."
+        }
+      },
+      "start": {
+        "download": {
+          "label": "Download",
+          "title": "Grab a release",
+          "body": "Installers for Windows, a DMG for macOS, AppImage, deb, rpm and Arch packages for Linux.",
+          "action": "Downloads"
+        },
+        "cli": {
+          "label": "CLI",
+          "title": "Build a pack",
+          "body": "The same binary works in the terminal.",
+          "action": "CLI reference"
+        }
+      }
+    },
+    "nyx": {
+      "tag": "Desktop app",
+      "summary": "Modern, lightweight desktop GUI for the Mihomo proxy core.",
+      "tagline": "A desktop client for Mihomo, in pure Rust",
+      "lede": "Manage profiles, proxy groups, rules and connections from a clean interface — with system proxy and TUN mode, a connection inspector and a built-in profile editor.",
+      "features": {
+        "system-proxy-and-tun": {
+          "title": "System proxy and TUN",
+          "body": "Route one app or the whole machine; a helper service handles TUN mode after a one-time elevation."
+        },
+        "connection-inspector": {
+          "title": "Connection inspector",
+          "body": "Live connections grouped per process, with app icons, so you can see what is going where."
+        },
+        "profile-editor": {
+          "title": "Profile editor",
+          "body": "Edit profiles, proxy groups and rules in the app instead of hand-editing YAML."
+        },
+        "installer-or-portable": {
+          "title": "Installer or portable",
+          "body": "Windows installer or zip; deb, rpm, Arch package or a tarball on Linux."
+        },
+        "nix-flake": {
+          "title": "Nix flake",
+          "body": "Run it with nix run, or use the NixOS module, which declares the service so TUN works without a password prompt."
+        },
+        "lightweight": {
+          "title": "Lightweight",
+          "body": "A single native gpui application — no Electron, no bundled browser."
+        }
+      },
+      "start": {
+        "download": {
+          "label": "Download",
+          "title": "Grab a release",
+          "body": "Installers and portable builds for Windows and Linux are attached to every GitHub release.",
+          "action": "Downloads"
+        }
+      }
+    },
+    "vanilla-reimagined": {
+      "tag": "Modpack",
+      "summary": "Fabric mods that heavily optimise the game and bring back OptiFine features.",
+      "tagline": "Vanilla, faster, with the OptiFine features back",
+      "lede": "A Fabric modpack built to optimise the game as much as possible and to bring back what people installed OptiFine for, without changing how vanilla plays.",
+      "features": {
+        "performance": {
+          "title": "Performance",
+          "body": "Sodium, Lithium, Moonrise, FerriteCore, ImmediatelyFast, Entity Culling and Dynamic FPS."
+        },
+        "visual-features": {
+          "title": "Visual features",
+          "body": "Iris for shaders, dynamic lights from LambDynamicLights and Sodium Extra’s video options."
+        },
+        "optifine-like-features": {
+          "title": "OptiFine-like features",
+          "body": "Zoom, connected textures, custom entity models and textures, and OptiGUI for resource-pack GUIs."
+        },
+        "quality-of-life": {
+          "title": "Quality of life",
+          "body": "Mod Menu, no reloading screen and the config screens to tune all of it."
+        }
+      },
+      "start": {
+        "install": {
+          "label": "Install",
+          "title": "Get it from Modrinth",
+          "body": "Install the pack with the Modrinth app or any launcher that reads .mrpack files. Versions are <Minecraft version>-x.y.z.",
+          "action": "Open on Modrinth"
+        },
+        "contribute": {
+          "label": "Contribute",
+          "title": "Build it with Riven",
+          "body": "The pack is built with Riven; the repository explains how to add mods, change configs and test it.",
+          "action": "Contributing guide"
+        }
+      }
+    }
+  },
+  "format": {
+    "bytes": "B",
+    "kb": "KB",
+    "mb": "MB",
+    "justNow": "just now"
+  },
+  "nav": {
+    "docs": "Docs",
+    "downloads": "Downloads",
+    "tools": "Tools",
+    "team": "Team",
+    "home": "BX Team home",
+    "main": "Main",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "search": "Search…",
+    "searchSite": "Search BX Team",
+    "language": "Language",
+    "signIn": "Sign in",
+    "yourBxid": "Your BX ID",
+    "account": "Account",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "site": "Site",
+    "elsewhere": "Elsewhere",
+    "legal": "Not an official Minecraft service. Not approved by or associated with Mojang Studios or Microsoft.",
+    "hostedOn": "Hosted on"
+  },
+  "error": {
+    "notFound": "Page not found",
+    "denied": "Access denied",
+    "failed": "Something went wrong",
+    "notFoundBody": "The page you're looking for doesn't exist or has been moved.",
+    "failedBody": "An unexpected error occurred. Please try again or head back home.",
+    "home": "Back home",
+    "back": "Go back"
+  },
+  "disabled": {
+    "label": "PAGE UNAVAILABLE",
+    "title": "This page is disabled",
+    "body": "This page is currently unavailable. Check back later."
+  },
+  "home": {
+    "lede": "Open source community building server software, plugins and developer tools for Minecraft — and a few things beyond it",
+    "browse": "Browse projects",
+    "discord": "Join our Discord",
+    "more": "Learn more",
+    "flagship": {
+      "regionized": "regionized",
+      "default": "default",
+      "tickTime": "Tick time, 150 players",
+      "median": "median mspt",
+      "claim": "against Paper on the same load",
+      "lower": "Lower is better",
+      "latest": "Latest build"
+    },
+    "community": {
+      "eyebrow": "Community",
+      "title": "Build it",
+      "titleGrad": "with us",
+      "lede": "Ask questions, hear about releases first, share what you run and help shape what comes next. Everything we make is open, and so is the conversation around it.",
+      "github": "Contribute on GitHub",
+      "contributors": "contributor on GitHub | contributors on GitHub",
+      "ways": {
+        "help": {
+          "title": "Get help fast",
+          "body": "Ask in Discord — the people who write the code answer there."
+        },
+        "releases": {
+          "title": "Hear about releases first",
+          "body": "Every publish is announced in its project's thread the moment it lands."
+        },
+        "shape": {
+          "title": "Shape what comes next",
+          "body": "Suggest features, report bugs and send pull requests on GitHub."
+        }
+      }
+    }
+  },
+  "common": {
+    "copied": "Copied",
+    "copy": "Copy to clipboard",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "breadcrumb": "Breadcrumb",
+    "loading": "Loading…"
+  },
+  "project": {
+    "projects": "Projects",
+    "archived": "Archived",
+    "download": "Download",
+    "docs": "Documentation",
+    "alsoOn": "Also on",
+    "archivedBody": "{name} is archived on GitHub and no longer maintained. The code and releases stay available, but it gets no fixes or updates.",
+    "demo": "Live demo",
+    "demoLede": "Click around {name} without installing it.",
+    "preview": "Preview",
+    "enlarge": "Enlarge: {name}",
+    "features": "Features",
+    "featuresLede": "What {name} does, and where to read more about each part.",
+    "readDocs": "Read the docs",
+    "start": "Get started",
+    "startWays": "Ways to get started",
+    "pending": {
+      "lede": "The same worlds, the same plugins and the same hardware, run on both servers and measured side by side.",
+      "mark": "In progress",
+      "body": "The benchmark runs are still going. Results — tick times, TPS and memory under load — will be published here once they are complete."
+    },
+    "bench": {
+      "title": "Benchmarks",
+      "lede": "{name} against Paper and Purpur: the same worlds, the same bots and the same machine, five runs each.",
+      "full": "Full results",
+      "chart": "Tick time, 150 players and 1,500 mobs",
+      "note": "{cpu}, Minecraft {minecraft}, median of five runs. The speed comes from spreading work across cores: DivineMC uses 1.6–1.8 cores here against Paper’s 1.4. Hover or tap a bar for p99, CPU and run spread.",
+      "swarm": {
+        "label": "lower tick time than Paper with 150 players and 1,500 mobs",
+        "detail": "{ours} ms against {paper} ms, regionized chunk ticking"
+      },
+      "regions": {
+        "label": "lower tick time than Paper across eight busy regions",
+        "detail": "{ours} ms against {paper} ms, four RCT threads"
+      },
+      "pregen": {
+        "label": "faster chunk pregeneration, on {cpu}% less CPU",
+        "detail": "{ours} s against {paper} s for {chunks} chunks, max profile"
+      }
+    }
+  },
+  "demo": {
+    "starting": "Starting {name}…",
+    "unsupported": "This browser cannot run the demo: it needs WebGPU or WebGL 2.",
+    "frame": "{name} demo",
+    "try": "Try {name} in your browser",
+    "hint": "The real interface, compiled to WebAssembly. Nothing is installed.",
+    "launch": "Launch the demo",
+    "sample": "Sample instances. Play goes through a launch without starting the game.",
+    "restart": "Restart",
+    "fullscreen": "Full screen"
+  },
+  "team": {
+    "title": "Team",
+    "description": "Meet the BX Team developers and contributors.",
+    "heading": "Meet our team",
+    "lede": "BX Team is a group of developers and contributors who work together to maintain and improve the BX Team projects.",
+    "github": "Visit our GitHub",
+    "avatar": "{name} avatar",
+    "githubAvatar": "{name} GitHub avatar",
+    "contributors": "Contributors",
+    "contributorsLede": "{n} person who has committed to our repositories and makes BX Team projects better. | {n} people who have committed to our repositories and make BX Team projects better.",
+    "sections": {
+      "leadership": {
+        "title": "Leadership Team",
+        "description": "The main team that leads the projects and makes strategic decisions."
+      },
+      "others": {
+        "title": "Other members",
+        "description": "The team responsible for the moderation and management of the projects."
+      }
+    },
+    "roles": {
+      "founder": "Founder",
+      "coFounder": "Co-Founder",
+      "developerDesigner": "Developer & Designer",
+      "discordModerator": "Discord Moderator",
+      "processManager": "Process Manager"
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "description": "Download the latest builds and releases of our software.",
+    "lede": "Get the latest version of any project right here, or open one for older builds and every file.",
+    "noDescription": "No description available.",
+    "latestBuild": "Latest build",
+    "latestRelease": "Latest release",
+    "size": "Size",
+    "updated": "Updated",
+    "files": "Files",
+    "recent": "Recent changes",
+    "downloadLatest": "Download latest",
+    "allBuilds": "All builds",
+    "allBuildsLede": "Every build for the selected Minecraft version, newest first.",
+    "about": "About {name}",
+    "githubReleases": "GitHub releases",
+    "choose": "Download",
+    "unavailable": "Unavailable",
+    "apiDown": "The downloads API could not be reached. Please try again in a moment.",
+    "empty": "Empty",
+    "noProjects": "There are currently no projects available for download.",
+    "build": "Build #{n}",
+    "commits": "Commits",
+    "source": "Source",
+    "projectDescription": "Download the latest {name} builds.",
+    "projectFallback": "Get the latest builds of {name}."
+  },
+  "releases": {
+    "title": "{name} downloads",
+    "description": "Download the latest {name} release for Windows, macOS and Linux.",
+    "onGithub": "Releases on GitHub",
+    "loading": "Loading releases from GitHub…",
+    "error": "GitHub could not be reached, or it is limiting requests from this network. The releases are also on {github}.",
+    "prerelease": "pre-release",
+    "published": "Published",
+    "downloadFor": "Download for {os}",
+    "pick": "Pick a file below",
+    "thisOnGithub": "This release on GitHub",
+    "whatsNew": "What's new in {tag}",
+    "platform": "Platform",
+    "none": "{name} has no published releases yet.",
+    "earlier": "Earlier releases",
+    "earlierLede": "Every release before the latest, newest first.",
+    "fileCount": "{n} file | {n} files",
+    "platforms": {
+      "windows": "Windows",
+      "macos": "macOS",
+      "linux": "Linux",
+      "cli": "Command line"
+    },
+    "kinds": {
+      "installer": "Installer",
+      "portable": "Portable",
+      "diskImage": "Disk image",
+      "appBundle": "App bundle",
+      "appImage": "AppImage",
+      "debian": "Debian / Ubuntu",
+      "fedora": "Fedora / openSUSE",
+      "arch": "Arch Linux",
+      "tarball": "Tarball"
+    }
+  },
+  "builds": {
+    "failed": "Failed to load builds",
+    "experimental": "Experimental",
+    "experimentalBody": "Experimental builds may contain bugs or unstable features. Not recommended for production servers.",
+    "deprecated": "Deprecated",
+    "deprecatedBody": "This Minecraft version is deprecated. Consider upgrading to a newer version.",
+    "unsupported": "Unsupported",
+    "unsupportedBody": "This Minecraft version is no longer supported. Please upgrade to a supported version.",
+    "loading": "Loading builds…",
+    "error": "Error",
+    "none": "No builds available for this version.",
+    "more": "Load more builds",
+    "version": "Minecraft Version",
+    "toggleExperimental": "Toggle Experimental"
+  },
+  "notices": {
+    "flags": {
+      "smallHeap": {
+        "title": "Heap under 2 GB",
+        "body": "A modern server barely boots in this much. These sets assume 4 GB and up; below that the GC tuning is noise."
+      },
+      "compressedOops": {
+        "title": "Compressed references stop working near 32 GB",
+        "body": "Above roughly 32 GB the JVM drops compressed object pointers, so every reference doubles in size. A 31 GB heap often holds more objects than a 33 GB one."
+      },
+      "zgcSmallHeap": {
+        "title": "ZGC below its intended heap",
+        "body": "This set is meant for 32 GB or more on 10+ cores. On a smaller host G1 collects less often and leaves more CPU for ticks."
+      },
+      "zgcCores": {
+        "title": "ZGC needs spare cores",
+        "body": "ZGC collects concurrently, so it competes with the server threads for CPU. On a busy box that shows up as lower TPS, not as pauses."
+      },
+      "noGraal": {
+        "title": "Nothing here uses GraalVM",
+        "body": "{preset} has no Graal-specific options. Pick MeowIce or brucethemoose to get them."
+      },
+      "graalPrefix": {
+        "title": "Graal properties use the new prefix",
+        "body": "From Java 23 the compiler reads -Djdk.graal.*; the old -Dgraal.* names are ignored without an error."
+      },
+      "x86Dropped": {
+        "title": "x86-only options were left out",
+        "body": "An aarch64 JVM rejects -XX:+UseXmm*, -XX:UseAVX and the other x86 intrinsics outright and refuses to start, so they are not in this list."
+      },
+      "biasedLocking": {
+        "title": "-XX:-UseBiasedLocking was left out",
+        "body": "Biased locking was removed in Java 18 and the option is now rejected. It is only emitted for Java 17."
+      },
+      "shenandoahIu": {
+        "title": "Shenandoah iu mode was left out",
+        "body": "The incremental-update mode is gone in Java 24; the default (SATB) mode is used instead."
+      },
+      "compactHeaders": {
+        "title": "Compact object headers are on",
+        "body": "Java 24 can store an object header in 8 bytes instead of 12. Expect a few percent less heap for the same world."
+      },
+      "largePagesLinux": {
+        "title": "Large pages need the host configured",
+        "body": "Without transparent huge pages enabled (or vm.nr_hugepages reserved) the JVM prints a warning at startup and falls back to normal pages."
+      },
+      "largePages": {
+        "title": "Large pages need the host configured",
+        "body": "Outside Linux large pages need an OS privilege (SeLockMemoryPrivilege on Windows). Without it the JVM warns at startup and carries on with normal pages."
+      },
+      "vectorIncubator": {
+        "title": "The Vector API is still incubating",
+        "body": "Java prints a warning about an incubator module on every start. That line is expected, not a misconfiguration."
+      },
+      "javaTooOld": {
+        "title": "Too old for current server builds",
+        "body": "Current Paper builds need Java 21, and DivineMC needs Java 25."
+      },
+      "divinemcJava": {
+        "title": "DivineMC needs Java 25",
+        "body": "Paper and Purpur still run on Java 21, but current DivineMC builds refuse to start below 25."
+      }
+    },
+    "presets": {
+      "aikar": "G1GC tuning, the long-standing default for Paper and its forks",
+      "meowice": "Aikar's G1GC plus modern JIT and intrinsic tuning; best on GraalVM",
+      "meowice-zgc": "The same set on ZGC, for 32G+ heaps on 10+ cores only",
+      "bruce": "Individually benchmarked base flags with the server G1GC set",
+      "hilltty": "Shenandoah GC, short pauses at the cost of CPU; a small set",
+      "none": "Only -Xms/-Xmx, everything else left to the JVM"
+    }
+  },
+  "tools": {
+    "flags": {
+      "name": "Server flags generator",
+      "description": "Start scripts for a Minecraft server with JVM flags your Java will actually accept.",
+      "lead": "Pick a flag set, say what the host is, and get a start script that only contains options your JVM will actually accept.",
+      "serverFile": "Server file",
+      "serverFileHint": "The jar to run. The script expects it in the same folder.",
+      "options": "Options",
+      "restart": "Auto-restart",
+      "restartHint": "Start again when the server stops",
+      "proxy": "Proxy",
+      "proxyHint": "Velocity or BungeeCord, so no {flag}",
+      "fixedHeap": "Fixed heap",
+      "fixedHeapHint": "Start at the full size, {flags}",
+      "initialHeap": "Initial heap",
+      "flagSet": "Flag set",
+      "by": "By {author}",
+      "memory": "Memory",
+      "maxHeap": "Maximum heap",
+      "memoryHint": "Leave 1–2 GB of the host's memory outside the heap for the JVM and the system.",
+      "host": "Host",
+      "anyJdk": "Any JDK",
+      "system": "System",
+      "result": "Result",
+      "output": "Output",
+      "count": "{flags}, {args}. Options your JVM would reject are never written.",
+      "flags": "{n} flag | {n} flags",
+      "args": "{n} argument | {n} arguments",
+      "copyFlags": "Copy flags",
+      "outputs": {
+        "sh": "Linux / macOS",
+        "bat": "Windows",
+        "flags": "Hosting panel"
+      }
+    },
+    "mc": {
+      "chat1": "anyone up for the nether?",
+      "chat2": "in a minute",
+      "welcome": "Welcome back, Steve",
+      "server": "A Minecraft Server",
+      "mainHand": "When in Main Hand:",
+      "damage": "7 Attack Damage",
+      "speed": "1.6 Attack Speed",
+      "lost": "Connection Lost",
+      "back": "Back to server list"
+    },
+    "color": {
+      "name": "Color text generator",
+      "description": "Gradient and coloured text for Minecraft chat, MOTDs and plugin configs, in MiniMessage and legacy codes.",
+      "lead": "Gradient and coloured text for chat, MOTDs, scoreboards and plugin configs. Type the text, pick the colours and copy it in the format your plugin reads.",
+      "text": "Text",
+      "colours": "Colours",
+      "colour": "Colour {n}",
+      "colourHex": "Colour {n} as hex",
+      "removeColour": "Remove colour {n}",
+      "addColour": "Add colour",
+      "random": "Random",
+      "presetsLabel": "Presets",
+      "legacy": "Legacy colours",
+      "use": "Use {name}",
+      "style": "Style",
+      "preview": "Preview",
+      "format": "Output format",
+      "copy": "Copy",
+      "sign": "Use {sign} instead of {amp}",
+      "characters": "{n} character | {n} characters",
+      "tooLong": "Chat stops at 256 characters. Use fewer colours, MiniMessage, or put it in a config file instead.",
+      "presets": {
+        "sunset": "Sunset",
+        "nether": "Nether",
+        "ocean": "Ocean",
+        "amethyst": "Amethyst",
+        "rainbow": "Rainbow"
+      },
+      "formats": {
+        "minimessage": "Paper, Velocity and most modern plugins (<gradient>, <bold>).",
+        "legacy-hex": "Plugins that read hex codes themselves: EssentialsX, TAB, CMI and most chat plugins.",
+        "spigot-hex": "Bukkit's own hex form, read by anything that translates & codes with hex support.",
+        "legacy": "Sixteen colours only; every colour is rounded to the nearest one."
+      },
+      "styles": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "underlined": "Underline",
+        "strikethrough": "Strike"
+      },
+      "modes": {
+        "chat": "Chat",
+        "title": "Title",
+        "motd": "MOTD",
+        "item": "Item",
+        "nametag": "Nametag",
+        "kick": "Disconnect"
+      }
+    },
+    "coords": {
+      "name": "Coordinate calculator",
+      "description": "Convert coordinates between the Nether and the Overworld, and find a stronghold from two Eye of Ender throws.",
+      "lead": "Line a Nether portal up with its Overworld side, or find a stronghold from two Eye of Ender throws.",
+      "portals": "Nether and Overworld",
+      "portalsLede": "One block in the Nether is eight in the Overworld. Y stays the same.",
+      "from": "Coordinates are in",
+      "overworld": "Overworld",
+      "nether": "Nether",
+      "enter": "Enter X and Z.",
+      "swap": "Go the other way",
+      "stronghold": "Stronghold",
+      "strongholdLede": "Two throws, each with your position and the angle you faced. The lines cross at the stronghold.",
+      "first": "First throw",
+      "second": "Second throw",
+      "angle": "Angle",
+      "approx": "Stronghold, approximately",
+      "distance": "{n} block from the second throw | {n} blocks from the second throw",
+      "inNether": "Nether X {x}, Z {z}",
+      "shallow": "The throws are nearly parallel, so the estimate is rough. Move further sideways for the second one.",
+      "fill": "Fill in both throws.",
+      "parallel": "The two throws point the same way. Walk sideways a few hundred blocks and throw again.",
+      "behind": "The lines cross behind you. Check that both angles were read while facing the eye.",
+      "howTitle": "Finding a stronghold",
+      "how1": "Throw an Eye of Ender, look straight at it and open F3. Write down X and Z from {xyz} and the first number from {facing}.",
+      "how2": "Walk 250 to 500 blocks to the side — not towards the eye — and do the same again. The wider the angle between the two lines, the closer the result.",
+      "dig": "Dig down",
+      "how3": "Go to the coordinates above and throw one more eye to confirm. When it falls, you are standing over the stronghold."
+    },
+    "crumbs": "Tools",
+    "index": {
+      "name": "Tools",
+      "description": "Small utilities for Minecraft servers, and Claude skills that know our stack.",
+      "lead": "Small utilities for running a Minecraft server. Everything runs in your browser and nothing is uploaded.",
+      "open": "Open",
+      "cards": {
+        "flags": "Aikar's, MeowIce, brucethemoose and hilltty, for your heap, Java, OS and CPU.",
+        "color": "Gradients and colours for chat, MOTDs and plugin configs, as MiniMessage, hex or legacy codes.",
+        "uuid": "The online UUID of an account and the offline one a cracked server derives from the name, with the skin.",
+        "coords": "Nether and Overworld coordinates for linking portals, and a stronghold from two Eye of Ender throws."
+      },
+      "skills": "Skills for Claude",
+      "skillsLede": "The same knowledge, for when you would rather ask than fill in a form. Claude asks about your host, explains its choices and reviews what you already run.",
+      "claudeCode": "Both skills come as one plugin. Run this in Claude Code; it updates with the repository.",
+      "copyInstall": "Copy the install command",
+      "older": "On an older Claude Code, add the marketplace first:",
+      "copyBoth": "Copy both commands",
+      "apps": "Claude apps",
+      "appsBody": "Download a skill's zip, then in Claude open {customize}, choose {create} and upload it.",
+      "customize": "Customize → Skills",
+      "create": "Create skill",
+      "repo": "The skills live in {repo}, along with the ones we use to drive and record desktop apps."
+    },
+    "skillList": {
+      "jvm-flags": {
+        "title": "JVM flags",
+        "body": "Picks a flag set for your Java, JVM, OS, CPU and heap, explains every flag and writes start.sh, start.bat or a panel line. Also reads a failed start and says which flag broke it."
+      },
+      "server-config": {
+        "title": "Server config",
+        "body": "Tunes server.properties, bukkit.yml, spigot.yml, paper, purpur and divinemc configs for your kind of server, and reviews a config you already have."
+      }
+    },
+    "uuid": {
+      "name": "UUID lookup",
+      "description": "Online and offline UUIDs of a Minecraft player, with the skin.",
+      "lead": "Turn a Minecraft username into the UUID a server stores it under, or a UUID back into a name. Online UUIDs come from Mojang; offline ones are derived from the name and work without an account.",
+      "online": "Online",
+      "offline": "Offline",
+      "plain": "No dashes",
+      "int": "Int array",
+      "unreachable": "Could not reach the lookup service.",
+      "failed": "Both lookup services failed, try again in a minute.",
+      "looking": "Looking up…",
+      "slim": "Slim model",
+      "classic": "Classic model",
+      "noAccount": "No Mojang account; offline only",
+      "noUuid": "No account has this UUID",
+      "pressLookUp": "Press Look up for the online UUID",
+      "player": "Player",
+      "start": "Type a username to start",
+      "skinOf": "{name}'s skin",
+      "skin": "Skin",
+      "cape": "Cape",
+      "input": "Username or online UUID",
+      "lookUp": "Look up",
+      "lookingUp": "Looking up",
+      "invalid": "A username is 1 to 16 letters, digits or underscores; a UUID is 32 hex digits, dashes optional.",
+      "offlineStill": "The offline UUID below needs no lookup.",
+      "hint": "Online: the account's UUID, used with {on} and behind a proxy. Offline: what {off} derives from the name.",
+      "copy": "Copy {group} {label}",
+      "empty": "The UUIDs appear here: dashed, without dashes, and as the int array NBT and commands use."
+    }
+  },
+  "account": {
+    "nav": "Account",
+    "overviewTab": "Overview",
+    "securityTab": "Account & security",
+    "apps": {
+      "riven": "Skin and friends"
+    },
+    "pitch": {
+      "title": "One account for {brand}",
+      "noPassword": "No password",
+      "noPasswordText": "A code by email, or the Discord or GitHub account you already have.",
+      "oneSignIn": "Every app, one sign-in",
+      "oneSignInText": "The same account works across BX Team apps and this site.",
+      "control": "You stay in control",
+      "controlText": "See your devices and sign them out from one page."
+    },
+    "login": {
+      "title": "Sign in",
+      "heading": "Sign in to BX ID",
+      "check": "Check your email",
+      "sent": "We sent a 6-digit code to {email}. It works for 5 minutes.",
+      "returned": "Signing in did not go through. Try again.",
+      "captcha": "The bot check did not load. Reload the page, or sign in with Discord or GitHub.",
+      "tooManyCodes": "Too many codes asked for. Wait a minute.",
+      "sendFailed": "Could not send the code.",
+      "tooManyAttempts": "Too many attempts. Wait a minute.",
+      "wrongCode": "That code is wrong or has expired.",
+      "startFailed": "Could not start signing in.",
+      "continueWith": "Continue with {provider}",
+      "or": "or",
+      "email": "Email",
+      "sending": "Sending…",
+      "emailMe": "Email me a code",
+      "newId": "A new BX ID is made the first time you sign in.",
+      "code": "Code",
+      "signingIn": "Signing in…",
+      "signIn": "Sign in",
+      "another": "Use another email or send a new code"
+    },
+    "device": {
+      "title": "Connect a device",
+      "lede": "Signing in to a BX Team app on another device? Enter the code it shows.",
+      "code": "Code",
+      "checking": "Checking…",
+      "continue": "Continue",
+      "wrong": "That code is wrong or has expired. Start signing in again in the app.",
+      "used": "That code has already been used.",
+      "expired": "That code has expired or was already used. Start signing in again in the app.",
+      "ask": "Sign in to {app}?",
+      "askLede": "{app} will be signed in as {who}. Approve only if you started this yourself, on your own device.",
+      "approve": "Approve",
+      "deny": "Deny",
+      "connected": "Device connected",
+      "denied": "Request denied",
+      "connectedLede": "{app} is signed in as {who}. You can go back to it now.",
+      "deniedLede": "{app} was not signed in.",
+      "see": "See your devices",
+      "another": "Connect another device"
+    },
+    "overview": {
+      "title": "Account",
+      "heading": "Account overview",
+      "methods": "Sign-in methods",
+      "email": "Email",
+      "devices": "Devices · {n}",
+      "last": "Last: {device}",
+      "onlyThis": "Only this one",
+      "since": "Member since",
+      "noneTitle": "Not connected to any app yet",
+      "noneText": "Sign in to a BX Team app with this BX ID and it gets its own tab here, with what it keeps for you.",
+      "appsFailed": "Your apps could not be loaded. Reload the page to try again."
+    },
+    "banner": {
+      "friendCode": "Friend code",
+      "copyCode": "Copy friend code {code}"
+    },
+    "delete": {
+      "title": "Delete BX ID",
+      "body": "Removes this account, its sign-in methods, friends and skins, and signs out every device. Apps you used lose what they kept for it. This cannot be undone.",
+      "confirm": "Type {phrase} to confirm",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "forever": "Delete forever",
+      "stale": "For safety, sign in again first: deleting needs a sign-in from the last day.",
+      "failed": "Could not delete the account.",
+      "again": "Sign in again"
+    },
+    "devices": {
+      "title": "Devices",
+      "titleCount": "Devices · {n}",
+      "lede": "Everywhere this BX ID is signed in.",
+      "connect": "Connect",
+      "signOutOthers": "Sign out others",
+      "activeNow": "Active now",
+      "lastActive": "Last active {when}",
+      "thisDevice": "This device",
+      "signOut": "Sign out",
+      "fewer": "Show fewer",
+      "all": "Show all {n}",
+      "revokeFailed": "Could not sign that device out.",
+      "othersFailed": "Could not sign the other devices out."
+    },
+    "agents": {
+      "unknown": "Unknown device",
+      "cli": "Command line",
+      "browser": "Browser",
+      "on": "{browser} on {os}"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "lede": "Sign-ins and changes to this BX ID, newest first.",
+      "failed": "Your activity could not be loaded.",
+      "older": "Show older",
+      "created": "Created this BX ID",
+      "signedInRiven": "Signed in to Riven Launcher",
+      "signedIn": "Signed in on {device}",
+      "signedOut": "Signed out on {device}",
+      "removed": "Signed {device} out remotely",
+      "name": "Changed display name to {name}",
+      "nameRemoved": "Removed the display name",
+      "username": "Changed username to {name}",
+      "picture": "Changed profile picture",
+      "pictureFrom": "Changed profile picture from {provider}",
+      "pictureRemoved": "Removed the profile picture",
+      "linked": "Connected {provider}",
+      "unlinked": "Disconnected {provider}",
+      "anAccount": "an account",
+      "skin": "Changed the skin of {name}",
+      "skinAny": "Changed a nick's skin",
+      "skinReset": "Removed the skin of {name}",
+      "skinResetAny": "Removed a nick's skin",
+      "nickAdded": "Added the nick {name}",
+      "nickRemoved": "Removed the nick {name}",
+      "app": "Connected {app}"
+    },
+    "friends": {
+      "title": "Friends",
+      "count": "{n} friend, {online} online. | {n} friends, {online} online.",
+      "lede": "Friends see when you are in Riven and can invite you into their world.",
+      "offline": "Offline",
+      "online": "Online",
+      "onlineRiven": "Online in Riven",
+      "playing": "Playing {name} · {minecraft}",
+      "accepted": "You and {who} are friends now.",
+      "exists": "You have already asked {who}, or you are friends.",
+      "asked": "Asked {who}. They will see it next time they open Riven or this page.",
+      "sendFailed": "Could not send the request.",
+      "failed": "That did not go through. Try again.",
+      "unreachable": "Friends are not reachable right now. Try again in a minute.",
+      "addLabel": "Add by friend code",
+      "sending": "Sending…",
+      "add": "Add friend",
+      "incoming": "Asking to be friends",
+      "accept": "Accept",
+      "decline": "Decline",
+      "remove": "Remove",
+      "removeConfirm": "Remove?",
+      "none": "No friends yet. Add someone by their friend code.",
+      "outgoing": "Waiting for an answer",
+      "cancel": "Cancel",
+      "retry": "Retry"
+    },
+    "methods": {
+      "title": "Sign-in methods",
+      "lede": "No passwords. Any of these opens this BX ID.",
+      "emailCode": "Email code",
+      "alwaysOn": "Always on",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "disconnect": "Disconnect",
+      "connect": "Connect",
+      "returned": "Connecting did not go through. Try again.",
+      "startFailed": "Could not start connecting.",
+      "disconnectFailed": "Could not disconnect."
+    },
+    "picture": {
+      "change": "Change picture",
+      "from": "Picture from",
+      "initial": "Initial",
+      "saving": "Saving…",
+      "failed": "Could not change the picture."
+    },
+    "profile": {
+      "title": "Profile",
+      "lede": "How you appear in every BX Team app. Signed in as {email}.",
+      "displayName": "Display name",
+      "yourName": "Your name",
+      "username": "Username",
+      "pick": "Pick one",
+      "saved": "Saved.",
+      "rule": "3 to 30 letters, digits, dots or underscores.",
+      "reset": "Reset",
+      "saving": "Saving…",
+      "save": "Save",
+      "taken": "That username is taken.",
+      "failed": "Could not save."
+    },
+    "riven": {
+      "app": "App",
+      "connected": "Connected {date}",
+      "open": "Open",
+      "friends": "Friends",
+      "online": "{n} online",
+      "nicks": "Nicks",
+      "noneYet": "None yet",
+      "asking": "{n} person wants to be friends | {n} people want to be friends",
+      "onlineNow": "Online now",
+      "noneOnline": "None of your friends are online right now.",
+      "noFriends": "No friends yet. Add them by friend code in Riven.",
+      "busy": "Busy",
+      "launcher": "In the launcher",
+      "noSkin": "No skin yet",
+      "front": "Your skin from the front"
+    },
+    "skins": {
+      "title": "Nicks and skins",
+      "lede": "Offline nicks you play with in Riven Launcher. Only you can use them, and each wears its own skin.",
+      "nicks": "Nicks",
+      "nicksCount": "Nicks · {n}/{limit}",
+      "removeNick": "Remove the nick {name}",
+      "removeNickTitle": "Remove nick",
+      "nick": "Nick",
+      "newNick": "New nick",
+      "add": "Add",
+      "addNick": "Add nick",
+      "removed": "Removed",
+      "until": "Yours until {date}",
+      "takeBack": "Take {name} back",
+      "takeBackTitle": "Take it back",
+      "canvas": "The nick's skin in 3D; drag to turn it",
+      "noNick": "No nick yet",
+      "noSkin": "No skin",
+      "drag": "Drag to turn",
+      "arms": "Arms",
+      "classicArms": "Classic arms",
+      "slimArms": "Slim arms",
+      "skinsOf": "Skins of {name}",
+      "saving": "Saving…",
+      "upload": "Upload PNG",
+      "takeOff": "Take the skin off",
+      "wearsNone": "This nick wears no skin",
+      "wearing": "Wearing",
+      "wearingLabel": "The skin this nick wears",
+      "wear": "Wear this skin",
+      "classic": "Classic",
+      "slim": "Slim",
+      "blank": "Add the nick you play with on offline accounts, up to {limit}. Its skins show up here.",
+      "unreachable": "Skins are not reachable right now. Try again in a minute.",
+      "failed": "Something went wrong."
+    }
+  },
+  "palette": {
+    "label": "Command palette",
+    "placeholder": "Search docs or jump to a page…",
+    "home": "Home",
+    "docs": "Documentation",
+    "navigation": "Navigation",
+    "searching": "Searching documentation…",
+    "empty": "No results for “{query}”",
+    "navigate": "navigate",
+    "open": "open",
+    "close": "close"
+  },
+  "bench": {
+    "paperPurpur": "Paper / Purpur",
+    "budget": "50 ms budget (20 TPS)",
+    "lower": "lower is better",
+    "all": "All numbers",
+    "server": "Server",
+    "baseline": "baseline",
+    "cores": "{n} cores",
+    "cpuS": "{n} CPU-s",
+    "threads": "{n} thread | {n} threads",
+    "ms": "{n} ms",
+    "s": "{n} s",
+    "unitMs": "ms",
+    "unitS": "s",
+    "facts": {
+      "p50": "p50 tick",
+      "p99": "p99 tick",
+      "worst": "Worst tick",
+      "p50Paper": "p50 vs Paper",
+      "p99Paper": "p99 vs Paper",
+      "cpu": "Server CPU",
+      "cpuPaper": "CPU vs Paper",
+      "spread": "Run spread",
+      "wall": "Wall time",
+      "chunks": "Chunks per second",
+      "timePaper": "Time vs Paper",
+      "cpuTime": "CPU time",
+      "load": "Mean load"
+    }
+  }
+}

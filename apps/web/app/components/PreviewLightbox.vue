@@ -9,6 +9,7 @@ interface Preview {
 }
 
 const props = defineProps<{ previews: Preview[] }>();
+const { t } = useI18n();
 const index = defineModel<number | null>({ required: true });
 
 const current = computed(() => (index.value === null ? null : props.previews[index.value]));
@@ -46,10 +47,10 @@ useEventListener(import.meta.client ? window : null, 'keydown', (e: KeyboardEven
 	<Teleport to="body">
 		<Transition name="lightbox">
 			<div v-if="current" class="lightbox" role="dialog" aria-modal="true" :aria-label="current.caption ?? current.alt" @click.self="close">
-				<button ref="closeRef" class="lightbox__btn lightbox__close" type="button" aria-label="Close" @click="close">
+				<button ref="closeRef" class="lightbox__btn lightbox__close" type="button" :aria-label="t('common.close')" @click="close">
 					<X :size="20" :stroke-width="1.8" />
 				</button>
-				<button v-if="many" class="lightbox__btn lightbox__nav lightbox__nav--prev" type="button" aria-label="Previous" @click="step(-1)">
+				<button v-if="many" class="lightbox__btn lightbox__nav lightbox__nav--prev" type="button" :aria-label="t('common.previous')" @click="step(-1)">
 					<ChevronLeft :size="22" :stroke-width="1.8" />
 				</button>
 				<figure class="lightbox__figure" @click.self="close">
@@ -59,7 +60,7 @@ useEventListener(import.meta.client ? window : null, 'keydown', (e: KeyboardEven
 						<span v-if="many" class="lightbox__count">{{ (index ?? 0) + 1 }} / {{ previews.length }}</span>
 					</figcaption>
 				</figure>
-				<button v-if="many" class="lightbox__btn lightbox__nav lightbox__nav--next" type="button" aria-label="Next" @click="step(1)">
+				<button v-if="many" class="lightbox__btn lightbox__nav lightbox__nav--next" type="button" :aria-label="t('common.next')" @click="step(1)">
 					<ChevronRight :size="22" :stroke-width="1.8" />
 				</button>
 			</div>

@@ -9,14 +9,11 @@ import { getPreset, PRESETS } from '@/lib/flags/presets';
 import { batchScript, flagsOnly, type LaunchOptions, launchArgs, shellScript } from '@/lib/flags/script';
 import { syncQuery } from '@/lib/query';
 
+const { t } = useI18n();
+
 useHead({
-  title: 'Server flags generator',
-  meta: [
-    {
-      name: 'description',
-      content: 'Start scripts for a Minecraft server with JVM flags your Java will actually accept.',
-    },
-  ],
+  title: () => t('tools.flags.name'),
+  meta: [{ name: 'description', content: () => t('tools.flags.description') }],
 });
 
 const route = useRoute();
@@ -65,10 +62,11 @@ const argCount = computed(() => launchArgs(options.value).length);
 const notices = computed(() => diagnose(env.value, preset.value, presetFlags.value));
 
 type Output = 'sh' | 'bat' | 'flags';
-const OUTPUTS: { id: Output; label: string; file: string | null }[] = [
-  { id: 'sh', label: 'Linux / macOS', file: 'start.sh' },
-  { id: 'bat', label: 'Windows', file: 'start.bat' },
-  { id: 'flags', label: 'Hosting panel', file: null },
+/** Tab names are `tools.flags.outputs.<id>`. */
+const OUTPUTS: { id: Output; file: string | null }[] = [
+  { id: 'sh', file: 'start.sh' },
+  { id: 'bat', file: 'start.bat' },
+  { id: 'flags', file: null },
 ];
 const output = ref<Output>(os.value === 'windows' ? 'bat' : 'sh');
 // The script follows the host, unless someone picked the panel line on purpose.
@@ -134,36 +132,44 @@ watch(
 
 <template>
 	<ToolsToolPage
-		title="Server flags generator"
-		lead="Pick a flag set, say what the host is, and get a start script that only contains options your JVM will actually accept."
+		:title="t('tools.flags.name')"
+		:lead="t('tools.flags.lead')"
 	>
 		<div class="fg">
 			<div class="fg__row">
 				<section class="panel fg__card">
-					<h2>Server file</h2>
+					<h2>{{ t('tools.flags.serverFile') }}</h2>
 					<label class="field">
 						<input v-model="jar" class="input" placeholder="server.jar" spellcheck="false" />
-						<span class="hint">The jar to run. The script expects it in the same folder.</span>
+						<span class="hint">{{ t('tools.flags.serverFileHint') }}</span>
 					</label>
 				</section>
 
 				<section class="panel fg__card">
-					<h2>Options</h2>
+					<h2>{{ t('tools.flags.options') }}</h2>
 					<div class="fg__checks">
 						<label class="check">
 							<input v-model="restart" type="checkbox" />
-							<span><b>Auto-restart</b> Start again when the server stops</span>
+							<span><b>{{ t('tools.flags.restart') }}</b> {{ t('tools.flags.restartHint') }}</span>
 						</label>
 						<label class="check">
 							<input v-model="proxy" type="checkbox" />
-							<span><b>Proxy</b> Velocity or BungeeCord, so no <code>--nogui</code></span>
+							<span>
+								<b>{{ t('tools.flags.proxy') }}</b>
+								<i18n-t keypath="tools.flags.proxyHint" scope="global"><template #flag><code>--nogui</code></template></i18n-t>
+							</span>
 						</label>
 						<label class="check">
 							<input v-model="xmsLocked" type="checkbox" />
-							<span><b>Fixed heap</b> Start at the full size, <code>-Xms</code> = <code>-Xmx</code></span>
+							<span>
+								<b>{{ t('tools.flags.fixedHeap') }}</b>
+								<i18n-t keypath="tools.flags.fixedHeapHint" scope="global">
+									<template #flags><code>-Xms</code> = <code>-Xmx</code></template>
+								</i18n-t>
+							</span>
 						</label>
 						<label v-if="!xmsLocked" class="field fg__xms">
-							<span class="label">Initial heap</span>
+							<span class="label">{{ t('tools.flags.initialHeap') }}</span>
 							<input v-model="xmsInput" class="input" placeholder="2G" />
 						</label>
 					</div>
@@ -171,15 +177,17 @@ watch(
 			</div>
 
 			<section class="panel fg__card">
-				<h2>Flag set</h2>
-				<div class="fg__presets" role="radiogroup" aria-label="Flag set">
+				<h2>{{ t('tools.flags.flagSet') }}</h2>
+				<div class="fg__presets" role="radiogroup" :aria-label="t('tools.flags.flagSet')">
 					<div v-for="p in PRESETS" :key="p.id" class="fg__preset" :class="{ on: presetId === p.id }">
 						<button type="button" role="radio" :aria-checked="presetId === p.id" @click="presetId = p.id">
 							{{ p.name }}
 						</button>
 						<p>
-							{{ p.summary }}.
-							<a v-if="p.url" :href="p.url" target="_blank" rel="noopener">By {{ p.author }} <ExternalLink :size="11" /></a>
+							{{ t(`notices.presets.${p.id}`) }}.
+							<a v-if="p.url" :href="p.url" target="_blank" rel="noopener">
+								{{ t('tools.flags.by', { author: p.author }) }} <ExternalLink :size="11" />
+							</a>
 						</p>
 					</div>
 				</div>
@@ -188,7 +196,7 @@ watch(
 			<div class="fg__row">
 				<section class="panel fg__card">
 					<h2>
-						Memory <code class="fg__mem">{{ formatMemMB(heapMB) }}</code>
+						{{ t('tools.flags.memory') }} <code class="fg__mem">{{ formatMemMB(heapMB) }}</code>
 					</h2>
 					<input
 						v-model.number="heapMB"
@@ -198,25 +206,25 @@ watch(
 						:max="MAX_MB"
 						:step="512"
 						:style="{ '--fill': fill }"
-						aria-label="Maximum heap"
+						:aria-label="t('tools.flags.maxHeap')"
 					/>
 					<div class="fg__ticks">
 						<button
-							v-for="t in TICKS"
-							:key="t"
+							v-for="tick in TICKS"
+							:key="tick"
 							type="button"
 							class="chip"
-							:class="{ on: heapMB === t }"
-							@click="heapMB = t"
+							:class="{ on: heapMB === tick }"
+							@click="heapMB = tick"
 						>
-							{{ formatMemMB(t) }}
+							{{ formatMemMB(tick) }}
 						</button>
 					</div>
-					<p class="hint">Leave 1–2 GB of the host's memory outside the heap for the JVM and the system.</p>
+					<p class="hint">{{ t('tools.flags.memoryHint') }}</p>
 				</section>
 
 				<section class="panel fg__card">
-					<h2>Host</h2>
+					<h2>{{ t('tools.flags.host') }}</h2>
 					<div class="fg__env">
 						<ToolsSegmentedControl
 							v-model="java"
@@ -231,13 +239,13 @@ watch(
 							v-model="graal"
 							label="JVM"
 							:options="[
-								{ value: 'none', label: 'Any JDK' },
+								{ value: 'none', label: t('tools.flags.anyJdk') },
 								{ value: 'oracle', label: 'GraalVM' },
 							]"
 						/>
 						<ToolsSegmentedControl
 							v-model="os"
-							label="System"
+							:label="t('tools.flags.system')"
 							:options="[
 								{ value: 'linux', label: 'Linux' },
 								{ value: 'windows', label: 'Windows' },
@@ -258,8 +266,8 @@ watch(
 
 			<section class="panel fg__card fg__result">
 				<header class="fg__result-head">
-					<h2>Result</h2>
-					<div class="fg__tabs" role="tablist" aria-label="Output">
+					<h2>{{ t('tools.flags.result') }}</h2>
+					<div class="fg__tabs" role="tablist" :aria-label="t('tools.flags.output')">
 						<button
 							v-for="o in OUTPUTS"
 							:key="o.id"
@@ -269,26 +277,26 @@ watch(
 							:class="{ on: output === o.id }"
 							@click="output = o.id"
 						>
-							{{ o.label }}
+							{{ t(`tools.flags.outputs.${o.id}`) }}
 						</button>
 					</div>
 				</header>
 
 				<div class="fg__code">
-					<button type="button" class="fg__copy" :aria-label="copied ? 'Copied' : 'Copy'" @click="copy">
+					<button type="button" class="fg__copy" :aria-label="copied ? t('common.copied') : t('common.copy')" @click="copy">
 						<component :is="copied ? Check : Copy" :size="15" />
 					</button>
-					<pre><code><span v-for="(line, i) in lines" :key="i" class="fg__line"><span class="fg__ln">{{ i + 1 }}</span><span class="fg__text"><span v-for="(t, j) in line" :key="j" :class="`t-${t.kind}`">{{ t.text }}</span></span>
+					<pre><code><span v-for="(line, i) in lines" :key="i" class="fg__line"><span class="fg__ln">{{ i + 1 }}</span><span class="fg__text"><span v-for="(token, j) in line" :key="j" :class="`t-${token.kind}`">{{ token.text }}</span></span>
 </span></code></pre>
 				</div>
 
 				<footer class="fg__result-foot">
-					<span class="hint">{{ presetFlags.length }} flags, {{ argCount }} arguments. Options your JVM would reject are never written.</span>
+					<span class="hint">{{ t('tools.flags.count', { flags: t('tools.flags.flags', presetFlags.length), args: t('tools.flags.args', argCount) }) }}</span>
 					<button v-if="current?.file" type="button" class="btn primary" @click="download">
 						<Download :size="15" /> {{ current.file }}
 					</button>
 					<button v-else type="button" class="btn primary" @click="copy">
-						<component :is="copied ? Check : Copy" :size="15" /> {{ copied ? 'Copied' : 'Copy flags' }}
+						<component :is="copied ? Check : Copy" :size="15" /> {{ copied ? t('common.copied') : t('tools.flags.copyFlags') }}
 					</button>
 				</footer>
 

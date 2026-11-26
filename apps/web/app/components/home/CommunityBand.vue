@@ -7,14 +7,12 @@ const { data: contributors } = await useContributors();
 
 const faces = computed(() => contributors.value.slice(0, 8));
 
+const { t } = useI18n();
+const sitePath = useSitePath();
 const ways = [
-  { n: '01', title: 'Get help fast', body: 'Ask in Discord — the people who write the code answer there.' },
-  {
-    n: '02',
-    title: 'Hear about releases first',
-    body: "Every publish is announced in its project's thread the moment it lands.",
-  },
-  { n: '03', title: 'Shape what comes next', body: 'Suggest features, report bugs and send pull requests on GitHub.' },
+  { n: '01', id: 'help' },
+  { n: '02', id: 'releases' },
+  { n: '03', id: 'shape' },
 ];
 </script>
 
@@ -22,25 +20,24 @@ const ways = [
 	<section class="community" aria-labelledby="community-title">
 		<div class="community__top">
 			<div class="community__text">
-				<span class="community__eyebrow">Community</span>
-				<h2 id="community-title" class="community__title">Build it <span class="bx-text-grad">with us</span></h2>
-				<p class="community__lede">
-					Ask questions, hear about releases first, share what you run and help shape what comes next. Everything we
-					make is open, and so is the conversation around it.
-				</p>
+				<span class="community__eyebrow">{{ t('home.community.eyebrow') }}</span>
+				<h2 id="community-title" class="community__title">
+					{{ t('home.community.title') }} <span class="bx-text-grad">{{ t('home.community.titleGrad') }}</span>
+				</h2>
+				<p class="community__lede">{{ t('home.community.lede') }}</p>
 				<div class="community__cta">
 					<Button variant="primary" size="lg" :href="DISCORD_URL">
 						<span class="community__icon" v-html="discordSvgRaw" />
-						Join our Discord
+						{{ t('home.discord') }}
 					</Button>
 					<Button variant="secondary" size="lg" :href="GITHUB_URL">
 						<HomeGithubMark :size="16" />
-						Contribute on GitHub
+						{{ t('home.community.github') }}
 					</Button>
 				</div>
 			</div>
 
-			<NuxtLink v-if="faces.length" to="/team" class="community__people">
+			<NuxtLink v-if="faces.length" :to="sitePath('/team')" class="community__people">
 				<span class="community__faces">
 					<img
 						v-for="c in faces"
@@ -54,7 +51,7 @@ const ways = [
 				</span>
 				<span class="community__count">
 					<b>{{ contributors.length }}</b>
-					contributors on GitHub →
+					{{ t('home.community.contributors', contributors.length) }} →
 				</span>
 			</NuxtLink>
 		</div>
@@ -63,9 +60,9 @@ const ways = [
 			<li v-for="w in ways" :key="w.n" class="community__way">
 				<span class="community__way-head">
 					<span class="community__num">{{ w.n }}</span>
-					<span class="community__way-title">{{ w.title }}</span>
+					<span class="community__way-title">{{ t(`home.community.ways.${w.id}.title`) }}</span>
 				</span>
-				<span class="community__way-body">{{ w.body }}</span>
+				<span class="community__way-body">{{ t(`home.community.ways.${w.id}.body`) }}</span>
 			</li>
 		</ul>
 	</section>

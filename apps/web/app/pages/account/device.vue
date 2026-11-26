@@ -2,7 +2,10 @@
 import { computed, onMounted, ref } from 'vue';
 import { APPS, auth } from '~/lib/auth';
 
-useHead({ title: 'Connect a device' });
+const { t } = useI18n();
+const sitePath = useSitePath();
+
+useHead({ title: () => t('account.device.title') });
 
 const route = useRoute();
 const session = auth.useSession();
@@ -35,11 +38,11 @@ async function check() {
   const { data, error: failed } = await auth.device({ query: { user_code: userCode.value } });
   busy.value = false;
   if (failed || !data) {
-    error.value = 'That code is wrong or has expired. Start signing in again in the app.';
+    error.value = t('account.device.wrong');
     return;
   }
   if (data.status !== 'pending' || !data.client_id) {
-    error.value = 'That code has already been used.';
+    error.value = t('account.device.used');
     return;
   }
   client.value = APPS[data.client_id]?.name ?? data.client_id;
@@ -53,7 +56,7 @@ async function answer(approve: boolean) {
   const { error: failed } = approve ? await auth.device.approve(body) : await auth.device.deny(body);
   busy.value = false;
   if (failed) {
-    error.value = 'That code has expired or was already used. Start signing in again in the app.';
+    error.value = t('account.device.expired');
     step.value = 'enter';
     return;
   }
@@ -74,11 +77,11 @@ function again() {
 		<AccountSection
 			v-if="step === 'enter'"
 			id="device"
-			title="Connect a device"
-			lead="Signing in to a BX Team app on another device? Enter the code it shows."
+			:title="$t('account.device.title')"
+			:lead="$t('account.device.lede')"
 		>
 			<form class="form" @submit.prevent="check">
-				<label class="label" for="code">Code</label>
+				<label class="label" for="code">{{ $t('account.device.code') }}</label>
 				<input
 					id="code"
 					v-model="code"
@@ -91,7 +94,7 @@ function again() {
 					required
 				/>
 				<button type="submit" class="btn primary block" :disabled="!userCode || busy">
-					{{ busy ? 'Checking…' : 'Continue' }}
+					{{ busy ? $t('account.device.checking') : $t('account.device.continue') }}
 				</button>
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 			</form>
@@ -100,12 +103,12 @@ function again() {
 		<AccountSection
 			v-else-if="step === 'review'"
 			id="device"
-			:title="`Sign in to ${client}?`"
-			:lead="`${client} will be signed in as ${who}. Approve only if you started this yourself, on your own device.`"
+			:title="$t('account.device.ask', { app: client })"
+			:lead="$t('account.device.askLede', { app: client, who })"
 		>
 			<div class="form">
-				<button type="button" class="btn primary block" :disabled="busy" @click="answer(true)">Approve</button>
-				<button type="button" class="btn block" :disabled="busy" @click="answer(false)">Deny</button>
+				<button type="button" class="btn primary block" :disabled="busy" @click="answer(true)">{{ $t('account.device.approve') }}</button>
+				<button type="button" class="btn block" :disabled="busy" @click="answer(false)">{{ $t('account.device.deny') }}</button>
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 			</div>
 		</AccountSection>
@@ -113,16 +116,16 @@ function again() {
 		<AccountSection
 			v-else
 			id="device"
-			:title="step === 'approved' ? 'Device connected' : 'Request denied'"
+			:title="step === 'approved' ? $t('account.device.connected') : $t('account.device.denied')"
 			:lead="
 				step === 'approved'
-					? `${client} is signed in as ${who}. You can go back to it now.`
-					: `${client} was not signed in.`
+					? $t('account.device.connectedLede', { app: client, who })
+					: $t('account.device.deniedLede', { app: client })
 			"
 		>
 			<div class="form">
-				<NuxtLink to="/account/security" class="btn block">See your devices</NuxtLink>
-				<button type="button" class="link" @click="again">Connect another device</button>
+				<NuxtLink :to="sitePath('/account/security')" class="btn block">{{ $t('account.device.see') }}</NuxtLink>
+				<button type="button" class="link" @click="again">{{ $t('account.device.another') }}</button>
 			</div>
 		</AccountSection>
 	</div>

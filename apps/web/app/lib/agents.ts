@@ -12,12 +12,14 @@ export const AGENT_ICONS: Record<AgentKind, Component> = {
   unknown: Globe,
 };
 
+type Translate = (key: string, named?: Record<string, unknown>) => string;
+
 /** A readable name for a session's User-Agent; the launcher sends its own, everything else is a browser. */
-export function describeAgent(ua?: string | null): { kind: AgentKind; name: string } {
+export function describeAgent(ua: string | null | undefined, t: Translate): { kind: AgentKind; name: string } {
   const agent = ua ?? '';
-  if (!agent) return { kind: 'unknown', name: 'Unknown device' };
+  if (!agent) return { kind: 'unknown', name: t('account.agents.unknown') };
   if (fromRiven(agent)) return { kind: 'riven', name: 'Riven Launcher' };
-  if (/curl|wget|httpie/i.test(agent)) return { kind: 'cli', name: 'Command line' };
+  if (/curl|wget|httpie/i.test(agent)) return { kind: 'cli', name: t('account.agents.cli') };
   const browser = /Edg\//.test(agent)
     ? 'Edge'
     : /OPR\//.test(agent)
@@ -28,7 +30,7 @@ export function describeAgent(ua?: string | null): { kind: AgentKind; name: stri
           ? 'Chrome'
           : /Safari\//.test(agent)
             ? 'Safari'
-            : 'Browser';
+            : t('account.agents.browser');
   const os = /Android/.test(agent)
     ? 'Android'
     : /iPhone|iPad/.test(agent)
@@ -41,5 +43,5 @@ export function describeAgent(ua?: string | null): { kind: AgentKind; name: stri
             ? 'Linux'
             : '';
   const phone = /Android|iPhone|iPad|Mobile/.test(agent);
-  return { kind: phone ? 'phone' : 'computer', name: os ? `${browser} on ${os}` : browser };
+  return { kind: phone ? 'phone' : 'computer', name: os ? t('account.agents.on', { browser, os }) : browser };
 }

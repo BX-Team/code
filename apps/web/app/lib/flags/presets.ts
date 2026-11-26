@@ -6,7 +6,7 @@ export interface Preset {
   /** Who published the set, for the credit line on the card. */
   author: string;
   url: string;
-  summary: string;
+  /** The card's one line is `notices.presets.<id>` in the locale files. */
   flags: (env: Env) => string[];
 }
 
@@ -17,7 +17,6 @@ export const PRESETS: Preset[] = [
     name: "Aikar's Flags",
     author: 'Aikar',
     url: 'https://docs.papermc.io/paper/aikars-flags/',
-    summary: 'G1GC tuning, the long-standing default for Paper and its forks',
     flags: aikarFlags,
   },
   {
@@ -25,7 +24,6 @@ export const PRESETS: Preset[] = [
     name: "MeowIce's Flags (G1GC)",
     author: 'MeowIce',
     url: 'https://github.com/MeowIce/meowice-flags',
-    summary: "Aikar's G1GC plus modern JIT and intrinsic tuning; best on GraalVM",
     flags: meowiceG1Flags,
   },
   {
@@ -33,7 +31,6 @@ export const PRESETS: Preset[] = [
     name: "MeowIce's Flags (ZGC)",
     author: 'MeowIce',
     url: 'https://github.com/MeowIce/meowice-flags',
-    summary: 'The same set on ZGC, for 32G+ heaps on 10+ cores only',
     flags: meowiceZGCFlags,
   },
   {
@@ -41,7 +38,6 @@ export const PRESETS: Preset[] = [
     name: "brucethemoose's Flags",
     author: 'brucethemoose',
     url: 'https://github.com/brucethemoose/Minecraft-Performance-Flags-Benchmarks',
-    summary: 'Individually benchmarked base flags with the server G1GC set',
     flags: bruceFlags,
   },
   {
@@ -49,7 +45,6 @@ export const PRESETS: Preset[] = [
     name: "hilltty's Flags",
     author: 'hilltty',
     url: 'https://github.com/hilltty/hilltty-flags',
-    summary: 'Shenandoah GC, short pauses at the cost of CPU; a small set',
     flags: hillttyFlags,
   },
   {
@@ -57,7 +52,6 @@ export const PRESETS: Preset[] = [
     name: 'No flags',
     author: 'nobody',
     url: '',
-    summary: 'Only -Xms/-Xmx, everything else left to the JVM',
     flags: () => [],
   },
 ];

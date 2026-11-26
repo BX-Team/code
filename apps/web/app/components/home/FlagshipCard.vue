@@ -2,11 +2,13 @@
 import { BENCHMARKS, type BenchProfile } from '~/config/benchmarks';
 import type { Project } from '~/config/projects';
 import { fetchLatestBuild, fetchProject, primaryDownload } from '~/lib/builds';
-import { formatBytes } from '~/lib/format';
 
 const props = defineProps<{ project: Project }>();
 
 const link = resolveComponent('NuxtLink');
+const { t } = useI18n();
+const sitePath = useSitePath();
+const format = useFormat();
 
 // The trailing capitals take the gradient: Divine|MC.
 const nameParts = computed(() => {
@@ -26,7 +28,7 @@ const { data: latest } = useLazyAsyncData(
       version: build.version,
       build: build.build,
       channel: build.channel,
-      size: file ? formatBytes(file.size) : null,
+      size: file ? file.size : null,
       date: build.created_at.slice(0, 10),
     };
   },
@@ -38,10 +40,10 @@ const bench = (build: 'divinemc' | 'paper' | 'purpur', profile: BenchProfile = '
 
 // Median tick time under the botswarm load; lower is better, so the bar is the cost.
 const bars = [
-  { label: 'DivineMC', note: 'regionized', row: bench('divinemc', 'rct'), lead: true },
-  { label: 'DivineMC', note: 'default', row: bench('divinemc') },
-  { label: 'Paper', row: bench('paper') },
-  { label: 'Purpur', row: bench('purpur') },
+  { id: 'rct', label: 'DivineMC', note: 'home.flagship.regionized', row: bench('divinemc', 'rct'), lead: true },
+  { id: 'stock', label: 'DivineMC', note: 'home.flagship.default', row: bench('divinemc') },
+  { id: 'paper', label: 'Paper', row: bench('paper') },
+  { id: 'purpur', label: 'Purpur', row: bench('purpur') },
 ].flatMap(b => (b.row ? [{ ...b, ms: b.row.p50 }] : []));
 
 const scale = Math.max(...bars.map(b => b.ms)) * 1.08;
@@ -49,7 +51,7 @@ const lead = bench('divinemc', 'rct');
 </script>
 
 <template>
-	<component :is="link" :to="`/${project.slug}`" class="flagship">
+	<component :is="link" :to="sitePath(`/${project.slug}`)" class="flagship">
 		<div class="flagship__text">
 			<div class="flagship__head">
 				<span class="flagship__title">
@@ -57,39 +59,39 @@ const lead = bench('divinemc', 'rct');
 						<HomeProjectMark :slug="project.slug" :size="24" />
 					</span>
 					<h2 class="flagship__name">{{ nameParts[0] }}<span class="bx-text-grad">{{ nameParts[1] }}</span></h2>
-					<span class="flagship__badge">{{ project.tag }}</span>
+					<span class="flagship__badge">{{ t(`projects.${project.slug}.tag`) }}</span>
 				</span>
-				<p class="flagship__summary">{{ project.lede }}</p>
+				<p class="flagship__summary">{{ t(`projects.${project.slug}.lede`) }}</p>
 			</div>
-			<span class="flagship__more">Learn more <span aria-hidden="true">→</span></span>
+			<span class="flagship__more">{{ t('home.more') }} <span aria-hidden="true">→</span></span>
 		</div>
 
 		<div class="flagship__window">
 			<div class="flagship__bar">
-				<span>Tick time, 150 players</span>
-				<span>median mspt</span>
+				<span>{{ t('home.flagship.tickTime') }}</span>
+				<span>{{ t('home.flagship.median') }}</span>
 			</div>
 			<div class="flagship__bench">
 				<p v-if="lead" class="flagship__claim">
 					<span class="bx-text-grad">−{{ Math.round(lead.p50VsPaper) }}%</span>
-					<span>against Paper on the same load</span>
+					<span>{{ t('home.flagship.claim') }}</span>
 				</p>
 				<ul class="flagship__bars">
-					<li v-for="b in bars" :key="`${b.label}-${b.note}`" :class="{ lead: b.lead }">
-						<span class="flagship__who">{{ b.label }}<small v-if="b.note">{{ b.note }}</small></span>
+					<li v-for="b in bars" :key="b.id" :class="{ lead: b.lead }">
+						<span class="flagship__who">{{ b.label }}<small v-if="b.note">{{ t(b.note) }}</small></span>
 						<span class="flagship__track"><i :style="{ width: `${(b.ms / scale) * 100}%` }" /></span>
 						<span class="flagship__ms">{{ b.ms.toFixed(1) }}</span>
 					</li>
 				</ul>
-				<p class="flagship__note">Lower is better · {{ BENCHMARKS.cpu }} · {{ BENCHMARKS.minecraft }}</p>
+				<p class="flagship__note">{{ t('home.flagship.lower') }} · {{ BENCHMARKS.cpu }} · {{ BENCHMARKS.minecraft }}</p>
 			</div>
 			<div class="flagship__release">
 				<template v-if="latest">
 					<span class="flagship__build">{{ latest.version }} #{{ latest.build }}</span>
-					<span>{{ latest.channel }}<template v-if="latest.size"> · {{ latest.size }}</template></span>
+					<span>{{ latest.channel }}<template v-if="latest.size !== null"> · {{ format.bytes(latest.size) }}</template></span>
 					<span class="flagship__date">{{ latest.date }}</span>
 				</template>
-				<span v-else>Latest build</span>
+				<span v-else>{{ t('home.flagship.latest') }}</span>
 			</div>
 		</div>
 	</component>

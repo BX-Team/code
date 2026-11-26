@@ -13,42 +13,32 @@ import {
 import { PREVIEW_MODES, type PreviewMode } from '@/lib/mcscene';
 import { syncQuery } from '@/lib/query';
 
+const { t } = useI18n();
+
 useHead({
-  title: 'Color text generator',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Gradient and coloured text for Minecraft chat, MOTDs and plugin configs, in MiniMessage and legacy codes.',
-    },
-  ],
+  title: () => t('tools.color.name'),
+  meta: [{ name: 'description', content: () => t('tools.color.description') }],
 });
 
 const route = useRoute();
 const fromQuery = (key: string) => (typeof route.query[key] === 'string' ? (route.query[key] as string) : '');
 
-const PRESETS: { name: string; stops: string[] }[] = [
-  { name: 'BX Team', stops: ['#25dfdf', '#61da92'] },
-  { name: 'Sunset', stops: ['#ff5f6d', '#ffc371'] },
-  { name: 'Nether', stops: ['#ff3d00', '#a3001c'] },
-  { name: 'Ocean', stops: ['#00c6ff', '#0072ff'] },
-  { name: 'Amethyst', stops: ['#c471f5', '#fa71cd'] },
-  { name: 'Rainbow', stops: ['#ff5555', '#ffaa00', '#ffff55', '#55ff55', '#55ffff', '#5555ff', '#ff55ff'] },
+/** Names other than BX Team are `tools.color.presets.<id>`. */
+const PRESETS: { id: string; stops: string[] }[] = [
+  { id: 'bxteam', stops: ['#25dfdf', '#61da92'] },
+  { id: 'sunset', stops: ['#ff5f6d', '#ffc371'] },
+  { id: 'nether', stops: ['#ff3d00', '#a3001c'] },
+  { id: 'ocean', stops: ['#00c6ff', '#0072ff'] },
+  { id: 'amethyst', stops: ['#c471f5', '#fa71cd'] },
+  { id: 'rainbow', stops: ['#ff5555', '#ffaa00', '#ffff55', '#55ff55', '#55ffff', '#5555ff', '#ff55ff'] },
 ];
 
-const FORMATS: { id: OutputFormat; label: string; note: string }[] = [
-  { id: 'minimessage', label: 'MiniMessage', note: 'Paper, Velocity and most modern plugins (<gradient>, <bold>).' },
-  {
-    id: 'legacy-hex',
-    label: '&#RRGGBB',
-    note: 'Plugins that read hex codes themselves: EssentialsX, TAB, CMI and most chat plugins.',
-  },
-  {
-    id: 'spigot-hex',
-    label: '&x&R&R…',
-    note: "Bukkit's own hex form, read by anything that translates & codes with hex support.",
-  },
-  { id: 'legacy', label: 'Legacy &a', note: 'Sixteen colours only; every colour is rounded to the nearest one.' },
+/** The line under each is `tools.color.formats.<id>`. */
+const FORMATS: { id: OutputFormat; label: string }[] = [
+  { id: 'minimessage', label: 'MiniMessage' },
+  { id: 'legacy-hex', label: '&#RRGGBB' },
+  { id: 'spigot-hex', label: '&x&R&R…' },
+  { id: 'legacy', label: 'Legacy &a' },
 ];
 
 const initialStops = fromQuery('c')
@@ -73,7 +63,6 @@ const mode = ref<PreviewMode>('chat');
 
 const output = computed(() => render(text.value, stops.value, decorations.value, format.value, sign.value));
 const glyphs = computed(() => paint(text.value, stops.value).map(g => ({ ...g, shown: displayed(g, format.value) })));
-const currentFormat = computed(() => FORMATS.find(f => f.id === format.value));
 const length = computed(() => [...output.value].length);
 
 const copied = ref(false);
@@ -111,11 +100,12 @@ function randomize() {
 
 const sameStops = (a: string[]) => a.join() === stops.value.join();
 
-const DECORATION_LABELS: { key: keyof Decorations; label: string; code: string }[] = [
-  { key: 'bold', label: 'Bold', code: 'l' },
-  { key: 'italic', label: 'Italic', code: 'o' },
-  { key: 'underlined', label: 'Underline', code: 'n' },
-  { key: 'strikethrough', label: 'Strike', code: 'm' },
+/** Names are `tools.color.styles.<key>`. */
+const DECORATION_LABELS: { key: keyof Decorations; code: string }[] = [
+  { key: 'bold', code: 'l' },
+  { key: 'italic', code: 'o' },
+  { key: 'underlined', code: 'n' },
+  { key: 'strikethrough', code: 'm' },
 ];
 
 watch(
@@ -138,36 +128,36 @@ watch(
 
 <template>
 	<ToolsToolPage
-		title="Color text generator"
-		lead="Gradient and coloured text for chat, MOTDs, scoreboards and plugin configs. Type the text, pick the colours and copy it in the format your plugin reads."
+		:title="t('tools.color.name')"
+		:lead="t('tools.color.lead')"
 	>
 		<div class="ct">
 			<section class="panel ct__setup">
 				<label class="field">
-					<span class="label">Text</span>
+					<span class="label">{{ t('tools.color.text') }}</span>
 					<input v-model="text" class="input" maxlength="256" spellcheck="false" />
 				</label>
 
 				<div class="field">
-					<span class="label">Colours</span>
+					<span class="label">{{ t('tools.color.colours') }}</span>
 					<div class="stops">
 						<div v-for="(stop, i) in stops" :key="i" class="stop">
 							<label class="stop__swatch" :style="{ background: stop }">
-								<input v-model="stops[i]" type="color" :aria-label="`Colour ${i + 1}`" />
+								<input v-model="stops[i]" type="color" :aria-label="t('tools.color.colour', { n: i + 1 })" />
 							</label>
 							<input
 								class="input stop__hex"
 								:value="stop"
 								maxlength="7"
 								spellcheck="false"
-								:aria-label="`Colour ${i + 1} as hex`"
+								:aria-label="t('tools.color.colourHex', { n: i + 1 })"
 								@change="setHex(i, ($event.target as HTMLInputElement).value)"
 							/>
 							<button
 								type="button"
 								class="icon"
 								:disabled="stops.length === 1"
-								:aria-label="`Remove colour ${i + 1}`"
+								:aria-label="t('tools.color.removeColour', { n: i + 1 })"
 								@click="removeStop(i)"
 							>
 								<Minus :size="15" />
@@ -175,32 +165,32 @@ watch(
 						</div>
 						<div class="stops__acts">
 							<button type="button" class="btn" :disabled="stops.length >= 8" @click="addStop">
-								<Plus :size="15" /> Add colour
+								<Plus :size="15" /> {{ t('tools.color.addColour') }}
 							</button>
-							<button type="button" class="btn" @click="randomize"><Shuffle :size="15" /> Random</button>
+							<button type="button" class="btn" @click="randomize"><Shuffle :size="15" /> {{ t('tools.color.random') }}</button>
 						</div>
 					</div>
 				</div>
 
 				<div class="field">
-					<span class="label">Presets</span>
+					<span class="label">{{ t('tools.color.presetsLabel') }}</span>
 					<div class="chips">
 						<button
 							v-for="p in PRESETS"
-							:key="p.name"
+							:key="p.id"
 							type="button"
 							class="chip preset"
 							:class="{ on: sameStops(p.stops) }"
 							@click="stops = [...p.stops]"
 						>
 							<i :style="{ background: `linear-gradient(90deg, ${p.stops.join(', ')})` }" />
-							{{ p.name }}
+							{{ p.id === 'bxteam' ? 'BX Team' : t(`tools.color.presets.${p.id}`) }}
 						</button>
 					</div>
 				</div>
 
 				<div class="field">
-					<span class="label">Legacy colours</span>
+					<span class="label">{{ t('tools.color.legacy') }}</span>
 					<div class="legacy">
 						<button
 							v-for="c in LEGACY_COLORS"
@@ -209,14 +199,14 @@ watch(
 							class="legacy__btn"
 							:style="{ background: c.hex }"
 							:title="`&${c.code} ${c.name}`"
-							:aria-label="`Use ${c.name}`"
+							:aria-label="t('tools.color.use', { name: c.name })"
 							@click="stops = [c.hex]"
 						/>
 					</div>
 				</div>
 
 				<div class="field">
-					<span class="label">Style</span>
+					<span class="label">{{ t('tools.color.style') }}</span>
 					<div class="chips">
 						<button
 							v-for="d in DECORATION_LABELS"
@@ -227,7 +217,7 @@ watch(
 							:aria-pressed="decorations[d.key]"
 							@click="decorations[d.key] = !decorations[d.key]"
 						>
-							{{ d.label }}
+							{{ t(`tools.color.styles.${d.key}`) }}
 						</button>
 					</div>
 				</div>
@@ -235,24 +225,24 @@ watch(
 
 			<section class="ct__result">
 				<div class="ct__preview">
-					<div class="ct__modes" role="tablist" aria-label="Preview">
+					<div class="ct__modes" role="tablist" :aria-label="t('tools.color.preview')">
 						<button
 							v-for="m in PREVIEW_MODES"
-							:key="m.id"
+							:key="m"
 							type="button"
 							role="tab"
-							:aria-selected="mode === m.id"
-							:class="{ on: mode === m.id }"
-							@click="mode = m.id"
+							:aria-selected="mode === m"
+							:class="{ on: mode === m }"
+							@click="mode = m"
 						>
-							{{ m.label }}
+							{{ t(`tools.color.modes.${m}`) }}
 						</button>
 					</div>
 					<ToolsMcPreview :glyphs="glyphs" :decorations="decorations" :mode="mode" />
 				</div>
 
 				<div class="panel ct__output">
-					<div class="formats" role="radiogroup" aria-label="Output format">
+					<div class="formats" role="radiogroup" :aria-label="t('tools.color.format')">
 						<button
 							v-for="f in FORMATS"
 							:key="f.id"
@@ -266,26 +256,29 @@ watch(
 							{{ f.label }}
 						</button>
 					</div>
-					<p class="hint">{{ currentFormat?.note }}</p>
+					<p class="hint">{{ t(`tools.color.formats.${format}`) }}</p>
 
 					<div class="code">
 						<code>{{ output || ' ' }}</code>
 						<button type="button" class="btn primary code__copy" :disabled="!output" @click="copy">
 							<component :is="copied ? Check : Copy" :size="15" />
-							{{ copied ? 'Copied' : 'Copy' }}
+							{{ copied ? t('common.copied') : t('tools.color.copy') }}
 						</button>
 					</div>
 
 					<div class="ct__foot">
 						<label v-if="format !== 'minimessage'" class="check">
 							<input v-model="sign" type="checkbox" true-value="§" false-value="&" />
-							<span>Use <code>§</code> instead of <code>&amp;</code></span>
+							<i18n-t keypath="tools.color.sign" tag="span" scope="global">
+								<template #sign><code>§</code></template>
+								<template #amp><code>&amp;</code></template>
+							</i18n-t>
 						</label>
 						<span class="grow" />
-						<span class="count" :class="{ over: length > 256 }">{{ length }} characters</span>
+						<span class="count" :class="{ over: length > 256 }">{{ t('tools.color.characters', length) }}</span>
 					</div>
 					<p v-if="length > 256" class="hint bad">
-						Chat stops at 256 characters. Use fewer colours, MiniMessage, or put it in a config file instead.
+						{{ t('tools.color.tooLong') }}
 					</p>
 				</div>
 			</section>

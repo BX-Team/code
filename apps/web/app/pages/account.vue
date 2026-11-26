@@ -4,6 +4,9 @@ import { APPS } from '~/lib/auth';
 
 useHead({ meta: [{ name: 'robots', content: 'noindex' }] });
 
+const { t } = useI18n();
+const sitePath = useSitePath();
+
 const session = useBxidSession();
 const user = computed(() => session.value.data?.user);
 const { apps, refresh } = useAccountData();
@@ -12,11 +15,11 @@ onMounted(refresh);
 
 /** One tab per app this BX ID has signed in to, after the account's own two. */
 const tabs = computed(() => [
-  { to: '/account', label: 'Overview' },
-  { to: '/account/security', label: 'Account & security' },
+  { to: sitePath('/account'), label: t('account.overviewTab') },
+  { to: sitePath('/account/security'), label: t('account.securityTab') },
   ...(apps.value ?? []).flatMap(app => {
     const known = APPS[app.clientId];
-    return known ? [{ to: known.page, label: known.name }] : [];
+    return known ? [{ to: sitePath(known.page), label: known.name }] : [];
   }),
 ]);
 </script>
@@ -26,7 +29,7 @@ const tabs = computed(() => [
 		<div class="acc bxid">
 			<template v-if="user">
 				<AccountBanner />
-				<nav class="acc__tabs" aria-label="Account">
+				<nav class="acc__tabs" :aria-label="$t('account.nav')">
 					<div class="acc__tabs-in">
 						<NuxtLink v-for="tab in tabs" :key="tab.to" :to="tab.to" class="acc__tab" exact-active-class="on">
 							{{ tab.label }}

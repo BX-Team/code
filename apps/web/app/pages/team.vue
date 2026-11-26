@@ -2,6 +2,7 @@
 import { Button, PageHero, Section } from '@bx-team/ui';
 import { GITHUB_URL } from '~/config/links';
 
+/** `role` and the section `id` are keys under `team.roles` and `team.sections`. */
 interface TeamMember {
   name: string;
   role: string;
@@ -9,36 +10,35 @@ interface TeamMember {
 }
 
 interface TeamSection {
-  title: string;
-  description: string;
+  id: string;
   members: TeamMember[];
 }
 
 const sections: TeamSection[] = [
   {
-    title: 'Leadership Team',
-    description: 'The main team that leads the projects and makes strategic decisions.',
+    id: 'leadership',
     members: [
-      { name: 'NONPLAYT', github: 'NONPLAYT', role: 'Founder' },
-      { name: 'wiyba', github: 'wiyba', role: 'Developer & Designer' },
-      { name: 'Thoutpinqq', github: 'VladKekes', role: 'Co-Founder' },
+      { name: 'NONPLAYT', github: 'NONPLAYT', role: 'founder' },
+      { name: 'wiyba', github: 'wiyba', role: 'developerDesigner' },
+      { name: 'Thoutpinqq', github: 'VladKekes', role: 'coFounder' },
     ],
   },
   {
-    title: 'Other members',
-    description: 'The team responsible for the moderation and management of the projects.',
+    id: 'others',
     members: [
-      { name: 'ROUMAY', role: 'Discord Moderator' },
-      { name: 'p4ts4k', github: 'P4TS4KK', role: 'Process Manager' },
+      { name: 'ROUMAY', role: 'discordModerator' },
+      { name: 'p4ts4k', github: 'P4TS4KK', role: 'processManager' },
     ],
   },
 ];
 
+const { t } = useI18n();
+
 const { data: contributors } = await useContributors();
 
 useHead({
-  title: 'Team',
-  meta: [{ name: 'description', content: 'Meet the BX Team developers and contributors.' }],
+  title: () => t('team.title'),
+  meta: [{ name: 'description', content: () => t('team.description') }],
 });
 </script>
 
@@ -46,18 +46,23 @@ useHead({
 	<PageShell>
 		<main>
 			<PageHero
-				title="Meet our team"
-				lede="BX Team is a group of developers and contributors who work together to maintain and improve the BX Team projects."
+				:title="t('team.heading')"
+				:lede="t('team.lede')"
 			>
 				<template #cta>
 					<Button :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" variant="primary" size="lg">
 						<img src="~/assets/external/github.svg" width="16" height="16" alt="" aria-hidden="true" />
-						Visit our GitHub
+						{{ t('team.github') }}
 					</Button>
 				</template>
 			</PageHero>
 
-			<Section v-for="s in sections" :key="s.title" :title="s.title" :lede="s.description">
+			<Section
+				v-for="s in sections"
+				:key="s.id"
+				:title="t(`team.sections.${s.id}.title`)"
+				:lede="t(`team.sections.${s.id}.description`)"
+			>
 				<div class="team__grid">
 					<template v-for="m in s.members" :key="m.name">
 						<component
@@ -68,12 +73,12 @@ useHead({
 							class="team__member"
 						>
 							<span class="team__avatar">
-								<img v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="`${m.name} avatar`" />
+								<img v-if="m.github" :src="`https://github.com/${m.github}.png`" :alt="t('team.avatar', { name: m.name })" />
 								<span v-else>{{ m.name[0] }}</span>
 							</span>
 							<span class="team__who">
 								<h3>{{ m.name }}</h3>
-								<p>{{ m.role }}</p>
+								<p>{{ t(`team.roles.${m.role}`) }}</p>
 							</span>
 						</component>
 					</template>
@@ -81,8 +86,8 @@ useHead({
 			</Section>
 
 			<Section
-				title="Contributors"
-				:lede="`${contributors.length} people who have committed to our repositories and make BX Team projects better.`"
+				:title="t('team.contributors')"
+				:lede="t('team.contributorsLede', contributors.length)"
 			>
 				<div class="team__contributors">
 					<a
@@ -94,7 +99,7 @@ useHead({
 						rel="noopener noreferrer"
 						class="team__contrib"
 					>
-						<img :src="c.avatar_url" :alt="`${c.login} GitHub avatar`" />
+						<img :src="c.avatar_url" :alt="t('team.githubAvatar', { name: c.login })" />
 					</a>
 				</div>
 			</Section>

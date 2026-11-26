@@ -5,6 +5,9 @@ import { Home, PowerOff } from '@lucide/vue';
 defineProps<{
   message?: string;
 }>();
+
+const { t } = useI18n();
+const sitePath = useSitePath();
 </script>
 
 <template>
@@ -15,12 +18,12 @@ defineProps<{
 				<div class="disabled-icon">
 					<PowerOff :size="36" :stroke-width="1.5" />
 				</div>
-				<div class="disabled-label">PAGE UNAVAILABLE</div>
-				<h1>This page is disabled</h1>
-				<p>{{ message || 'This page is currently unavailable. Check back later.' }}</p>
-				<Button variant="primary" href="/">
+				<div class="disabled-label">{{ t('disabled.label') }}</div>
+				<h1>{{ t('disabled.title') }}</h1>
+				<p>{{ message || t('disabled.body') }}</p>
+				<Button variant="primary" :href="sitePath('/')">
 					<Home :size="16" :stroke-width="1.7" />
-					Back home
+					{{ t('error.home') }}
 				</Button>
 			</div>
 		</main>

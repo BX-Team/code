@@ -2,13 +2,14 @@
 import { Button } from '@bx-team/ui';
 import { Download } from '@lucide/vue';
 import { downloadEntries, type Download as File } from '@/lib/builds';
-import { formatBytes } from '@/lib/format';
 
 const props = defineProps<{
   downloads: Record<string, File>;
 }>();
 
 const files = computed(() => downloadEntries(props.downloads));
+const { t } = useI18n();
+const format = useFormat();
 </script>
 
 <template>
@@ -17,13 +18,13 @@ const files = computed(() => downloadEntries(props.downloads));
 			<div class="file-main">
 				<code class="file-name">{{ file.name }}</code>
 				<div class="file-meta">
-					<span>{{ formatBytes(file.size) }}</span>
+					<span>{{ format.bytes(file.size) }}</span>
 					<span class="dot">·</span>
 					<code class="sha" :title="file.sha256">{{ file.sha256.substring(0, 16) }}…</code>
 				</div>
 			</div>
 			<Button :href="file.url" target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
-				<Download :size="14" :stroke-width="1.7" /> Download
+				<Download :size="14" :stroke-width="1.7" /> {{ t('project.download') }}
 			</Button>
 		</div>
 	</div>

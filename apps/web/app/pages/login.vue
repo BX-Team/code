@@ -5,7 +5,10 @@ import githubSvgRaw from '~/assets/external/github.svg?raw';
 import { auth, safeNext } from '~/lib/auth';
 import { mountTurnstile } from '~/lib/turnstile';
 
-useHead({ title: 'Sign in' });
+const { t } = useI18n();
+const sitePath = useSitePath();
+
+useHead({ title: () => t('account.login.title') });
 
 const route = useRoute();
 const session = auth.useSession();
@@ -16,11 +19,11 @@ const step = ref<'email' | 'code'>('email');
 const email = ref('');
 const otp = ref('');
 const busy = ref(false);
-const error = ref(typeof route.query.error === 'string' ? 'Signing in did not go through. Try again.' : '');
+const error = ref(typeof route.query.error === 'string' ? t('account.login.returned') : '');
 
-const title = computed(() => (step.value === 'code' ? 'Check your email' : 'Sign in to BX ID'));
+const title = computed(() => t(step.value === 'code' ? 'account.login.check' : 'account.login.heading'));
 const lead = computed(() =>
-  step.value === 'code' ? `We sent a 6-digit code to ${email.value.trim()}. It works for 5 minutes.` : undefined,
+  step.value === 'code' ? t('account.login.sent', { email: email.value.trim() }) : undefined,
 );
 
 const emailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()));
@@ -41,7 +44,7 @@ watch(
         captcha.value = token;
       });
     } catch {
-      error.value = 'The bot check did not load. Reload the page, or sign in with Discord or GitHub.';
+      error.value = t('account.login.captcha');
     }
   },
   { flush: 'post' },
@@ -69,7 +72,7 @@ async function sendCode() {
   widget?.reset();
   busy.value = false;
   if (failed) {
-    error.value = failed.status === 429 ? 'Too many codes asked for. Wait a minute.' : 'Could not send the code.';
+    error.value = t(failed.status === 429 ? 'account.login.tooManyCodes' : 'account.login.sendFailed');
     return;
   }
   otp.value = '';
@@ -83,7 +86,7 @@ async function signIn() {
   const { error: failed } = await auth.signIn.emailOtp({ email: email.value.trim(), otp: otp.value.trim() });
   busy.value = false;
   if (failed) {
-    error.value = failed.status === 429 ? 'Too many attempts. Wait a minute.' : 'That code is wrong or has expired.';
+    error.value = t(failed.status === 429 ? 'account.login.tooManyAttempts' : 'account.login.wrongCode');
   }
 }
 
@@ -93,11 +96,11 @@ async function social(provider: 'discord' | 'github') {
   const { error: failed } = await auth.signIn.social({
     provider,
     callbackURL: `${location.origin}${next.value}`,
-    errorCallbackURL: `${location.origin}/login?next=${encodeURIComponent(next.value)}`,
+    errorCallbackURL: `${location.origin}${sitePath('/login')}?next=${encodeURIComponent(next.value)}`,
   });
   if (failed) {
     busy.value = false;
-    error.value = 'Could not start signing in.';
+    error.value = t('account.login.startFailed');
   }
 }
 </script>
@@ -110,18 +113,18 @@ async function social(provider: 'discord' | 'github') {
 			<div class="form">
 				<button type="button" class="btn block" :disabled="busy" @click="social('discord')">
 					<span aria-hidden="true" v-html="discordSvgRaw" />
-					Continue with Discord
+					{{ $t('account.login.continueWith', { provider: 'Discord' }) }}
 				</button>
 				<button type="button" class="btn block" :disabled="busy" @click="social('github')">
 					<span aria-hidden="true" v-html="githubSvgRaw" />
-					Continue with GitHub
+					{{ $t('account.login.continueWith', { provider: 'GitHub' }) }}
 				</button>
 			</div>
 
-			<div class="divider">or</div>
+			<div class="divider">{{ $t('account.login.or') }}</div>
 
 			<form class="form" @submit.prevent="sendCode">
-				<label class="label" for="email">Email</label>
+				<label class="label" for="email">{{ $t('account.login.email') }}</label>
 				<input
 					id="email"
 					v-model="email"
@@ -134,16 +137,16 @@ async function social(provider: 'discord' | 'github') {
 				/>
 				<div ref="captchaEl" class="captcha" />
 				<button type="submit" class="btn primary block" :disabled="!emailValid || !captcha || busy">
-					{{ busy ? 'Sending…' : 'Email me a code' }}
+					{{ busy ? $t('account.login.sending') : $t('account.login.emailMe') }}
 				</button>
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 			</form>
 
-			<p class="hint terms">A new BX ID is made the first time you sign in.</p>
+			<p class="hint terms">{{ $t('account.login.newId') }}</p>
 		</template>
 
 		<form v-else class="form" @submit.prevent="signIn">
-			<label class="label" for="otp">Code</label>
+			<label class="label" for="otp">{{ $t('account.login.code') }}</label>
 			<input
 				id="otp"
 				v-model="otp"
@@ -155,10 +158,10 @@ async function social(provider: 'discord' | 'github') {
 				required
 			/>
 			<button type="submit" class="btn primary block" :disabled="!otpValid || busy">
-				{{ busy ? 'Signing in…' : 'Sign in' }}
+				{{ busy ? $t('account.login.signingIn') : $t('account.login.signIn') }}
 			</button>
 			<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
-			<button type="button" class="link" @click="step = 'email'">Use another email or send a new code</button>
+			<button type="button" class="link" @click="step = 'email'">{{ $t('account.login.another') }}</button>
 		</form>
 	</AccountCard>
 </template>

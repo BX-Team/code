@@ -17,6 +17,9 @@ if (!project) {
 }
 
 const link = resolveComponent('NuxtLink');
+const { t, locale } = useI18n();
+const sitePath = useSitePath();
+const text = (key: string) => t(`projects.${project.slug}.${key}`);
 const githubUrl = `https://github.com/${project.repo}`;
 
 const botswarm = (profile: string) => BENCHMARKS.botswarm.find(r => r.build === 'divinemc' && r.profile === profile);
@@ -24,23 +27,44 @@ const paperSwarm = BENCHMARKS.botswarm.find(r => r.build === 'paper');
 const rct4 = BENCHMARKS.rctclusters[4][0];
 const genMax = BENCHMARKS.chunkgen.find(r => r.build === 'divinemc' && r.profile === 'max');
 const genPaper = BENCHMARKS.chunkgen.find(r => r.build === 'paper');
-const benchHighlights = [
+const benchHighlights = computed(() => [
   {
+    id: 'swarm',
     value: `${Math.round(botswarm('rct')?.p50VsPaper ?? 0)}%`,
-    label: 'lower tick time than Paper with 150 players and 1,500 mobs',
-    detail: `${botswarm('rct')?.p50.toFixed(1)} ms against ${paperSwarm?.p50.toFixed(1)} ms, regionized chunk ticking`,
+    label: t('project.bench.swarm.label'),
+    detail: t('project.bench.swarm.detail', {
+      ours: botswarm('rct')?.p50.toFixed(1),
+      paper: paperSwarm?.p50.toFixed(1),
+    }),
   },
   {
+    id: 'regions',
     value: `${Math.round(rct4?.p50VsPaper ?? 0)}%`,
-    label: 'lower tick time than Paper across eight busy regions',
-    detail: `${rct4?.p50.toFixed(1)} ms against ${BENCHMARKS.rctclusters[4][1]?.p50.toFixed(1)} ms, four RCT threads`,
+    label: t('project.bench.regions.label'),
+    detail: t('project.bench.regions.detail', {
+      ours: rct4?.p50.toFixed(1),
+      paper: BENCHMARKS.rctclusters[4][1]?.p50.toFixed(1),
+    }),
   },
   {
+    id: 'pregen',
     value: `${Math.round(genMax?.vsPaper ?? 0)}%`,
-    label: `faster chunk pregeneration, on ${Math.round(-(genMax?.cpuVsPaper ?? 0))}% less CPU`,
-    detail: `${genMax?.seconds.toFixed(0)} s against ${genPaper?.seconds.toFixed(0)} s for 66,049 chunks, max profile`,
+    label: t('project.bench.pregen.label', { cpu: Math.round(-(genMax?.cpuVsPaper ?? 0)) }),
+    detail: t('project.bench.pregen.detail', {
+      ours: genMax?.seconds.toFixed(0),
+      paper: genPaper?.seconds.toFixed(0),
+      chunks: (66049).toLocaleString(locale.value),
+    }),
   },
-];
+]);
+
+const previews = computed(() =>
+  project.previews.map(p => ({
+    src: p.src,
+    alt: text(`previews.${p.id}.alt`),
+    caption: p.caption ? text(`previews.${p.id}.caption`) : undefined,
+  })),
+);
 
 const zoomed = ref<number | null>(null);
 
@@ -54,14 +78,14 @@ const start = computed(() => project.start[startIndex.value] ?? project.start[0]
 const coloured = shallowRef<Record<string, ThemedToken[][]>>({});
 onMounted(async () => {
   const entries = await Promise.all(
-    project.start.filter(s => s.code && s.lang).map(async s => [s.title, await tokenize(s.code!, s.lang!)] as const),
+    project.start.filter(s => s.code && s.lang).map(async s => [s.id, await tokenize(s.code!, s.lang!)] as const),
   );
   coloured.value = Object.fromEntries(entries);
 });
 
 useHead({
   title: project.name,
-  meta: [{ name: 'description', content: project.summary }],
+  meta: [{ name: 'description', content: () => text('summary') }],
 });
 </script>
 
@@ -70,24 +94,24 @@ useHead({
 		<SiteNav search-enabled @search="openCommandPalette()" />
 
 		<main>
-			<PageHero :title="project.name" :tagline="project.tagline" :lede="project.lede">
+			<PageHero :title="project.name" :tagline="text('tagline')" :lede="text('lede')">
 				<template #crumbs>
-					<NuxtLink to="/#projects">Projects</NuxtLink>
+					<NuxtLink :to="sitePath('/#projects')">{{ t('project.projects') }}</NuxtLink>
 					<span aria-hidden="true">/</span>
 					<span aria-current="page">{{ project.name }}</span>
 				</template>
 				<template #badge>
-					<span v-if="project.archived" class="proj-chip">Archived</span>
-					<span v-else class="proj-tag">{{ project.tag }}</span>
+					<span v-if="project.archived" class="proj-chip">{{ t('project.archived') }}</span>
+					<span v-else class="proj-tag">{{ text('tag') }}</span>
 				</template>
 				<template #cta>
-					<Button v-if="project.downloads" variant="primary" :href="project.downloads">
+					<Button v-if="project.downloads" variant="primary" :href="sitePath(project.downloads)">
 						<Download :size="16" :stroke-width="1.7" />
-						Download
+						{{ t('project.download') }}
 					</Button>
 					<Button v-if="project.docs" :variant="project.downloads ? 'secondary' : 'primary'" :href="project.docs">
 						<BookOpen :size="16" :stroke-width="1.7" />
-						Documentation
+						{{ t('project.docs') }}
 					</Button>
 					<template v-if="storeButtons">
 						<Button v-for="c in project.channels" :key="c.href" variant="secondary" :href="c.href" target="_blank" rel="noopener">
@@ -101,7 +125,7 @@ useHead({
 					</Button>
 				</template>
 				<template v-if="project.channels?.length && !storeButtons" #meta>
-					Also on
+					{{ t('project.alsoOn') }}
 					<template v-for="(c, i) in project.channels" :key="c.href">
 						<a class="bx-link" :href="c.href" target="_blank" rel="noopener">{{ c.label }}</a><span v-if="i < project.channels.length - 1">, </span>
 					</template>
@@ -110,46 +134,43 @@ useHead({
 
 			<div v-if="project.archived" class="proj-archived">
 				<p class="proj-callout proj-callout--warn">
-					<span class="proj-callout__mark">Archived</span>
-					<span>
-						{{ project.name }} is archived on GitHub and no longer maintained. The code and releases stay available,
-						but it gets no fixes or updates.
-					</span>
+					<span class="proj-callout__mark">{{ t('project.archived') }}</span>
+					<span>{{ t('project.archivedBody', { name: project.name }) }}</span>
 				</p>
 			</div>
 
 			<Section
 				v-if="project.demo"
 				class="proj-demo"
-				title="Live demo"
-				:lede="`Click around ${project.demo.title} without installing it.`"
+				:title="t('project.demo')"
+				:lede="t('project.demoLede', { name: project.demo.title })"
 			>
 				<ProjectDemo :demo="project.demo" :logo="project.logo" />
 			</Section>
 
-			<Section v-if="project.previews.length" title="Preview">
-				<div class="proj-previews" :class="{ 'proj-previews--single': project.previews.length === 1 }">
-					<figure v-for="(p, i) in project.previews" :key="p.src" class="proj-preview">
-						<button class="proj-preview__frame" type="button" :aria-label="`Enlarge: ${p.caption ?? p.alt}`" @click="zoomed = i">
+			<Section v-if="previews.length" :title="t('project.preview')">
+				<div class="proj-previews" :class="{ 'proj-previews--single': previews.length === 1 }">
+					<figure v-for="(p, i) in previews" :key="p.src" class="proj-preview">
+						<button class="proj-preview__frame" type="button" :aria-label="t('project.enlarge', { name: p.caption ?? p.alt })" @click="zoomed = i">
 							<img :src="p.src" :alt="p.alt" loading="lazy" decoding="async" />
 						</button>
 						<figcaption v-if="p.caption" class="bx-caption">{{ p.caption }}</figcaption>
 					</figure>
 				</div>
-				<PreviewLightbox v-model="zoomed" :previews="project.previews" />
+				<PreviewLightbox v-model="zoomed" :previews="previews" />
 			</Section>
 
-			<Section title="Features" :lede="`What ${project.name} does, and where to read more about each part.`">
+			<Section :title="t('project.features')" :lede="t('project.featuresLede', { name: project.name })">
 				<template v-if="project.docs" #action>
-					<NuxtLink class="bx-link proj-more" :to="project.docs">Read the docs →</NuxtLink>
+					<NuxtLink class="bx-link proj-more" :to="project.docs">{{ t('project.readDocs') }} →</NuxtLink>
 				</template>
 				<div class="proj-grid">
 					<FeatureCard
 						v-for="f in project.features"
-						:key="f.title"
-						:title="f.title"
-						:body="f.body"
-						:href="f.href"
+						:key="f.id"
+						:title="text(`features.${f.id}.title`)"
+						:body="text(`features.${f.id}.body`)"
+						:href="f.href && sitePath(f.href)"
 						:link-as="link"
 					>
 						<template #icon>
@@ -162,47 +183,42 @@ useHead({
 			<Section
 				v-if="project.benchmarks === 'pending'"
 				title="Paper vs DivineMC"
-				lede="The same worlds, the same plugins and the same hardware, run on both servers and measured side by side."
+				:lede="t('project.pending.lede')"
 			>
 				<p class="proj-callout proj-callout--note">
-					<span class="proj-callout__mark">In progress</span>
-					<span>
-						The benchmark runs are still going. Results — tick times, TPS and memory under load — will be published here
-						once they are complete.
-					</span>
+					<span class="proj-callout__mark">{{ t('project.pending.mark') }}</span>
+					<span>{{ t('project.pending.body') }}</span>
 				</p>
 			</Section>
 
 			<Section
 				v-else-if="project.benchmarks"
-				title="Benchmarks"
-				:lede="`${project.name} against Paper and Purpur: the same worlds, the same bots and the same machine, five runs each.`"
+				:title="t('project.bench.title')"
+				:lede="t('project.bench.lede', { name: project.name })"
 			>
 				<template #action>
-					<NuxtLink class="bx-link proj-more" :to="project.benchmarks.docs">Full results →</NuxtLink>
+					<NuxtLink class="bx-link proj-more" :to="project.benchmarks.docs">{{ t('project.bench.full') }} →</NuxtLink>
 				</template>
 				<div class="proj-bench">
-					<div v-for="h in benchHighlights" :key="h.label" class="proj-bench__stat">
+					<div v-for="h in benchHighlights" :key="h.id" class="proj-bench__stat">
 						<p class="proj-bench__value bx-text-grad">{{ h.value }}</p>
 						<p class="proj-bench__label">{{ h.label }}</p>
 						<p class="bx-caption">{{ h.detail }}</p>
 					</div>
 				</div>
-				<p class="bx-micro proj-bench__title">Tick time, 150 players and 1,500 mobs</p>
+				<p class="bx-micro proj-bench__title">{{ t('project.bench.chart') }}</p>
 				<BenchChart scenario="botswarm" hide-parity />
 				<p class="bx-caption proj-bench__note">
-					{{ BENCHMARKS.cpu }}, Minecraft {{ BENCHMARKS.minecraft }}, median of five runs. The speed comes from
-					spreading work across cores: DivineMC uses 1.6–1.8 cores here against Paper’s 1.4. Hover or tap a bar for
-					p99, CPU and run spread.
+					{{ t('project.bench.note', { cpu: BENCHMARKS.cpu, minecraft: BENCHMARKS.minecraft }) }}
 				</p>
 			</Section>
 
-			<Section title="Get started">
+			<Section :title="t('project.start')">
 				<div class="proj-start" :class="{ 'proj-start--single': project.start.length === 1 }">
-					<div v-if="project.start.length > 1" class="proj-start__tabs" role="tablist" aria-label="Ways to get started">
+					<div v-if="project.start.length > 1" class="proj-start__tabs" role="tablist" :aria-label="t('project.startWays')">
 						<button
 							v-for="(s, i) in project.start"
-							:key="s.title"
+							:key="s.id"
 							type="button"
 							role="tab"
 							class="proj-start__tab"
@@ -210,15 +226,15 @@ useHead({
 							:aria-selected="i === startIndex"
 							@click="startIndex = i"
 						>
-							<span class="proj-start__label">{{ s.label }}</span>
-							<span class="proj-start__name">{{ s.title }}</span>
+							<span class="proj-start__label">{{ text(`start.${s.id}.label`) }}</span>
+							<span class="proj-start__name">{{ text(`start.${s.id}.title`) }}</span>
 						</button>
 					</div>
 
 					<div class="proj-start__panel" role="tabpanel">
-						<p v-if="project.start.length === 1" class="proj-start__label">{{ start.label }}</p>
-						<h3 class="proj-start__title">{{ start.title }}</h3>
-						<p class="proj-start__body">{{ start.body }}</p>
+						<p v-if="project.start.length === 1" class="proj-start__label">{{ text(`start.${start.id}.label`) }}</p>
+						<h3 class="proj-start__title">{{ text(`start.${start.id}.title`) }}</h3>
+						<p class="proj-start__body">{{ text(`start.${start.id}.body`) }}</p>
 						<div v-if="start.code" class="proj-code">
 							<div class="proj-code__bar">
 								<span class="proj-code__dots" aria-hidden="true"><i /><i /><i /></span>
@@ -226,26 +242,26 @@ useHead({
 								<button
 									type="button"
 									class="proj-code__copy"
-									:aria-label="copied && copiedText === start.code ? 'Copied' : 'Copy to clipboard'"
+									:aria-label="copied && copiedText === start.code ? t('common.copied') : t('common.copy')"
 									@click="copy(start.code)"
 								>
 									<Check v-if="copied && copiedText === start.code" :size="15" :stroke-width="1.7" />
 									<Copy v-else :size="15" :stroke-width="1.7" />
 								</button>
 							</div>
-							<pre v-if="coloured[start.title]"><code><template v-for="(line, i) in coloured[start.title]" :key="i"><span
-								v-for="(token, at) in line" :key="at" :style="{ color: token.color }">{{ token.content }}</span><template v-if="i < coloured[start.title]!.length - 1">{{ '\n' }}</template></template></code></pre>
+							<pre v-if="coloured[start.id]"><code><template v-for="(line, i) in coloured[start.id]" :key="i"><span
+								v-for="(token, at) in line" :key="at" :style="{ color: token.color }">{{ token.content }}</span><template v-if="i < coloured[start.id]!.length - 1">{{ '\n' }}</template></template></code></pre>
 							<pre v-else><code>{{ start.code }}</code></pre>
 						</div>
-						<div v-if="start.action" class="proj-start__foot">
+						<div v-if="start.href" class="proj-start__foot">
 							<Button
 								variant="primary"
-								:href="start.action.href"
-								:target="start.action.href.startsWith('http') ? '_blank' : undefined"
-								:rel="start.action.href.startsWith('http') ? 'noopener' : undefined"
+								:href="sitePath(start.href)"
+								:target="start.href.startsWith('http') ? '_blank' : undefined"
+								:rel="start.href.startsWith('http') ? 'noopener' : undefined"
 							>
-								{{ start.action.label }}
-								<ArrowUpRight v-if="start.action.href.startsWith('http')" :size="15" :stroke-width="1.7" />
+								{{ text(`start.${start.id}.action`) }}
+								<ArrowUpRight v-if="start.href.startsWith('http')" :size="15" :stroke-width="1.7" />
 							</Button>
 						</div>
 					</div>

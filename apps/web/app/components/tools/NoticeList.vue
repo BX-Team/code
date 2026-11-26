@@ -3,15 +3,17 @@ import { AlertTriangle, Info } from '@lucide/vue';
 import type { Notice } from '@/lib/notice';
 
 defineProps<{ notices: Notice[]; columns?: boolean }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
 	<div v-if="notices.length" class="notices" :class="{ columns }">
-		<article v-for="notice in notices" :key="notice.title" class="notice" :class="notice.level">
+		<article v-for="notice in notices" :key="notice.id" class="notice" :class="notice.level">
 			<component :is="notice.level === 'warning' ? AlertTriangle : Info" :size="15" :stroke-width="1.8" />
 			<div>
-				<h4>{{ notice.title }}</h4>
-				<p>{{ notice.body }}</p>
+				<h4>{{ t(`notices.${notice.id}.title`, notice.params ?? {}) }}</h4>
+				<p>{{ t(`notices.${notice.id}.body`, notice.params ?? {}) }}</p>
 			</div>
 		</article>
 	</div>

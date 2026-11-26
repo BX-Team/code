@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Calendar, ExternalLink, GitCommit, Package } from '@lucide/vue';
 import { type Build, commitUrl, getChannelColor, type ProjectSummary, primaryDownload } from '@/lib/builds';
-import { formatBytes, formatDate } from '@/lib/format';
 import DownloadFiles from './DownloadFiles.vue';
 
 const props = defineProps<{
@@ -9,6 +8,8 @@ const props = defineProps<{
   project: ProjectSummary;
 }>();
 
+const { t } = useI18n();
+const format = useFormat();
 const primary = computed(() => primaryDownload(props.build.downloads));
 /** A commit inside this site's own git section opens in place; GitHub does not. */
 const external = computed(() => !props.project.repo);
@@ -19,18 +20,18 @@ const external = computed(() => !props.project.repo);
 		<div class="card-head">
 			<div>
 				<div class="title-row">
-					<h3>Build #{{ build.build }}</h3>
+					<h3>{{ t('downloads.build', { n: build.build }) }}</h3>
 					<span class="bx-channel" :class="getChannelColor(build.channel)">{{ build.channel }}</span>
 				</div>
 				<div class="meta">
-					<div><Calendar :size="14" :stroke-width="1.7" /><span>{{ formatDate(build.created_at) }}</span></div>
-					<div v-if="primary"><Package :size="14" :stroke-width="1.7" /><span>{{ formatBytes(primary.size) }}</span></div>
+					<div><Calendar :size="14" :stroke-width="1.7" /><span>{{ format.dateTime(build.created_at) }}</span></div>
+					<div v-if="primary"><Package :size="14" :stroke-width="1.7" /><span>{{ format.bytes(primary.size) }}</span></div>
 				</div>
 			</div>
 		</div>
 
 		<div v-if="build.commits.length" class="section">
-			<h4><GitCommit :size="14" :stroke-width="1.7" /> Commits</h4>
+			<h4><GitCommit :size="14" :stroke-width="1.7" /> {{ t('downloads.commits') }}</h4>
 			<ul>
 				<li v-for="c in build.commits" :key="c.sha">
 					<NuxtLink
@@ -48,7 +49,7 @@ const external = computed(() => !props.project.repo);
 		</div>
 
 		<div class="section">
-			<h4><Package :size="14" :stroke-width="1.7" /> Files</h4>
+			<h4><Package :size="14" :stroke-width="1.7" /> {{ t('downloads.files') }}</h4>
 			<DownloadFiles :downloads="build.downloads" />
 		</div>
 	</div>

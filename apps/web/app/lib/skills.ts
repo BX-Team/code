@@ -2,25 +2,20 @@ import { RestTreeSchema } from '@bx-team/types/schema/github';
 import { GITHUB_API } from './releases';
 import { downloadZip } from './zip';
 
+/** Title and description are `tools.skillList.<name>.*`. */
 export interface Skill {
   name: string;
-  title: string;
-  body: string;
-  /** The tool on this site that does the same job without a model. */
-  tool?: { label: string; to: string };
+  /** The tool on this site that does the same job without a model; its name is `tools.<tool>.name`. */
+  tool?: { key: string; to: string };
 }
 
 export const SKILLS: Skill[] = [
   {
     name: 'jvm-flags',
-    title: 'JVM flags',
-    body: 'Picks a flag set for your Java, JVM, OS, CPU and heap, explains every flag and writes start.sh, start.bat or a panel line. Also reads a failed start and says which flag broke it.',
-    tool: { label: 'Server flags generator', to: '/tools/server-flags-generator' },
+    tool: { key: 'flags', to: '/tools/server-flags-generator' },
   },
   {
     name: 'server-config',
-    title: 'Server config',
-    body: 'Tunes server.properties, bukkit.yml, spigot.yml, paper, purpur and divinemc configs for your kind of server, and reviews a config you already have.',
   },
 ];
 

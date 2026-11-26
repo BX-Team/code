@@ -1,5 +1,7 @@
 <script setup lang="ts">
 /** The frame of every tool: crumbs, a title and its line, then the tool itself. */
+const sitePath = useSitePath();
+
 withDefaults(defineProps<{ title: string; lead: string; crumb?: boolean }>(), { crumb: true });
 </script>
 
@@ -7,8 +9,8 @@ withDefaults(defineProps<{ title: string; lead: string; crumb?: boolean }>(), { 
 	<PageShell>
 		<main class="tool">
 			<header class="tool__head">
-				<nav v-if="crumb" class="tool__crumbs" aria-label="Breadcrumb">
-					<NuxtLink to="/tools">Tools</NuxtLink>
+				<nav v-if="crumb" class="tool__crumbs" :aria-label="$t('common.breadcrumb')">
+					<NuxtLink :to="sitePath('/tools')">{{ $t('tools.crumbs') }}</NuxtLink>
 					<span aria-hidden="true">/</span>
 					<span aria-current="page">{{ title }}</span>
 				</nav>

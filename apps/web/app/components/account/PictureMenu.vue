@@ -6,6 +6,7 @@ import { auth, PROVIDER_NAMES, pictureSource, setPicture } from '~/lib/auth';
 
 const props = withDefaults(defineProps<{ size?: number }>(), { size: 56 });
 
+const { t } = useI18n();
 const session = auth.useSession();
 const { links } = useAccountData();
 const user = computed(() => session.value.data?.user);
@@ -21,7 +22,7 @@ const options = computed(() => {
   const linked = new Set((links.value ?? []).map(l => l.providerId));
   return [
     ...(['discord', 'github'] as const).map(id => ({ id, label: PROVIDER_NAMES[id] ?? id, ok: linked.has(id) })),
-    { id: 'initial' as const, label: 'Initial', ok: true },
+    { id: 'initial' as const, label: t('account.picture.initial'), ok: true },
   ];
 });
 
@@ -32,7 +33,7 @@ async function pick(source: PictureSource) {
     await setPicture(source);
     open.value = false;
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Could not change the picture.';
+    error.value = e instanceof Error ? e.message : t('account.picture.failed');
   } finally {
     busy.value = null;
   }
@@ -63,7 +64,7 @@ onBeforeUnmount(() => {
 		<button
 			type="button"
 			class="pm__pen"
-			aria-label="Change picture"
+			:aria-label="$t('account.picture.change')"
 			aria-haspopup="menu"
 			:aria-expanded="open"
 			@click="open = !open"
@@ -71,8 +72,8 @@ onBeforeUnmount(() => {
 			<Pencil :size="13" :stroke-width="2" />
 		</button>
 
-		<div v-if="open" class="pm__menu" role="menu" aria-label="Picture from">
-			<span class="pm__title">Picture from</span>
+		<div v-if="open" class="pm__menu" role="menu" :aria-label="$t('account.picture.from')">
+			<span class="pm__title">{{ $t('account.picture.from') }}</span>
 			<button
 				v-for="option in options"
 				:key="option.id"
@@ -84,8 +85,8 @@ onBeforeUnmount(() => {
 				@click="pick(option.id)"
 			>
 				<span class="pm__label">{{ option.label }}</span>
-				<span v-if="!option.ok" class="pm__note">Not connected</span>
-				<span v-else-if="busy === option.id" class="pm__note">Saving…</span>
+				<span v-if="!option.ok" class="pm__note">{{ $t('account.methods.notConnected') }}</span>
+				<span v-else-if="busy === option.id" class="pm__note">{{ $t('account.picture.saving') }}</span>
 				<Check v-else-if="current === option.id" :size="15" :stroke-width="2" class="pm__check" />
 			</button>
 			<p v-if="error" class="pm__error" role="alert">{{ error }}</p>

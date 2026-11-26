@@ -14,16 +14,14 @@ export function diagnose(env: Env, preset: Preset, flags: string[]): Notice[] {
   if (env.heapMB < 2 * GB) {
     notices.push({
       level: 'warning',
-      title: 'Heap under 2 GB',
-      body: 'A modern server barely boots in this much. These sets assume 4 GB and up; below that the GC tuning is noise.',
+      id: 'flags.smallHeap',
     });
   }
 
   if (env.heapMB >= 31 * GB && has('-XX:+UseCompressedOops')) {
     notices.push({
       level: 'warning',
-      title: 'Compressed references stop working near 32 GB',
-      body: 'Above roughly 32 GB the JVM drops compressed object pointers, so every reference doubles in size. A 31 GB heap often holds more objects than a 33 GB one.',
+      id: 'flags.compressedOops',
     });
   }
 
@@ -31,94 +29,81 @@ export function diagnose(env: Env, preset: Preset, flags: string[]): Notice[] {
     if (env.heapMB < 32 * GB) {
       notices.push({
         level: 'warning',
-        title: 'ZGC below its intended heap',
-        body: 'This set is meant for 32 GB or more on 10+ cores. On a smaller host G1 collects less often and leaves more CPU for ticks.',
+        id: 'flags.zgcSmallHeap',
       });
     }
     notices.push({
       level: 'info',
-      title: 'ZGC needs spare cores',
-      body: 'ZGC collects concurrently, so it competes with the server threads for CPU. On a busy box that shows up as lower TPS, not as pauses.',
+      id: 'flags.zgcCores',
     });
   }
 
   if (env.graal !== 'none' && !['meowice', 'meowice-zgc', 'bruce'].includes(preset.id)) {
     notices.push({
       level: 'info',
-      title: 'Nothing here uses GraalVM',
-      body: `${preset.name} has no Graal-specific options. Pick MeowIce or brucethemoose to get them.`,
+      id: 'flags.noGraal',
+      params: { preset: preset.name },
     });
   }
 
   if (isGraalEE(env) && since(env, 23)) {
     notices.push({
       level: 'info',
-      title: 'Graal properties use the new prefix',
-      body: 'From Java 23 the compiler reads -Djdk.graal.*; the old -Dgraal.* names are ignored without an error.',
+      id: 'flags.graalPrefix',
     });
   }
 
   if (!isX86(env)) {
     notices.push({
       level: 'info',
-      title: 'x86-only options were left out',
-      body: 'An aarch64 JVM rejects -XX:+UseXmm*, -XX:UseAVX and the other x86 intrinsics outright and refuses to start, so they are not in this list.',
+      id: 'flags.x86Dropped',
     });
   }
 
   if (since(env, 18) && preset.id === 'hilltty') {
     notices.push({
       level: 'info',
-      title: '-XX:-UseBiasedLocking was left out',
-      body: 'Biased locking was removed in Java 18 and the option is now rejected. It is only emitted for Java 17.',
+      id: 'flags.biasedLocking',
     });
   }
 
   if (preset.id === 'hilltty' && since(env, 24)) {
     notices.push({
       level: 'info',
-      title: 'Shenandoah iu mode was left out',
-      body: 'The incremental-update mode is gone in Java 24; the default (SATB) mode is used instead.',
+      id: 'flags.shenandoahIu',
     });
   }
 
   if (since(env, 24) && has('-XX:+UseCompactObjectHeaders')) {
     notices.push({
       level: 'info',
-      title: 'Compact object headers are on',
-      body: 'Java 24 can store an object header in 8 bytes instead of 12. Expect a few percent less heap for the same world.',
+      id: 'flags.compactHeaders',
     });
   }
 
   if (has('-XX:+UseLargePages')) {
     notices.push({
       level: 'warning',
-      title: 'Large pages need the host configured',
-      body: isLinux(env)
-        ? 'Without transparent huge pages enabled (or vm.nr_hugepages reserved) the JVM prints a warning at startup and falls back to normal pages.'
-        : 'Outside Linux large pages need an OS privilege (SeLockMemoryPrivilege on Windows). Without it the JVM warns at startup and carries on with normal pages.',
+      id: isLinux(env) ? 'flags.largePagesLinux' : 'flags.largePages',
     });
   }
 
   if (has('--add-modules=jdk.incubator.vector')) {
     notices.push({
       level: 'info',
-      title: 'The Vector API is still incubating',
-      body: 'Java prints a warning about an incubator module on every start. That line is expected, not a misconfiguration.',
+      id: 'flags.vectorIncubator',
     });
   }
 
   if (env.java < 21) {
     notices.push({
       level: 'warning',
-      title: 'Too old for current server builds',
-      body: 'Current Paper builds need Java 21, and DivineMC needs Java 25.',
+      id: 'flags.javaTooOld',
     });
   } else if (env.java < 25) {
     notices.push({
       level: 'info',
-      title: 'DivineMC needs Java 25',
-      body: 'Paper and Purpur still run on Java 21, but current DivineMC builds refuse to start below 25.',
+      id: 'flags.divinemcJava',
     });
   }
 

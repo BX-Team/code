@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { auth } from '~/lib/auth';
 
+const { t } = useI18n();
 const session = auth.useSession();
 const user = computed(() => session.value.data?.user);
 const saved = computed(() => ({
@@ -41,7 +42,9 @@ async function save() {
   busy.value = false;
   if (failed) {
     error.value =
-      failed.code === 'USERNAME_IS_ALREADY_TAKEN' ? 'That username is taken.' : (failed.message ?? 'Could not save.');
+      failed.code === 'USERNAME_IS_ALREADY_TAKEN'
+        ? t('account.profile.taken')
+        : (failed.message ?? t('account.profile.failed'));
     return;
   }
   done.value = true;
@@ -56,21 +59,25 @@ function reset() {
 </script>
 
 <template>
-	<AccountSection id="profile" title="Profile" :lead="`How you appear in every BX Team app. Signed in as ${user?.email ?? ''}.`">
+	<AccountSection
+		id="profile"
+		:title="$t('account.profile.title')"
+		:lead="$t('account.profile.lede', { email: user?.email ?? '' })"
+	>
 		<form class="pf" @submit.prevent="save">
 			<label class="pf__field">
-				<span class="label">Display name</span>
+				<span class="label">{{ $t('account.profile.displayName') }}</span>
 				<input
 					v-model="name"
 					class="input"
 					autocomplete="nickname"
 					maxlength="40"
-					:placeholder="username || 'Your name'"
+					:placeholder="username || $t('account.profile.yourName')"
 					@input="done = false"
 				/>
 			</label>
 			<label class="pf__field">
-				<span class="label">Username</span>
+				<span class="label">{{ $t('account.profile.username') }}</span>
 				<input
 					v-model="username"
 					class="input"
@@ -78,19 +85,19 @@ function reset() {
 					autocapitalize="off"
 					spellcheck="false"
 					maxlength="30"
-					placeholder="Pick one"
+					:placeholder="$t('account.profile.pick')"
 					@input="done = false"
 				/>
 			</label>
 
 			<div class="pf__foot">
 				<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
-				<p v-else-if="done" class="hint">Saved.</p>
-				<p v-else class="hint">3 to 30 letters, digits, dots or underscores.</p>
+				<p v-else-if="done" class="hint">{{ $t('account.profile.saved') }}</p>
+				<p v-else class="hint">{{ $t('account.profile.rule') }}</p>
 				<div class="pf__actions">
-					<button v-if="changed" type="button" class="btn quiet small" @click="reset">Reset</button>
+					<button v-if="changed" type="button" class="btn quiet small" @click="reset">{{ $t('account.profile.reset') }}</button>
 					<button type="submit" class="btn primary small" :disabled="!nameValid || !usernameValid || !changed || busy">
-						{{ busy ? 'Saving…' : 'Save' }}
+						{{ busy ? $t('account.profile.saving') : $t('account.profile.save') }}
 					</button>
 				</div>
 			</div>
