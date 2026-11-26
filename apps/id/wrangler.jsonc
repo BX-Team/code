@@ -19,14 +19,12 @@
     "SMTP_HOST": "stockholm.bxteam.org",
     "SMTP_PORT": "465",
     "SMTP_USERNAME": "noreply@bxteam.org",
-    "MAIL_FROM": "noreply@bxteam.org",
-    "MOJANG_PROXY_URL": "https://mojang.bxteam.org"
+    "MAIL_FROM": "noreply@bxteam.org"
   },
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
       "SMTP_PASSWORD",
-      "MOJANG_PROXY_KEY",
       "TURNSTILE_SECRET_KEY",
       "DISCORD_CLIENT_ID",
       "DISCORD_CLIENT_SECRET",
@@ -37,7 +35,8 @@
     ]
   },
   "flagship": [{ "binding": "FLAGS", "app_id": "bcad6546-ebdf-45f9-bab8-a695beb02755" }],
-  "services": [{ "binding": "SKINS", "service": "skins", "entrypoint": "SkinsService" }],
+  // Products built on BX ID, see `@bx-team/worker/product`: deleting a BX ID asks each to forget it.
+  "services": [{ "binding": "PRODUCT_SKINS", "service": "skins", "entrypoint": "SkinsService" }],
   "durable_objects": {
     "bindings": [{ "name": "HUB", "class_name": "UserHub" }, { "name": "LOBBY", "class_name": "Lobby" }]
   },

@@ -12,10 +12,7 @@ export type {
   ProjectSummary,
 } from '@bx-team/types/schema/downloads';
 
-/**
- * `no-cache` matters on the read-back after a publish: the API edge-caches its public
- * GETs, and an announcement must not describe the build before this one.
- */
+// The API edge-caches public GETs, and the read-back after a publish must see the new build.
 const api = hc<ApiContract>(RESOURCES.api, {
   headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
 }).v1;

@@ -1,4 +1,4 @@
-import type { EmbedBuilder } from '@discordjs/builders';
+import type { APIEmbed } from 'discord-api-types/v10';
 import { RESOURCES } from '../config/resources';
 import { COLORS, createEmbed } from '../discord/embeds';
 import { type Build, type Channel, type Commit, type Download, type ProjectSummary, primaryDownload } from './client';
@@ -11,11 +11,11 @@ const CHANNEL_COLORS: Record<Channel, number> = {
   alpha: COLORS.brand,
 };
 
-/** A project's sources are on GitHub; `repo` is the repository's name in the org. */
+/** `repo` is the repository's name in the org. */
 export const repoUrl = (repo: string) => `${RESOURCES.github}/${repo}`;
 export const commitUrl = (repo: string, sha: string) => `${repoUrl(repo)}/commit/${sha}`;
 
-export function buildPublishedEmbed(project: ProjectSummary, build: Build): EmbedBuilder {
+export function buildPublishedEmbed(project: ProjectSummary, build: Build): APIEmbed {
   return createEmbed({
     color: CHANNEL_COLORS[build.channel],
     title: `${project.name} ${build.version} — build #${build.build}`,
@@ -25,7 +25,7 @@ export function buildPublishedEmbed(project: ProjectSummary, build: Build): Embe
   });
 }
 
-export function latestBuildEmbed(project: ProjectSummary, build: Build): EmbedBuilder {
+export function latestBuildEmbed(project: ProjectSummary, build: Build): APIEmbed {
   return createEmbed({
     color: CHANNEL_COLORS[build.channel],
     title: `${project.name} ${build.version} — build #${build.build}`,

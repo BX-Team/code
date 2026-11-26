@@ -24,10 +24,7 @@ interface Comment {
   user: { type: string } | null;
 }
 
-/**
- * Comments on a labelled pull request with the downloads its successful CI run uploaded. One
- * comment per workflow, rewritten by every later run, so new pushes do not pile up comments.
- */
+/** One comment per workflow, rewritten by every later run, so pushes don't pile up comments. */
 export async function onArtifactsRun(gh: Github, event: WorkflowRunEvent): Promise<number[]> {
   const run = event.workflow_run;
   if (event.action !== 'completed' || run.event !== 'pull_request' || run.conclusion !== 'success') return [];

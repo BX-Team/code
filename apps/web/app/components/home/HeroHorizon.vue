@@ -1,9 +1,5 @@
 <script setup lang="ts">
-/**
- * A grid floor running to a horizon, drawn as SVG lines in true perspective rather than a
- * 3D-transformed CSS texture, which the browser resamples into blur. The rails converge on the
- * vanishing point and never move; only the cross lines are recomputed each frame as they come closer.
- */
+// SVG lines in true perspective, not a 3D-transformed CSS texture, which the browser resamples into blur.
 const VIEW_W = 1000;
 const VIEW_H = 1000;
 /** Where the horizon sits, as a share of the hero's height. */

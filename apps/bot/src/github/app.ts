@@ -1,4 +1,4 @@
-import type { Env } from '../env';
+import { fromBase64, toBase64Url } from '@bx-team/worker/base64';
 import { Github } from './client';
 
 interface CachedToken {
@@ -10,7 +10,6 @@ interface CachedToken {
 const tokens = new Map<number, CachedToken>();
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
-/** A client acting as the app's installation, the identity every write goes out under. */
 export async function installationClient(env: Env, installationId: number): Promise<Github> {
   const cached = tokens.get(installationId);
   if (cached && cached.expiresAt - REFRESH_MARGIN_MS > Date.now()) return new Github(cached.token);
@@ -57,21 +56,15 @@ async function appJwt(env: Env): Promise<string> {
   return `${unsigned}.${base64url(new Uint8Array(signature))}`;
 }
 
-function pemToDer(pem: string): ArrayBuffer {
+function pemToDer(pem: string): Uint8Array<ArrayBuffer> {
   if (pem.includes('BEGIN RSA PRIVATE KEY')) {
     throw new Error('GITHUB_APP_PRIVATE_KEY is PKCS#1; convert it with `openssl pkcs8 -topk8 -nocrypt`');
   }
-
-  const body = pem.replace(/-----(BEGIN|END) PRIVATE KEY-----/g, '').replace(/\s+/g, '');
-  const binary = atob(body);
-  const der = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) der[i] = binary.charCodeAt(i);
-  return der.buffer;
+  const der = fromBase64(pem.replace(/-----(BEGIN|END) PRIVATE KEY-----/g, ''));
+  if (!der) throw new Error('GITHUB_APP_PRIVATE_KEY is not a PEM key');
+  return der;
 }
 
 function base64url(input: string | Uint8Array): string {
-  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return toBase64Url(typeof input === 'string' ? new TextEncoder().encode(input) : input);
 }

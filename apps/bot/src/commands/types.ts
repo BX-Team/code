@@ -7,7 +7,6 @@ import type {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
   RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
-import type { Env } from '../env';
 
 export interface Command {
   data: RESTPostAPIChatInputApplicationCommandsJSONBody;

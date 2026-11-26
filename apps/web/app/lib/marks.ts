@@ -7,10 +7,7 @@ export interface MarkLayer {
 const deep = (token: string, amount: number) => `color-mix(in srgb, ${token} ${amount}%, #000)`;
 const light = (token: string, amount: number) => `color-mix(in srgb, ${token} ${amount}%, #fff)`;
 
-/**
- * The 16×16 pixel logos the projects ship in `.github/branding/`, with each colour swapped
- * for the site's token that plays the same part, so the marks sit in the accent gradient.
- */
+/** The projects' `.github/branding/` logos, each colour swapped for the site token playing the same part. */
 export const MARKS: Record<string, MarkLayer[]> = {
   // Three particles, each with a highlight.
   quark: [

@@ -1,5 +1,4 @@
-/** Release notes are written as markdown with raw HTML in them, so everything rendered
- *  here goes through DOMPurify — `style` included: notes may not restyle the page. */
+// Release notes carry raw HTML, so all of it goes through DOMPurify, `style` included.
 
 import DOMPurify from 'dompurify';
 import type { RendererRule } from 'markdown-it';

@@ -1,11 +1,7 @@
 import type { PublishEvent } from '@bx-team/types/schema/downloads';
 import { sign } from '@bx-team/worker/signature';
 
-/**
- * Tells the bot what was published. A failure is logged and swallowed: the artifact and
- * its row are already committed, and a missing Discord message is not worth a 500 that
- * would make a workflow retry the whole upload.
- */
+/** A failure is only logged: the build is committed, and a 500 would make the workflow retry the upload. */
 export async function announcePublish(url: string, secret: string, event: PublishEvent): Promise<void> {
   if (!url || !secret) return;
 

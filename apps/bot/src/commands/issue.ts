@@ -22,10 +22,7 @@ export function isDiscordReport(body: string | null | undefined): boolean {
   return body?.includes(DISCORD_REPORT) ?? false;
 }
 
-/**
- * "Create GitHub issue" in a message's Apps menu: a modal prefilled from the message, and an
- * issue opened by the app on submit. Who may use it is set in Discord; by default only admins.
- */
+/** Who may use it is set in Discord; admins only by default. */
 export const createIssue: MessageCommand = {
   data: {
     type: ApplicationCommandType.Message,

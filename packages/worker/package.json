@@ -3,12 +3,23 @@
   "type": "module",
   "license": "AGPL-3.0-only",
   "exports": {
+    "./base64": "./src/base64.ts",
+    "./bxid": "./src/bxid.ts",
+    "./db": "./src/db.ts",
+    "./dev": "./scripts/dev.ts",
     "./error": "./src/error.ts",
     "./flags": "./src/flags.ts",
     "./hex": "./src/hex.ts",
+    "./http": "./src/http.ts",
     "./signature": "./src/signature.ts"
   },
   "dependencies": {
-    "hono": "^4.13.21"
+    "@hono/zod-validator": "0.9.1",
+    "hono": "^4.13.21",
+    "kysely": "0.29.9",
+    "zod": "^4.6.7"
+  },
+  "bin": {
+    "bx-db-types": "./scripts/db-types.ts"
   }
 }

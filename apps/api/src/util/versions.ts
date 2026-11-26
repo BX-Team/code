@@ -1,10 +1,4 @@
-/**
- * Minecraft version parsing/grouping. Supports both version schemes:
- *   - legacy:  1.X[.Y]      (e.g. 1.20, 1.20.1, 1.21.7-pre1)
- *   - modern:  XX.Y[.Z]     (e.g. 26.1, 26.1.2, 26.2-rc1)
- *
- * Newer versions sort before older ones; pre-release < rc < release.
- */
+// Legacy 1.X[.Y] (1.21.7-pre1) and modern XX.Y[.Z] (26.2-rc1); newest first, pre < rc < release.
 
 interface ParsedVersion {
   major: number;
@@ -53,10 +47,7 @@ export function sortNewestFirst(versionKeys: string[]): string[] {
   return [...versionKeys].sort(newestFirst);
 }
 
-/**
- * Groups version keys by `major.minor` (1.20.1 → "1.20"; 26.1.2 → "26.1"), each group
- * sorted newest-first. 26.1 and 26.1.2 land in the same group; 26.2 is its own group.
- */
+/** By `major.minor`: 1.20.1 → 1.20, 26.1.2 → 26.1. */
 export function groupVersions(versionKeys: string[]): Record<string, string[]> {
   const groups: Record<string, string[]> = {};
   for (const version of sortNewestFirst(versionKeys)) {

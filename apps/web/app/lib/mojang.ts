@@ -20,11 +20,7 @@ export class LookupError extends Error {}
 
 type Lookup = { kind: 'found'; profile: SessionProfile } | { kind: 'missing' } | { kind: 'failed' };
 
-/**
- * Mojang answers a Cloudflare Worker with 403 and sends no CORS headers to a browser, so
- * the lookup goes through two public mirrors that do: crafthead.net, then playerdb.co.
- * Takes a username or an online UUID.
- */
+/** Mojang 403s Workers and sends browsers no CORS headers, so this asks crafthead.net, then playerdb.co. */
 export async function fetchProfile(query: string): Promise<MojangProfile | null> {
   const key = UUID_PATTERN.test(query) ? undashed(query).toLowerCase() : query;
 
@@ -152,8 +148,7 @@ export const dashed = (id: string) =>
 
 export const undashed = (id: string) => id.replaceAll('-', '');
 
-/** `UUID.nameUUIDFromBytes` over `OfflinePlayer:<name>`, exactly as an offline-mode
- *  server derives it. Case sensitive, because the server takes the name as it was sent. */
+/** `UUID.nameUUIDFromBytes("OfflinePlayer:" + name)`, as an offline-mode server derives it; case matters. */
 export function offlineUuid(username: string): string {
   const digest = md5(new TextEncoder().encode(`OfflinePlayer:${username}`));
   digest[6] = ((digest[6] as number) & 0x0f) | 0x30;

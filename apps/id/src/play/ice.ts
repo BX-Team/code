@@ -1,7 +1,6 @@
 import { IceServersSchema } from '@bx-team/types/schema/play';
 import { internal } from '@bx-team/worker/error';
 import { isOn } from '@bx-team/worker/flags';
-import type { Env } from '../env';
 
 const TTL_SECONDS = 6 * 60 * 60;
 

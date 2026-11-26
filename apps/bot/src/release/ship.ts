@@ -19,11 +19,7 @@ interface Release {
   body: string | null;
 }
 
-/**
- * Ships a merged release PR: the draft release first, then the `v*` tag on the merge commit.
- * The tag push, made with the app's token, is what starts the repository's release workflow.
- * Safe to redeliver: an existing draft is updated, and a tag already on the merge commit is kept.
- */
+/** The tag push, made with the app's token, starts the release workflow; safe to redeliver. */
 export async function tagRelease(gh: Github, repo: RepoRef, config: ReleaseConfig, pull: MergedPull): Promise<void> {
   const version = releaseTitleVersion(pull.title);
   if (!version || !pull.merge_commit_sha) throw new Error(`${repo.full}#${pull.number} is not a release merge`);
@@ -72,7 +68,6 @@ async function ensureDraft(
   });
 }
 
-/** The release for `tag`, draft or not. */
 export async function findRelease(gh: Github, repo: RepoRef, tag: string): Promise<Release | undefined> {
   // Drafts are invisible to `/releases/tags/{tag}`, so they are found by listing.
   const recent = await gh.request<Release[]>('GET', `/repos/${repo.full}/releases?per_page=30`);
@@ -112,10 +107,7 @@ async function taggedCommit(gh: Github, repo: RepoRef, tag: string): Promise<str
   }
 }
 
-/**
- * Squash-merges the release PR now if it is mergeable, or turns on auto-merge so GitHub
- * merges it the moment the required checks pass. `hold` marks the release to stay a draft.
- */
+/** Squash-merges now when mergeable, else turns on auto-merge; `hold` keeps the release a draft. */
 export async function mergeRelease(
   gh: Github,
   repo: RepoRef,

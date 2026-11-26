@@ -1,6 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Lobby as LobbyState, ServerEvent } from '@bx-team/types/schema/play';
-import type { Env } from '../env';
 
 /** A lobby nobody closed is gone after a day; the host's launcher opens a new one per session. */
 const LIFETIME_MS = 24 * 60 * 60 * 1000;

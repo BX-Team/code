@@ -1,9 +1,5 @@
 <script setup lang="ts">
-/**
- * Columns of light rising from the bottom edge, cyan on the left to green on the right, each
- * breathing on its own period. Soft gradients scaled by CSS transforms: nothing thin to blur,
- * no script per frame. `HeroHorizon` is the alternative this replaced, kept for a later swap.
- */
+// Soft gradients scaled by CSS transforms: nothing thin to blur, no script per frame. `HeroHorizon` is kept for a later swap.
 const COUNT = 16;
 
 const beams = Array.from({ length: COUNT }, (_, i) => ({

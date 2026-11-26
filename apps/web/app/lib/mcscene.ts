@@ -1,7 +1,4 @@
-/**
- * Backdrops for the Minecraft-style previews, drawn here as pixel SVGs rather than taken from
- * the game: Mojang's textures are not ours to ship. Deterministic, so prerender and client agree.
- */
+// Drawn here, as Mojang's textures are not ours to ship; deterministic, so prerender and client agree.
 
 function rng(seed: number) {
   let state = seed >>> 0;

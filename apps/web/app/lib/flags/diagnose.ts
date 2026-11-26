@@ -6,8 +6,7 @@ export type { Notice, NoticeLevel } from '../notice';
 
 const GB = 1024;
 
-/** Explains what the environment did to the flag list — both what was dropped and
- *  what the set silently assumes about the host. */
+/** What was dropped from the flag list, and what the set silently assumes about the host. */
 export function diagnose(env: Env, preset: Preset, flags: string[]): Notice[] {
   const notices: Notice[] = [];
   const has = (needle: string) => flags.some(flag => flag.startsWith(needle));

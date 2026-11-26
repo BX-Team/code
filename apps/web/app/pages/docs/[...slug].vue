@@ -121,7 +121,6 @@ const breadcrumbs = computed(() => {
 	overflow-x: clip;
 }
 
-/* Breadcrumbs */
 .crumbs {
 	display: flex;
 	align-items: center;
@@ -149,7 +148,6 @@ const breadcrumbs = computed(() => {
 	color: var(--dim);
 }
 
-/* Page header */
 .doc-h1 {
 	font: 600 36px/1.15 var(--font-heading);
 	letter-spacing: -0.025em;
@@ -163,7 +161,6 @@ const breadcrumbs = computed(() => {
 	text-wrap: pretty;
 }
 
-/* Content body — style nuxt/content rendered HTML */
 .doc-body :deep(h2) {
 	font: 600 24px/1.25 var(--font-heading);
 	letter-spacing: -0.015em;
@@ -227,7 +224,6 @@ const breadcrumbs = computed(() => {
 	font: 400 13px/1.65 var(--font-mono);
 	color: var(--fg);
 }
-/* Shiki transformer annotations */
 .doc-body :deep(pre .line.diff.add) {
 	background: color-mix(in oklab, var(--ok) 15%, transparent);
 }
@@ -353,7 +349,6 @@ const breadcrumbs = computed(() => {
 	margin: 16px 0;
 }
 
-/* Footer prev/next nav */
 .doc-footer-nav {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -391,7 +386,6 @@ const breadcrumbs = computed(() => {
 	text-align: right;
 }
 
-/* Callouts from MDC */
 .doc-body :deep(.callout) {
 	display: grid;
 	grid-template-columns: 22px 1fr;
@@ -417,7 +411,6 @@ const breadcrumbs = computed(() => {
 	background: color-mix(in oklab, var(--brand-2) 8%, var(--bg-1));
 }
 
-/* Mobile */
 @media (max-width: 640px) {
 	.doc-h1 {
 		font-size: 28px;

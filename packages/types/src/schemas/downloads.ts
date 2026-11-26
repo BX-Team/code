@@ -44,11 +44,7 @@ export const PageQuerySchema = z.object({
   after: z.coerce.number().int().positive().optional(),
 });
 
-/**
- * What the API tells the bot after a publish. It carries the identity and nothing else —
- * the embed is rendered off a read-back, so a correction to the row shows up in Discord
- * without the notification having to grow a copy of it.
- */
+/** Only the identity: the bot renders its embed off a read-back. */
 export const PublishEventSchema = z.object({
   event: z.literal('publish'),
   project: z.string(),

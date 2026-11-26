@@ -13,11 +13,7 @@ import {
   VersionSummarySchema,
 } from './schemas/downloads';
 
-/**
- * The downloads API as data: every route `apps/api` serves, with its parameters and its
- * response. The API implements these and renders its OpenAPI document from them, and a
- * client types itself off `ApiContract` — one definition instead of three copies.
- */
+// Every route `apps/api` serves: it implements them and renders OpenAPI from them, clients type off `ApiContract`.
 
 const json = <T extends z.ZodType>(schema: T, description = 'OK') => ({
   description,
@@ -191,10 +187,7 @@ export const location = createRoute({
 
 declare const handler: never;
 
-/**
- * The route table as a type, for `hc<ApiContract>` from `hono/client`. It is only ever
- * computed, never run: the API registers the same routes with real handlers.
- */
+/** For `hc<ApiContract>`; only computed, never run. */
 export type ApiContract = ReturnType<typeof contract>;
 
 function contract(app: OpenAPIHono) {

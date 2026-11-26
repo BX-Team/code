@@ -17,7 +17,6 @@ export function findMessageCommand(name: string): MessageCommand | undefined {
   return messageByName.get(name);
 }
 
-/** The message command that opened a modal, by the prefix of its `custom_id`. */
 export function findModalOwner(customId: string): MessageCommand | undefined {
   const prefix = customId.split(':')[0];
   return messageCommands.find(command => command.modal === prefix);

@@ -1,0 +1,53 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workers:
+    name: Workers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Biome
+        run: bun run lint
+      - name: Typecheck
+        run: bun run --filter '@bx-team/{api,bot,id,skins}' typecheck
+      - name: Tests
+        run: bun run test
+      - name: Generated types are current
+        run: |
+          bun run types
+          git diff --exit-code -- 'apps/*/worker-configuration.d.ts' 'apps/*/src/tables.ts'
+      - name: Build
+        run: bun run --filter '@bx-team/{api,bot,id,skins}' build
+
+  web:
+    name: Site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Generate
+        working-directory: apps/web
+        run: bun run generate
+      - name: Typecheck
+        working-directory: apps/web
+        continue-on-error: true
+        run: bun run typecheck

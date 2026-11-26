@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { openCommandPalette } from '@/composables/useCommandPalette';
 
-/** The bar's row follows the page's own container, so the wordmark sits above the
- *  left edge of the content rather than the viewport's. */
+/** The bar follows the page's container, so the wordmark sits above the content's left edge. */
 defineProps<{
   maxWidth?: string;
   gutter?: string;

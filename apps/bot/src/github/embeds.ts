@@ -1,5 +1,5 @@
 import type { PullRequestEvent, PushEvent, ReleaseEvent, User, WorkflowRunEvent } from '@bx-team/types/schema/github';
-import type { EmbedBuilder } from '@discordjs/builders';
+import type { APIEmbed } from 'discord-api-types/v10';
 import { COLORS, createEmbed } from '../discord/embeds';
 import type { ReleaseRun } from '../handlers/release';
 import { RELEASE_BRANCH } from '../release/pull';
@@ -7,8 +7,7 @@ import { RELEASE_BRANCH } from '../release/pull';
 const MAX_COMMITS_SHOWN = 5;
 const MAX_RELEASE_BODY = 1500;
 
-/** A push to a branch, or null when it is not worth announcing. */
-export function pushEmbed(event: PushEvent): EmbedBuilder | null {
+export function pushEmbed(event: PushEvent): APIEmbed | null {
   if (!event.ref.startsWith('refs/heads/') || event.deleted) return null;
 
   const branch = event.ref.slice('refs/heads/'.length);
@@ -33,7 +32,7 @@ export function pushEmbed(event: PushEvent): EmbedBuilder | null {
   });
 }
 
-export function mergedEmbed(event: PullRequestEvent): EmbedBuilder | null {
+export function mergedEmbed(event: PullRequestEvent): APIEmbed | null {
   const pr = event.pull_request;
   if (event.action !== 'closed' || !pr.merged) return null;
 
@@ -52,7 +51,7 @@ export function mergedEmbed(event: PullRequestEvent): EmbedBuilder | null {
   });
 }
 
-export function releaseEmbed(event: ReleaseEvent): EmbedBuilder | null {
+export function releaseEmbed(event: ReleaseEvent): APIEmbed | null {
   const { release } = event;
   if (event.action !== 'published' || release.draft) return null;
 
@@ -67,7 +66,7 @@ export function releaseEmbed(event: ReleaseEvent): EmbedBuilder | null {
 }
 
 /** A failed release workflow; a held draft is the maintainers' business and stays on GitHub. */
-export function releaseRunEmbed(event: WorkflowRunEvent, run: ReleaseRun | null): EmbedBuilder | null {
+export function releaseRunEmbed(event: WorkflowRunEvent, run: ReleaseRun | null): APIEmbed | null {
   if (run?.state !== 'failed') return null;
 
   return createEmbed({

@@ -1,8 +1,8 @@
 import type { Channel, ProjectPatch, PublishCommit, VersionPatch } from '@bx-team/types/schema/downloads';
-import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
-import { type BuildRow, type VersionRow, version } from './downloads';
+import { batch } from '@bx-team/worker/db';
+import { type BuildRow, db, type VersionRow, version } from './downloads';
 
-/** D1 refuses more than 100 bound parameters in one statement; a commit binds four. */
+/** D1 refuses more than 100 bound parameters in one statement; a commit binds five. */
 const COMMITS_PER_STATEMENT = 20;
 
 export interface NewDownload {
@@ -14,127 +14,111 @@ export interface NewDownload {
 }
 
 /** Publishing into a version that does not exist creates it with the server defaults. */
-export async function ensureVersion(db: D1Database, projectKey: string, key: string): Promise<VersionRow | null> {
-  await db
-    .prepare('insert into versions (project, key) values (?, ?) on conflict (project, key) do nothing')
-    .bind(projectKey, key)
-    .run();
-
-  return version(db, projectKey, key);
+export async function ensureVersion(d1: D1Database, projectKey: string, key: string): Promise<VersionRow | null> {
+  await db(d1)
+    .insertInto('versions')
+    .values({ project: projectKey, key })
+    .onConflict(oc => oc.columns(['project', 'key']).doNothing())
+    .execute();
+  return version(d1, projectKey, key);
 }
 
-export function nextBuildNumber(db: D1Database, versionId: number): Promise<number> {
-  return db
-    .prepare('select coalesce(max(number), 0) + 1 as next from builds where version_id = ?')
-    .bind(versionId)
-    .first<{ next: number }>()
-    .then(row => row?.next ?? 1);
+export async function nextBuildNumber(d1: D1Database, versionId: number): Promise<number> {
+  const row = await db(d1)
+    .selectFrom('builds')
+    .select(eb => eb(eb.fn.coalesce(eb.fn.max('number'), eb.lit(0)), '+', 1).as('next'))
+    .where('version_id', '=', versionId)
+    .executeTakeFirst();
+  return row?.next ?? 1;
 }
 
-/**
- * Upserts rather than conflicts: a re-run of a failed upload step republishes the same
- * number, and a project with several artifacts publishes them one request at a time.
- */
-export function upsertBuild(
-  db: D1Database,
+/** Upserts: a rerun of a failed upload republishes the same number, and several artifacts come one request each. */
+export async function upsertBuild(
+  d1: D1Database,
   versionId: number,
   number: number,
   channel: Channel,
   commitSha: string | null,
 ): Promise<BuildRow | null> {
-  return db
-    .prepare(
-      `insert into builds (version_id, number, channel, commit_sha, created_at) values (?, ?, ?, ?, ?)
-       on conflict (version_id, number) do update
-         set channel = excluded.channel, commit_sha = coalesce(excluded.commit_sha, builds.commit_sha)
-       returning *`,
-    )
-    .bind(versionId, number, channel, commitSha, now())
-    .first<BuildRow>();
+  return (
+    (await db(d1)
+      .insertInto('builds')
+      .values({ version_id: versionId, number, channel, commit_sha: commitSha, created_at: now() })
+      .onConflict(oc =>
+        oc.columns(['version_id', 'number']).doUpdateSet(eb => ({
+          channel: eb.ref('excluded.channel'),
+          commit_sha: eb.fn.coalesce(eb.ref('excluded.commit_sha'), eb.ref('builds.commit_sha')),
+        })),
+      )
+      .returningAll()
+      .executeTakeFirst()) ?? null
+  );
 }
 
-/**
- * A published timestamp is written from here, not left to the column default: SQLite's
- * `datetime('now')` has no zone, and `new Date('2026-09-05 23:07:31')` is read as local
- * time by a browser. It also has to sort against the ISO strings the older rows carry.
- */
+// Not the column default: SQLite's `datetime('now')` has no zone, so a browser reads it as local time.
 function now(): string {
   return new Date().toISOString();
 }
 
-/**
- * Writes the commit list and the artifact of one build. D1 has no interactive
- * transactions, so `db.batch()` is the atomic unit and the caller compensates the object
- * it already put in the bucket if this throws.
- */
-export function attach(db: D1Database, id: number, commits: PublishCommit[], download: NewDownload): Promise<unknown> {
-  const statements: D1PreparedStatement[] = [];
-
+/** One batch, since D1 has no interactive transactions; the caller removes the bucket object if this throws. */
+export function attach(d1: D1Database, id: number, commits: PublishCommit[], download: NewDownload): Promise<void> {
+  const q = db(d1);
+  const statements = [];
   if (commits.length) {
-    statements.push(db.prepare('delete from build_commits where build_id = ?').bind(id));
-
+    statements.push(q.deleteFrom('build_commits').where('build_id', '=', id));
     for (let offset = 0; offset < commits.length; offset += COMMITS_PER_STATEMENT) {
       const chunk = commits.slice(offset, offset + COMMITS_PER_STATEMENT);
       statements.push(
-        db
-          .prepare(
-            `insert into build_commits (build_id, position, sha, summary, at)
-             values ${chunk.map(() => '(?, ?, ?, ?, ?)').join(', ')}`,
-          )
-          .bind(...chunk.flatMap((commit, index) => [id, offset + index, commit.sha, commit.summary, commit.at])),
+        q
+          .insertInto('build_commits')
+          .values(chunk.map((commit, index) => ({ build_id: id, position: offset + index, ...commit }))),
       );
     }
   }
-
   statements.push(
-    db
-      .prepare(
-        `insert into build_downloads (build_id, name, file_name, file_path, size, sha256)
-         values (?, ?, ?, ?, ?, ?)
-         on conflict (build_id, name) do update
-           set file_name = excluded.file_name, file_path = excluded.file_path,
-               size = excluded.size, sha256 = excluded.sha256`,
-      )
-      .bind(id, download.name, download.fileName, download.filePath, download.size, download.sha256),
+    q
+      .insertInto('build_downloads')
+      .values({
+        build_id: id,
+        name: download.name,
+        file_name: download.fileName,
+        file_path: download.filePath,
+        size: download.size,
+        sha256: download.sha256,
+      })
+      .onConflict(oc =>
+        oc.columns(['build_id', 'name']).doUpdateSet(eb => ({
+          file_name: eb.ref('excluded.file_name'),
+          file_path: eb.ref('excluded.file_path'),
+          size: eb.ref('excluded.size'),
+          sha256: eb.ref('excluded.sha256'),
+        })),
+      ),
   );
-
-  return db.batch(statements);
+  return batch(d1, statements);
 }
 
-export function deleteBuild(db: D1Database, id: number): Promise<unknown> {
-  return db.prepare('delete from builds where id = ?').bind(id).run();
+export function deleteBuild(d1: D1Database, id: number): Promise<unknown> {
+  return db(d1).deleteFrom('builds').where('id', '=', id).execute();
 }
 
-export function patchVersion(db: D1Database, id: number, patch: VersionPatch): Promise<unknown> {
-  return update(db, 'versions', 'id', id, {
-    support: patch.support,
-    java_min: patch.java_min,
-  });
+/** Only the fields the body actually carried are written; `undefined` means untouched. */
+export async function patchVersion(d1: D1Database, id: number, patch: VersionPatch): Promise<void> {
+  const set = defined({ support: patch.support, java_min: patch.java_min });
+  if (Object.keys(set).length) await db(d1).updateTable('versions').set(set).where('id', '=', id).execute();
 }
 
-export function patchProject(db: D1Database, key: string, patch: ProjectPatch): Promise<unknown> {
-  return update(db, 'projects', 'key', key, {
+export async function patchProject(d1: D1Database, key: string, patch: ProjectPatch): Promise<void> {
+  const set = defined({
     name: patch.name,
     description: patch.description,
     repo: patch.repo,
     latest_version: patch.latest,
     experimental_version: patch.experimental,
   });
+  if (Object.keys(set).length) await db(d1).updateTable('projects').set(set).where('key', '=', key).execute();
 }
 
-/** Only the fields the body actually carried are written; `undefined` means untouched. */
-function update(
-  db: D1Database,
-  table: string,
-  keyColumn: string,
-  key: string | number,
-  fields: Record<string, string | number | null | undefined>,
-): Promise<unknown> {
-  const entries = Object.entries(fields).filter(([, value]) => value !== undefined);
-  if (!entries.length) return Promise.resolve(null);
-
-  return db
-    .prepare(`update ${table} set ${entries.map(([column]) => `${column} = ?`).join(', ')} where ${keyColumn} = ?`)
-    .bind(...entries.map(([, value]) => value ?? null), key)
-    .run();
+function defined<T extends object>(fields: T): { [K in keyof T]: Exclude<T[K], undefined> } {
+  return Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined)) as never;
 }

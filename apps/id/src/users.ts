@@ -1,43 +1,34 @@
 import type { PlayUser } from '@bx-team/types/schema/play';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { DB } from './db';
 
-interface UserRow {
+/** `code` as stored, see `normalizeFriendCode`. */
+export async function findByFriendCode(db: DB, code: string): Promise<PlayUser | null> {
+  const row = await select(db).where('friendCode', '=', code).executeTakeFirst();
+  return row ? toUser(row) : null;
+}
+
+export async function profiles(db: DB, ids: string[]): Promise<PlayUser[]> {
+  const found: PlayUser[] = [];
+  // D1 binds at most 100 parameters per statement.
+  for (let at = 0; at < ids.length; at += 100) {
+    const rows = await select(db)
+      .where('id', 'in', ids.slice(at, at + 100))
+      .execute();
+    found.push(...rows.map(toUser));
+  }
+  return found;
+}
+
+function select(db: DB) {
+  return db.selectFrom('user').select(['id', 'name', 'username', 'displayUsername', 'image']);
+}
+
+function toUser(row: {
   id: string;
   name: string;
   username: string | null;
   displayUsername: string | null;
   image: string | null;
-}
-
-/** `code` as stored, see `normalizeFriendCode`. */
-export async function findByFriendCode(db: D1Database, code: string): Promise<PlayUser | null> {
-  const row = await query(db, `where u."friendCode" = ?1`, [code]).first<UserRow>();
-  return row ? toUser(row) : null;
-}
-
-export async function profiles(db: D1Database, ids: string[]): Promise<PlayUser[]> {
-  const found: PlayUser[] = [];
-  // D1 binds at most 100 parameters per statement.
-  for (let at = 0; at < ids.length; at += 100) {
-    const chunk = ids.slice(at, at + 100);
-    const marks = chunk.map((_, i) => `?${i + 1}`).join(', ');
-    const { results } = await query(db, `where u."id" in (${marks})`, chunk).all<UserRow>();
-    found.push(...results.map(toUser));
-  }
-  return found;
-}
-
-function query(db: D1Database, where: string, params: string[]) {
-  return db
-    .prepare(`select u."id", u."name", u."username", u."displayUsername", u."image" from "user" u ${where}`)
-    .bind(...params);
-}
-
-function toUser(row: UserRow): PlayUser {
-  return {
-    id: row.id,
-    name: row.name,
-    username: row.displayUsername ?? row.username,
-    image: row.image,
-  };
+}): PlayUser {
+  return { id: row.id, name: row.name, username: row.displayUsername ?? row.username, image: row.image };
 }

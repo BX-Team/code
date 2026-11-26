@@ -56,8 +56,7 @@ export function fetchBuild(project: string, version: string, build: number) {
   );
 }
 
-/** A publish uploads whatever its workflow handed over, so there is no fixed download:
- *  `application` when there is one, else the ordered map's first key. */
+/** A publish uploads whatever its workflow handed over: `application` when there is one, else the first key. */
 export function primaryDownload(downloads: Record<string, Download>): Download | undefined {
   return downloads.application ?? Object.values(downloads)[0];
 }

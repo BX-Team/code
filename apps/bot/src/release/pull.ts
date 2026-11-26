@@ -39,7 +39,6 @@ export interface PullRequest {
   body: string | null;
   html_url: string;
   state: 'open' | 'closed';
-  /** Set while auto-merge is on. */
   auto_merge: object | null;
   head: { ref: string; sha: string };
 }
@@ -49,11 +48,7 @@ export type PinChange = Semver | null | undefined;
 
 export type SyncResult = { state: 'none' } | { state: 'open'; number: number; version: string };
 
-/**
- * Brings the release PR in line with the default branch: opens it when there is something to
- * release, rewrites its commit and body when there is more, and closes it when there is nothing.
- * Stateless — the pin and the intro are read back from the PR body every time.
- */
+/** Opens, rewrites or closes the release PR to match the default branch; the pin and intro are read back from its body. */
 export async function syncReleasePull(
   gh: Github,
   repo: RepoRef,

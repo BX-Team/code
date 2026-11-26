@@ -18,8 +18,10 @@
     "required": [
       "DISCORD_BOT_TOKEN",
       "DISCORD_PUBLIC_KEY",
+      // PKCS#8 PEM: GitHub hands out PKCS#1, which WebCrypto cannot import.
       "GITHUB_APP_PRIVATE_KEY",
       "GITHUB_WEBHOOK_SECRET",
+      // The value the API signs `X-Api-Signature` with.
       "API_WEBHOOK_SECRET"
     ]
   }

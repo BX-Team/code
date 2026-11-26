@@ -8,7 +8,7 @@ import {
   type SkinModel,
 } from '@bx-team/types/schema/skins';
 
-/** Skins is its own Worker; `bun dev:id` runs it on :8788 next to BX ID. */
+/** Skins is its own Worker; `bun dev` in `apps/skins` runs it on :8788. */
 export const SKINS_BASE =
   import.meta.env.VITE_SKINS_BASE || (import.meta.dev ? 'http://localhost:8788' : 'https://api.bxteam.org');
 

@@ -1,20 +1,22 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { DOC_PROJECTS, RESOURCES } from '../config/resources';
 import { createEmbed } from '../discord/embeds';
 import { reply, stringOption } from '../discord/respond';
 import type { Command } from './types';
 
 export const docs: Command = {
-  data: new SlashCommandBuilder()
-    .setName('docs')
-    .setDescription('Link the BX Team documentation')
-    .addStringOption(option =>
-      option
-        .setName('project')
-        .setDescription('Project to link the docs for')
-        .addChoices(...DOC_PROJECTS.map(project => ({ name: project.name, value: project.value }))),
-    )
-    .toJSON(),
+  data: {
+    name: 'docs',
+    description: 'Link the BX Team documentation',
+    options: [
+      {
+        type: ApplicationCommandOptionType.String,
+        name: 'project',
+        description: 'Project to link the docs for',
+        choices: DOC_PROJECTS.map(project => ({ name: project.name, value: project.value })),
+      },
+    ],
+  },
 
   async execute(interaction) {
     const project = stringOption(interaction.data.options, 'project');

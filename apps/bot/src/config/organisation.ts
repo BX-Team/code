@@ -11,10 +11,7 @@ export const STATUS_REJECTED = 'Closed/Rejected';
 /** Types a pull request title may start with — the `label_extractor` of the changelog configuration. */
 export const TITLE_TYPES = ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style'];
 
-/**
- * The label a pull request gets from its title type, from the organisation's `labels.json`.
- * Types without one — `chore`, `build`, `style`, `revert` — leave the labels alone.
- */
+/** From the organisation's `labels.json`; types without one leave the labels alone. */
 export const TYPE_LABELS: Record<string, string> = {
   feat: '🔧 enhancement',
   fix: '🐛 bug',
@@ -36,7 +33,6 @@ export const CHANGELOG_PATHS = ['.github/release/changelog.json', '.github/chang
 /** A project's release setup plus its display name, which titles the tag and the release. */
 export type ReleaseConfig = NonNullable<Project['release']> & { name: string };
 
-/** The release setup of an `owner/name` repository, when the bot keeps a release PR for it. */
 export function releaseConfig(repo: string): ReleaseConfig | undefined {
   const project = projectByRepo(repo);
   return project?.release ? { ...project.release, name: project.name } : undefined;

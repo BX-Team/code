@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { errorEmbed } from '../discord/embeds';
 import { autocompleteChoices, focusedOption, reply, stringOption } from '../discord/respond';
 import { getLatestBuild, getProject, listProjects } from '../downloads/client';
@@ -6,16 +6,25 @@ import { latestBuildEmbed } from '../downloads/embeds';
 import type { Command } from './types';
 
 export const build: Command = {
-  data: new SlashCommandBuilder()
-    .setName('build')
-    .setDescription('Show the latest build of a project')
-    .addStringOption(option =>
-      option.setName('project').setDescription('Project key').setRequired(true).setAutocomplete(true),
-    )
-    .addStringOption(option =>
-      option.setName('version').setDescription('Version key; defaults to the newest one').setAutocomplete(true),
-    )
-    .toJSON(),
+  data: {
+    name: 'build',
+    description: 'Show the latest build of a project',
+    options: [
+      {
+        type: ApplicationCommandOptionType.String,
+        name: 'project',
+        description: 'Project key',
+        required: true,
+        autocomplete: true,
+      },
+      {
+        type: ApplicationCommandOptionType.String,
+        name: 'version',
+        description: 'Version key; defaults to the newest one',
+        autocomplete: true,
+      },
+    ],
+  },
 
   async execute(interaction) {
     const projectKey = stringOption(interaction.data.options, 'project');

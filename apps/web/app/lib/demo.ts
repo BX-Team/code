@@ -1,11 +1,6 @@
 import type { ProjectDemo } from '~/config/projects';
 
-/**
- * The document a demo runs in, handed to its iframe as `srcdoc`. It is not a file in public/:
- * the site's worker answers every extensionless path with the SPA shell, and Workers assets turn
- * `/index.html` into a redirect, which would break a page's relative imports. With absolute URLs
- * the same document works in dev and in production.
- */
+// Not a file in public/: Workers assets turn `/index.html` into a redirect, which breaks relative imports.
 export function demoPage(demo: ProjectDemo): string {
   return `<!doctype html>
 <html lang="en">

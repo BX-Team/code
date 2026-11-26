@@ -3,28 +3,10 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "scripts": {
-    "dev": "bun run --filter '*' dev",
-    "dev:web": "bun run --filter @bx-team/web dev",
-    "dev:bot": "bun run --filter @bx-team/bot dev",
-    "dev:api": "bun run --filter @bx-team/api dev",
-    "dev:id": "bun apps/id/scripts/dev.ts",
-    "build": "bun run --filter '*' build",
-    "build:web": "bun run --filter @bx-team/web generate",
-    "build:bot": "bun run --filter @bx-team/bot build",
-    "build:api": "bun run --filter @bx-team/api build",
-    "build:id": "bun run --filter @bx-team/id build",
-    "build:skins": "bun run --filter @bx-team/skins build",
-    "deploy:web": "bun run --filter @bx-team/web deploy",
-    "deploy:bot": "bun run --filter @bx-team/bot deploy",
-    "deploy:api": "bun run --filter @bx-team/api deploy",
-    "deploy:id": "bun run --filter @bx-team/id deploy",
-    "deploy:skins": "bun run --filter @bx-team/skins deploy",
-    "upload:web": "bun run --filter @bx-team/web upload",
-    "upload:bot": "bun run --filter @bx-team/bot upload",
-    "upload:api": "bun run --filter @bx-team/api upload",
-    "upload:id": "bun run --filter @bx-team/id upload",
-    "upload:skins": "bun run --filter @bx-team/skins upload",
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test",
+    "types": "bun run --filter '*' types && bun run --filter '*' db:types"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.9"

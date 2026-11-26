@@ -5,13 +5,9 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "nuxt dev",
-    "build": "NODE_OPTIONS=--max-old-space-size=3072 nuxt build",
     "generate": "NODE_OPTIONS=--max-old-space-size=3072 nuxt generate",
     "preview": "nuxt preview",
-    "deploy": "bun run generate && wrangler deploy",
-    "upload": "bun run generate && wrangler versions upload",
     "postinstall": "nuxt prepare",
-    "lint": "biome check .",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
@@ -34,10 +30,12 @@
     "vue": "^3.5.46"
   },
   "devDependencies": {
+    "@golar/vue": "^0.1.11",
     "@scalar/nuxt": "^0.6.96",
     "@tailwindcss/vite": "^4.3.5",
     "@types/markdown-it": "^14.2.0",
     "better-sqlite3": "^13.2.0",
+    "golar": "^0.1.11",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
     "wrangler": "^4.168.0"

@@ -12,11 +12,7 @@ const ALLOWED = ['admin', 'write'];
 
 type Reaction = '+1' | 'rocket' | 'confused';
 
-/**
- * `/release`, `/release draft`, `/release cancel` and `/version` on a release PR, from anyone
- * with write access. A command error is answered on the PR rather than failing the delivery —
- * nothing a redelivery would fix.
- */
+/** `/release`, `/release draft`, `/release cancel`, `/version`; an error is answered on the PR, since a redelivery wouldn't fix it. */
 export async function onComment(gh: Github, event: IssueCommentEvent): Promise<boolean> {
   const config = releaseConfig(event.repository.full_name);
   if (!config || event.action !== 'created' || !event.issue.pull_request || event.comment.user.type === 'Bot') {

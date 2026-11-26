@@ -1,7 +1,6 @@
 import { BannerSchema, type Notice } from '@bx-team/types/schema/bxid';
 import { bannerFlag } from '@bx-team/worker/flags';
 import { Hono } from 'hono';
-import type { Env } from './env';
 
 /** What the site shows everyone above its pages, such as "sign-in is down"; no session needed. */
 export const notice = new Hono<{ Bindings: Env }>();

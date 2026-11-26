@@ -4,10 +4,7 @@ export type VersionFile =
   | { kind: 'cargo-manifest'; path?: string }
   /** Every `[[package]]` without a `source` — the workspace's own crates. */
   | { kind: 'cargo-lock'; path?: string }
-  /**
-   * Regex rewrites, optionally confined to the text between two marker lines; every pattern
-   * must match. `{version}` and `{tag}` are substituted into `with`.
-   */
+  /** Regex rewrites, optionally between two marker lines; every pattern must match. */
   | {
       kind: 'replace';
       path: string;
@@ -27,10 +24,7 @@ export interface Project {
   docs?: boolean;
   /** The Discord channel — usually a GitHub forum thread — repository activity is posted into. */
   discord?: string;
-  /**
-   * The bot keeps a release PR open for the repository and, when it is merged, tags the merge
-   * and opens the draft release; the repository's workflow builds from the tag push.
-   */
+  /** The bot keeps a release PR and, once merged, tags it and drafts the release; the workflow builds from the tag. */
   release?: { files: VersionFile[] };
 }
 

@@ -1,36 +1,42 @@
 # code
 
-The BX Team web platform: the `bxteam.org` site and its documentation, the downloads API behind it, and the bot that runs releases on GitHub and announces them in Discord. TypeScript in a bun workspaces monorepo; every deployable is a Cloudflare Worker.
+The BX Team web platform: the `bxteam.org` site and its documentation, the downloads API, BX ID (accounts, friends, playing together) and the products built on it, and the bot that runs releases on GitHub and announces them in Discord. TypeScript in a bun workspaces monorepo; every deployable is a Cloudflare Worker.
 
 ## Architecture
 
 | Package | Responsibility |
 | ------- | -------------- |
-| `apps/web` | The website and documentation. Nuxt 4, Vue 3, Tailwind v4, fully static. |
+| `apps/web` | The website, documentation and BX ID account pages. Nuxt 4, Vue 3, Tailwind v4, fully static. |
 | `apps/api` | The downloads API on `api.bxteam.org`. Hono; D1, R2, publish tokens. |
+| `apps/id` | BX ID on `api.bxteam.org/v1/auth` and `/v1/play`. Better Auth on D1; friends, presence and lobbies in Durable Objects. |
+| `apps/skins` | Riven's nicks and skins, a BX ID product, on `api.bxteam.org/v1/skins`. D1, R2; the game's session endpoints. |
 | `apps/bot` | The GitHub App and Discord bot on `bot.bxteam.org`. Hono; release PRs, release commands, board, announcements. |
 | `packages/projects` | The project registry: key, name, repository, docs, Discord thread, release setup. |
 | `packages/types` | Shared Zod schemas and the downloads API contract (`@bx-team/types/api`). |
 | `packages/ui` | Shared Vue 3 components and design tokens. |
-| `packages/worker` | What every Worker shares: the error type and handlers, hex, HMAC signatures. |
+| `packages/worker` | What every Worker shares: errors, request validation, D1 through Kysely, base64, HMAC, flags, the BX ID contract, dev setup. |
 
-- Everything runs on Cloudflare Workers: no VPS, no Docker, no runtime Nitro server, nothing that holds a socket open.
-- `api` is the only app with storage; `web` and `bot` read it through `hc<ApiContract>`.
+- Everything runs on Cloudflare Workers: no VPS, no Docker, no runtime Nitro server. The one machine is stockholm (mail, the Mojang proxy), which the user deploys by hand.
+- `api`, `id` and `skins` own their storage; nobody reads another app's database. `web` and `bot` read `api` through `hc<ApiContract>`.
+- BX ID knows no product. A product talks to it over its `ID` binding (`BxIdService`) and offers it `forget` over a `PRODUCT_<NAME>` binding (`BxIdProduct`), both in `@bx-team/worker/bxid`; no app imports another app's code.
 - A project is declared once, in `@bx-team/projects`; its downloads are a row in `api`'s D1 under the same key.
 - Packages are consumed from source inside the workspace and never published. Code lives on GitHub; nothing here builds project artifacts.
 
 ## Commands
 
+From the repository root:
+
 ```bash
-bun install                     # once, from the repository root
-bun dev:api                     # the downloads API, on wrangler dev
-bun dev:bot                     # the bot, on wrangler dev
-bun run build                   # build every app
-bunx biome check .              # formatting and lint
-bun run --filter '*' typecheck  # tsc / nuxt typecheck per app
+bun install          # once, and after dependency changes
+bun run lint         # Biome: formatting and lint
+bun run typecheck    # every app
+bun run test         # every app with tests
+bun run types        # regenerate worker-configuration.d.ts and src/tables.ts everywhere
 ```
 
-Cloudflare builds every app on each pull request, and that build is the only automated check: run Biome and `typecheck` yourself before committing. The user starts the site's dev server (`bun dev:web`) themselves.
+Inside an app (`cd apps/<app>`): `bun dev`, `bun run test`, `bun run typecheck`, `bun run types` after a `wrangler.jsonc` change, `bun run db:types` after a new migration. The user starts dev servers themselves, one terminal per app.
+
+GitHub Actions run the checks on every pull request (`check.yml`) and deploy what changed on a push to `master` (`deploy.yml`): D1 migrations first, then `wrangler deploy`; BX ID after its products. Secrets live on the Workers, never in the repository.
 
 ## Working on Tasks
 
@@ -48,15 +54,23 @@ Cloudflare builds every app on each pull request, and that build is the only aut
 - NO file-header banners and NO divider comments (`// --- helpers ---`).
 - Avoid inline comments. Add one only where the code is genuinely non-obvious: a footgun, a wire-format quirk, a reason a thing is done backwards. One line, two at most.
 - Why a thing is done this way, or the trap it avoids, is that one short comment at the code, not a paragraph and not an entry here.
-- Doc comments on public items are fine; keep them to a sentence.
+- Doc comments on public items are fine; keep them to a sentence. Don't restate the name or the signature.
 
 ### Style
 
 - Biome is the formatter and the linter — never hand-format against it. Two-space indent; tabs only inside `.vue` `<template>` and `<style>`.
 - Match the surrounding code: follow the idiom already in the file you are editing.
-- A component reusable outside one app belongs in `@bx-team/ui`.
-- Anything crossing the wire — bodies, query strings, webhook payloads — is parsed through a Zod schema in `@bx-team/types`.
+- A component reusable outside one app belongs in `@bx-team/ui`; a helper more than one Worker needs belongs in `@bx-team/worker`.
+- Anything crossing the wire — bodies, query strings, webhook payloads — is parsed through a Zod schema in `@bx-team/types`, with `valid(target, schema)` from `@bx-team/worker/http` (or `@hono/zod-openapi` routes in `api`).
 - One error type and shape for every Worker (`@bx-team/worker/error`): handlers `throw`, never `try`/`catch` plus `c.json({ ok: false })`.
+
+### Workers
+
+- `Env` is generated by `wrangler types` into `worker-configuration.d.ts`; never write it by hand. A binding or secret is declared in `wrangler.jsonc` (secrets under `secrets.required`), with its comment there.
+- D1 is queried through Kysely: `database<Tables>(env.DB)` from `@bx-team/worker/db`, with `Tables` generated from the migrations into `src/tables.ts`. No raw `prepare()`.
+- D1 has no interactive transactions: writes that must land together go through `batch()`. A statement binds at most 100 values.
+- Schema changes are a new SQL file in the app's `migrations/`; the deploy applies it before the code that needs it.
+- Local secrets are in `.dev.vars`; `scripts/setup.ts` fills them from `.dev.vars.example` and prepares the local D1 before `bun dev`.
 
 ### User-facing strings
 
@@ -64,7 +78,7 @@ English, everywhere: the site, the docs, API errors and Discord embeds. There is
 
 ### Testing
 
-No test suites; adding a framework is a deliberate decision. Biome, `typecheck` and the pull request's preview deployment stand in: say in the pull request what you exercised.
+Worker tests run in workerd with `@cloudflare/vitest-plugin`: local D1 with the migrations applied, other Workers and outbound requests replaced in `vitest.config.ts`, never the network. One test per real trap — security rules, wire formats, D1 limits — not one per function. The site has no tests.
 
 ## Bash Guidelines
 
@@ -75,6 +89,8 @@ No test suites; adding a framework is a deliberate decision. Biome, `typecheck` 
 ## Subprojects
 
 - [`apps/api/CLAUDE.md`](apps/api/CLAUDE.md) — downloads API
+- [`apps/id/CLAUDE.md`](apps/id/CLAUDE.md) — BX ID
+- [`apps/skins/CLAUDE.md`](apps/skins/CLAUDE.md) — nicks and skins
 - [`apps/bot/CLAUDE.md`](apps/bot/CLAUDE.md) — GitHub App and Discord bot
 - [`apps/web/CLAUDE.md`](apps/web/CLAUDE.md) — website and docs
 - [`packages/ui/CLAUDE.md`](packages/ui/CLAUDE.md) — shared components and tokens

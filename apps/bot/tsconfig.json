@@ -6,7 +6,8 @@
     "module": "esnext",
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["@cloudflare/workers-types"],
+    "types": [],
     "noEmit": true
-  }
+  },
+  "include": ["src", "worker-configuration.d.ts"]
 }

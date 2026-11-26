@@ -8,11 +8,7 @@ import { GithubApiError } from '../github/client';
 
 export const artifacts = new Hono<BotEnv>();
 
-/**
- * Anonymous download of a pull request's CI artifact, the link in the bot's artifacts
- * comment: GitHub only hands artifacts to signed-in users, so the bot asks as the
- * installation and redirects to the short-lived URL it gets back. Public repositories only.
- */
+// GitHub hands artifacts only to signed-in users, so the bot asks as the installation and redirects.
 artifacts.get('/:owner/:repo/:id', async c => {
   const parsed = ArtifactPathSchema.safeParse(c.req.param());
   if (!parsed.success) throw badRequest('Not an artifact path');

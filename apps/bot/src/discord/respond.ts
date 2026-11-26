@@ -1,7 +1,7 @@
-import type { EmbedBuilder } from '@discordjs/builders';
 import {
   type APIApplicationCommandInteractionDataBasicOption,
   type APIApplicationCommandInteractionDataOption,
+  type APIEmbed,
   type APIInteractionResponse,
   type APIInteractionResponseCallbackData,
   ApplicationCommandOptionType,
@@ -9,8 +9,8 @@ import {
   MessageFlags,
 } from 'discord-api-types/v10';
 
-export function reply(embeds: EmbedBuilder[], options: { ephemeral?: boolean } = {}): APIInteractionResponse {
-  const data: APIInteractionResponseCallbackData = { embeds: embeds.map(embed => embed.toJSON()) };
+export function reply(embeds: APIEmbed[], options: { ephemeral?: boolean } = {}): APIInteractionResponse {
+  const data: APIInteractionResponseCallbackData = { embeds };
   if (options.ephemeral) data.flags = MessageFlags.Ephemeral;
 
   return { type: InteractionResponseType.ChannelMessageWithSource, data };
@@ -35,7 +35,6 @@ export function stringOption(
   return option.value || undefined;
 }
 
-/** The option Discord is currently asking for suggestions on. */
 export function focusedOption(options: APIApplicationCommandInteractionDataOption[] | undefined) {
   return options?.find(option => 'focused' in option && option.focused) as
     | (APIApplicationCommandInteractionDataBasicOption & { focused: true })

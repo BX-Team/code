@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { type BotEnv, withRest } from '../context';
+import { type BotEnv, withDiscord } from '../context';
 import { api } from './api';
 import { artifacts } from './artifacts';
 import { discord } from './discord';
@@ -7,7 +7,7 @@ import { github } from './github';
 
 export const routes = new Hono<BotEnv>();
 
-routes.use('*', withRest);
+routes.use('*', withDiscord);
 
 routes.get('/health', c => c.json({ status: 'ok' }));
 

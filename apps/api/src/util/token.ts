@@ -4,11 +4,7 @@ import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../context';
 import { findToken, project, touchToken } from '../database/downloads';
 
-/**
- * A publish token belongs to one project and is stored only as a hash. It authenticates
- * and authorises in one step: the project in the path has to be the token's own, so a
- * token that leaks cannot publish into someone else's downloads.
- */
+// Stored only as a hash and bound to one project, so a leaked token can't publish into another's downloads.
 export const requireToken = createMiddleware<AppEnv>(async (c, next) => {
   const header = c.req.header('Authorization') ?? '';
   if (!header.startsWith('Bearer ')) throw unauthorized();

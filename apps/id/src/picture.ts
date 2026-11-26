@@ -1,23 +1,25 @@
 import { PictureChoiceSchema } from '@bx-team/types/schema/bxid';
-import { badRequest, HttpError, notFound } from '@bx-team/worker/error';
+import { HttpError, notFound } from '@bx-team/worker/error';
+import { valid } from '@bx-team/worker/http';
 import { Hono } from 'hono';
 import { createAuth } from './auth';
-import type { Env } from './env';
-import { signedIn, type Vars } from './session';
+import { db } from './db';
+import { type Bindings, signedIn } from './session';
 
 /** Sets the account picture from a connected Discord or GitHub account, or clears it for the initial. */
-export const picture = new Hono<{ Bindings: Env; Variables: Vars }>().use(signedIn).post('/', async c => {
-  const body = PictureChoiceSchema.safeParse(await c.req.json().catch(() => null));
-  if (!body.success) throw badRequest(body.error.message);
-  const { source } = body.data;
+export const picture = new Hono<Bindings>().use(signedIn).post('/', valid('json', PictureChoiceSchema), async c => {
+  const { source } = c.req.valid('json');
   const auth = createAuth(c.env, c.executionCtx as never);
   const headers = c.req.raw.headers;
 
   let image: string | null = null;
   if (source !== 'initial') {
-    const account = await c.env.DB.prepare(`select "id" from "account" where "userId" = ?1 and "providerId" = ?2`)
-      .bind(c.get('userId'), source)
-      .first<{ id: string }>();
+    const account = await db(c.env)
+      .selectFrom('account')
+      .select('id')
+      .where('userId', '=', c.get('userId'))
+      .where('providerId', '=', source)
+      .executeTakeFirst();
     if (!account) throw notFound(`No ${source} account is connected`);
     // The provider is asked again: Better Auth keeps no picture per linked account, only the user's one.
     const tokens = await auth.api.getAccessToken({ body: { accountId: account.id }, headers });

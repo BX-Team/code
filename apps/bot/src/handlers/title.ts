@@ -6,10 +6,7 @@ import { isConventionalTitle } from '../release/version';
 const CHECKED = ['opened', 'edited', 'reopened', 'synchronize'];
 export const TITLE_CHECK = 'Conventional title';
 
-/**
- * Reports whether the PR title is a Conventional Commit. It becomes the squash commit and
- * so a line of the release notes, and decides the version bump.
- */
+/** The title becomes the squash commit, a line of the release notes and the version bump. */
 export async function checkTitle(gh: Github, event: PullRequestEvent): Promise<boolean> {
   if (!CHECKED.includes(event.action)) return false;
 

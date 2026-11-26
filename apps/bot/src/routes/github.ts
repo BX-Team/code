@@ -8,14 +8,13 @@ import {
 } from '@bx-team/types/schema/github';
 import { badRequest, unauthorized } from '@bx-team/worker/error';
 import { verifySignature } from '@bx-team/worker/signature';
-import type { EmbedBuilder } from '@discordjs/builders';
-import type { REST } from '@discordjs/rest';
+import type { APIEmbed } from 'discord-api-types/v10';
 import { Hono } from 'hono';
 import type { z } from 'zod';
 import { isDiscordReport } from '../commands/issue';
 import { activityChannel } from '../config/routing';
 import type { BotEnv } from '../context';
-import { postEmbeds } from '../discord/rest';
+import { type Discord, postEmbeds } from '../discord/rest';
 import { installationClient } from '../github/app';
 import { mergedEmbed, pushEmbed, releaseEmbed, releaseRunEmbed } from '../github/embeds';
 import { onArtifactsRun } from '../handlers/artifacts';
@@ -27,13 +26,7 @@ import { checkTitle } from '../handlers/title';
 
 export const github = new Hono<BotEnv>();
 
-/**
- * Receiver for the GitHub App's webhook, from every repository the app is installed on.
- * Repository work is answered after it is done, so a failure shows up as a failed delivery
- * in the app's Advanced settings and can be redelivered from there. The Discord
- * announcement is not: a redelivery would also rerun the work, and shipping a release
- * twice is worse than a missing message.
- */
+// A failed repository job fails the delivery so it can be redelivered; a failed announcement doesn't, as that would rerun the job.
 github.post('/webhook', async c => {
   const raw = await c.req.arrayBuffer();
   const signature = c.req.header('X-Hub-Signature-256') ?? null;
@@ -42,7 +35,7 @@ github.post('/webhook', async c => {
   const event = c.req.header('X-GitHub-Event');
   const json = parseJson(raw);
   const client = (installation: { id: number }) => installationClient(c.env, installation.id);
-  const rest = c.get('rest');
+  const discord = c.get('discord');
 
   switch (event) {
     case 'push': {
@@ -51,7 +44,7 @@ github.post('/webhook', async c => {
       return c.json({
         ok: true,
         release,
-        announced: await announce(rest, payload.repository.full_name, pushEmbed(payload)),
+        announced: await announce(discord, payload.repository.full_name, pushEmbed(payload)),
       });
     }
 
@@ -71,7 +64,7 @@ github.post('/webhook', async c => {
           payload.action === 'closed' &&
           !pull.merged &&
           (await moveClosed(gh, payload.repository.owner.login, pull.node_id, false)),
-        announced: await announce(rest, payload.repository.full_name, mergedEmbed(payload)),
+        announced: await announce(discord, payload.repository.full_name, mergedEmbed(payload)),
       });
     }
 
@@ -106,7 +99,7 @@ github.post('/webhook', async c => {
         ok: true,
         run,
         artifacts: await onArtifactsRun(gh, payload),
-        announced: await announce(rest, payload.repository.full_name, releaseRunEmbed(payload, run)),
+        announced: await announce(discord, payload.repository.full_name, releaseRunEmbed(payload, run)),
       });
     }
 
@@ -114,7 +107,7 @@ github.post('/webhook', async c => {
       const payload = parse(ReleaseEventSchema, json);
       return c.json({
         ok: true,
-        announced: await announce(rest, payload.repository.full_name, releaseEmbed(payload)),
+        announced: await announce(discord, payload.repository.full_name, releaseEmbed(payload)),
       });
     }
 
@@ -124,12 +117,12 @@ github.post('/webhook', async c => {
 });
 
 /** Posts into the repository's activity thread; a Discord failure is logged, not thrown. */
-async function announce(rest: REST, repository: string, embed: EmbedBuilder | null) {
+async function announce(discord: Discord, repository: string, embed: APIEmbed | null) {
   const channel = activityChannel(repository);
   if (!embed || !channel) return false;
 
   try {
-    await postEmbeds(rest, channel, [embed]);
+    await postEmbeds(discord, channel, [embed]);
     return true;
   } catch (error) {
     console.error(`Announcing to ${channel} failed`, error);

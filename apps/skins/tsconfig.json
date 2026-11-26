@@ -6,8 +6,8 @@
     "module": "esnext",
     "target": "esnext",
     "lib": ["esnext"],
-    "types": ["@cloudflare/workers-types"],
+    "types": ["@cloudflare/vitest-plugin/types"],
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src", "test", "worker-configuration.d.ts", "vitest.config.ts"]
 }

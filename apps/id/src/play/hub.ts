@@ -6,7 +6,7 @@ import {
   type ServerEvent,
   type Status,
 } from '@bx-team/types/schema/play';
-import type { Env } from '../env';
+import { db } from '../db';
 import { friendIds } from './friends';
 
 /** A socket tagged this only listens, such as the account page: it never makes the player online. */
@@ -137,7 +137,7 @@ export class UserHub extends DurableObject<Env> {
     const userId = await this.ctx.storage.get<string>('userId');
     if (!userId) return;
     const event: ServerEvent = { type: 'presence', userId, presence: await this.presence(closing) };
-    const friends = await friendIds(this.env.DB, userId);
+    const friends = await friendIds(db(this.env), userId);
     await Promise.allSettled(friends.map(id => this.env.HUB.get(this.env.HUB.idFromName(id)).deliver(event)));
   }
 }

@@ -10,12 +10,11 @@ import {
 } from '@bx-team/types/schema/play';
 import { badRequest, forbidden, HttpError, notFound } from '@bx-team/worker/error';
 import { isOn, limit } from '@bx-team/worker/flags';
+import { list, valid } from '@bx-team/worker/http';
 import { Hono } from 'hono';
-import type { z } from 'zod';
-import { trustedOrigins } from '../auth';
-import type { Env } from '../env';
+import { db } from '../db';
 import { normalizeFriendCode } from '../friend-code';
-import { signedIn, type Vars } from '../session';
+import { type Bindings, signedIn } from '../session';
 import { findByFriendCode, profiles } from '../users';
 import { accept, areFriends, friendships, MAX_FRIENDS, remove, request } from './friends';
 import { lobbyId } from './hub';
@@ -24,7 +23,7 @@ import type { Outcome } from './lobby';
 
 export const PLAY_PATH = '/v1/play';
 
-export const play = new Hono<{ Bindings: Env; Variables: Vars }>();
+export const play = new Hono<Bindings>();
 
 play.use(signedIn);
 
@@ -34,7 +33,7 @@ play.get('/connect', async c => {
   if (c.req.header('Upgrade') !== 'websocket') throw badRequest('Expected a WebSocket upgrade');
   // A browser sends the cookie with a WebSocket from any page; CORS does not cover the upgrade.
   const origin = c.req.header('Origin');
-  if (origin && !trustedOrigins(c.env).includes(origin)) throw forbidden('This origin may not connect');
+  if (origin && !list(c.env.TRUSTED_ORIGINS).includes(origin)) throw forbidden('This origin may not connect');
   const forwarded = new Request(c.req.raw);
   forwarded.headers.set('X-User-Id', c.get('userId'));
   return hub(c.env, c.get('userId')).fetch(forwarded);
@@ -42,8 +41,8 @@ play.get('/connect', async c => {
 
 play.get('/friends', async c => {
   const userId = c.get('userId');
-  const { accepted, incoming, outgoing } = await friendships(c.env.DB, userId);
-  const users = byId(await profiles(c.env.DB, [...accepted, ...incoming, ...outgoing]));
+  const { accepted, incoming, outgoing } = await friendships(db(c.env), userId);
+  const users = byId(await profiles(db(c.env), [...accepted, ...incoming, ...outgoing]));
   const presences = await Promise.all(accepted.map(id => hub(c.env, id).presence()));
   const body: Friends = {
     friends: accepted.flatMap((id, i) => {
@@ -56,19 +55,19 @@ play.get('/friends', async c => {
   return c.json(body);
 });
 
-play.post('/friends', async c => {
-  const { code } = await parse(c.req.raw, FriendRequestSchema);
+play.post('/friends', valid('json', FriendRequestSchema), async c => {
+  const { code } = c.req.valid('json');
   const userId = c.get('userId');
-  const target = await findByFriendCode(c.env.DB, normalizeFriendCode(code));
+  const target = await findByFriendCode(db(c.env), normalizeFriendCode(code));
   if (!target || target.id === userId) throw notFound('No one has that friend code');
 
-  const mine = await friendships(c.env.DB, userId);
+  const mine = await friendships(db(c.env), userId);
   if (mine.accepted.length >= MAX_FRIENDS) throw badRequest(`A BX ID has at most ${MAX_FRIENDS} friends`);
   if (mine.outgoing.length >= (await limit(c.env.FLAGS, 'pending-friend-requests')))
     throw badRequest('Too many requests are waiting for an answer');
 
-  const outcome = await request(c.env.DB, userId, target.id);
-  const [me] = await profiles(c.env.DB, [userId]);
+  const outcome = await request(db(c.env), userId, target.id);
+  const [me] = await profiles(db(c.env), [userId]);
   if (me && outcome === 'requested') await deliver(c.env, target.id, { type: 'friend_request', user: me });
   if (me && outcome === 'accepted') await befriended(c.env, me, target);
   return c.json({ status: outcome, user: target } satisfies FriendAdded);
@@ -77,8 +76,8 @@ play.post('/friends', async c => {
 play.post('/friends/:id/accept', async c => {
   const userId = c.get('userId');
   const from = c.req.param('id');
-  if (!(await accept(c.env.DB, userId, from))) throw notFound('No such friend request');
-  const users = byId(await profiles(c.env.DB, [userId, from]));
+  if (!(await accept(db(c.env), userId, from))) throw notFound('No such friend request');
+  const users = byId(await profiles(db(c.env), [userId, from]));
   const me = users.get(userId);
   const them = users.get(from);
   if (me && them) await befriended(c.env, me, them);
@@ -88,13 +87,13 @@ play.post('/friends/:id/accept', async c => {
 play.delete('/friends/:id', async c => {
   const userId = c.get('userId');
   const other = c.req.param('id');
-  if (!(await remove(c.env.DB, userId, other))) throw notFound('No such friend');
+  if (!(await remove(db(c.env), userId, other))) throw notFound('No such friend');
   await deliver(c.env, other, { type: 'friend_removed', userId });
   return c.body(null, 204);
 });
 
-play.post('/lobbies', async c => {
-  const input = await parse(c.req.raw, CreateLobbySchema);
+play.post('/lobbies', valid('json', CreateLobbySchema), async c => {
+  const input = c.req.valid('json');
   if (input.open) await requireOpenLobbies(c.env);
   const userId = c.get('userId');
   const stub = c.env.LOBBY.get(c.env.LOBBY.newUniqueId());
@@ -107,12 +106,12 @@ play.post('/lobbies', async c => {
 
 play.get('/lobbies/:id', async c => c.json(unwrap(await lobby(c.env, c.req.param('id')).view(c.get('userId')))));
 
-play.post('/lobbies/:id/invite', async c => {
+play.post('/lobbies/:id/invite', valid('json', InviteSchema), async c => {
   const userId = c.get('userId');
-  const { userId: invitee } = await parse(c.req.raw, InviteSchema);
-  if (!(await areFriends(c.env.DB, userId, invitee))) throw badRequest('Only friends can be invited');
+  const { userId: invitee } = c.req.valid('json');
+  if (!(await areFriends(db(c.env), userId, invitee))) throw badRequest('Only friends can be invited');
   const value = unwrap(await lobby(c.env, c.req.param('id')).invite(userId, invitee));
-  const [from] = await profiles(c.env.DB, [userId]);
+  const [from] = await profiles(db(c.env), [userId]);
   if (from) await deliver(c.env, invitee, { type: 'invite', lobby: value, from });
   return c.json(value);
 });
@@ -122,12 +121,12 @@ play.post('/lobbies/:id/join', async c => {
   const stub = lobby(c.env, c.req.param('id'));
   const door = await stub.door();
   const walkIn = !!door?.open && (await isOn(c.env.FLAGS, 'open-lobbies'));
-  const friend = walkIn && !!door && (await areFriends(c.env.DB, door.host, userId));
+  const friend = walkIn && !!door && (await areFriends(db(c.env), door.host, userId));
   return c.json(unwrap(await stub.join(userId, friend, await limit(c.env.FLAGS, 'lobby-size'))));
 });
 
-play.post('/lobbies/:id/open', async c => {
-  const { open } = await parse(c.req.raw, LobbyOpenSchema);
+play.post('/lobbies/:id/open', valid('json', LobbyOpenSchema), async c => {
+  const { open } = c.req.valid('json');
   if (open) await requireOpenLobbies(c.env);
   return c.json(unwrap(await lobby(c.env, c.req.param('id')).setOpen(c.get('userId'), open)));
 });
@@ -179,10 +178,4 @@ function unwrap<T>(outcome: Outcome<T>): T {
     outcome.status === 403 ? 'Forbidden' : outcome.status === 404 ? 'Not Found' : 'Bad Request',
     outcome.message,
   );
-}
-
-async function parse<T extends z.ZodType>(request: Request, schema: T): Promise<z.infer<T>> {
-  const body = schema.safeParse(await request.json().catch(() => null));
-  if (!body.success) throw badRequest(body.error.message);
-  return body.data;
 }

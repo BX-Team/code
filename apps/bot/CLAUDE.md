@@ -21,7 +21,7 @@ Hono Worker serving `bot.bxteam.org`, both the BX Team GitHub App and the Discor
 ## Development
 
 ```bash
-bun dev:bot                              # wrangler dev; local secrets in .dev.vars
-bun build:bot                            # wrangler deploy --dry-run
+bun dev                                  # wrangler dev; local secrets in .dev.vars
+bun run build                            # wrangler deploy --dry-run
 bun --env-file=.dev.vars run register    # publish command definitions to Discord; deploying does not
 ```

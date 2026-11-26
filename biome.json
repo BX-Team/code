@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/bun.lock", "!**/content/docs", "!apps/web/public/demo"]
+    "includes": ["**", "!**/bun.lock", "!**/content/docs", "!apps/web/public/demo", "!**/worker-configuration.d.ts"]
   },
   "formatter": {
     "enabled": true,

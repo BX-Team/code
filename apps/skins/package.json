@@ -4,23 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "upload": "wrangler versions upload",
-    "build": "wrangler deploy --dry-run --outdir dist",
-    "lint": "biome check .",
+    "dev": "bun scripts/setup.ts && wrangler dev --port 8788",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "cf-typegen": "wrangler types"
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "types": "wrangler types --strict-vars=false",
+    "db:types": "bx-db-types"
   },
   "dependencies": {
     "@bx-team/types": "workspace:*",
     "@bx-team/worker": "workspace:*",
     "hono": "^4.13.21",
+    "kysely": "0.29.9",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261124.2",
+    "@cloudflare/vitest-plugin": "1.9.2",
     "typescript": "^7.0.2",
+    "vitest": "5.1.2",
     "wrangler": "^4.168.0"
   }
 }

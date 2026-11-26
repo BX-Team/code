@@ -40,8 +40,7 @@ async function latestOf(project: ProjectSummary): Promise<Entry | null> {
   };
 }
 
-// Only the list itself may fail: a project whose newest publication cannot be
-// read still belongs on the page, and an unreachable API is not an empty one.
+// Only the list may fail: a project whose newest build can't be read still belongs on the page.
 const { data: entries, error } = await useAsyncData<{ project: ProjectSummary; latest: Entry | null }[]>(
   'downloads:projects',
   async () => {

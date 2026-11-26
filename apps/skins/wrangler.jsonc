@@ -11,7 +11,12 @@
   },
   "vars": {
     "BASE_URL": "https://api.bxteam.org",
-    "TRUSTED_ORIGINS": "https://bxteam.org"
+    "TRUSTED_ORIGINS": "https://bxteam.org",
+    "MOJANG_PROXY_URL": "https://mojang.bxteam.org",
+    "MOJANG_API_URL": "https://mojang.bxteam.org"
+  },
+  "secrets": {
+    "required": ["MOJANG_PROXY_KEY", "TEXTURES_SIGNING_KEY", "GAME_TOKEN_SECRET"]
   },
   "services": [{ "binding": "ID", "service": "id", "entrypoint": "IdService" }],
   "r2_buckets": [{ "binding": "TEXTURES", "bucket_name": "skins" }],

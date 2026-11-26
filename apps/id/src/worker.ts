@@ -1,11 +1,10 @@
 import { errorHandler, notFoundHandler } from '@bx-team/worker/error';
-import type { ExportedHandler } from '@cloudflare/workers-types';
+import { list } from '@bx-team/worker/http';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 import { activity } from './activity';
 import { apps } from './apps';
-import { BASE_PATH, createAuth, trustedOrigins } from './auth';
-import type { Env } from './env';
+import { BASE_PATH, createAuth } from './auth';
 import { notice } from './notice';
 import { picture } from './picture';
 import { PLAY_PATH, play } from './play/routes';
@@ -15,7 +14,7 @@ const app = new Hono<{ Bindings: Env }>();
 // The site calls these with the session cookie, so only its origins, never `*`.
 const trusted: MiddlewareHandler<{ Bindings: Env }> = (c, next) =>
   cors({
-    origin: trustedOrigins(c.env),
+    origin: list(c.env.TRUSTED_ORIGINS),
     credentials: true,
     allowHeaders: ['Content-Type', 'Authorization', 'x-captcha-response'],
     exposeHeaders: ['set-auth-token'],

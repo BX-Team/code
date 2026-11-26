@@ -1,5 +1,4 @@
-/** Mirrors form state into the URL without navigating: `router.replace` counts as a
- *  route change and Nuxt scrolls the page back to the top on every keystroke. */
+/** Not `router.replace`: Nuxt would scroll the page back to the top on every keystroke. */
 export function syncQuery(params: Record<string, string | undefined>): void {
   if (!import.meta.client) return;
 

@@ -132,7 +132,6 @@ function fmtVal(v: unknown): string {
 			<p v-if="isEmpty" class="cv-empty">No settings found for "{{ searchQuery }}"</p>
 			<div v-else class="cv-tree">
 				<template v-for="item in flatItems" :key="item.path">
-					<!-- Section header (object key) -->
 					<div
 						v-if="item.type === 'section'"
 						class="cv-row cv-section"
@@ -145,7 +144,6 @@ function fmtVal(v: unknown): string {
 						</button>
 					</div>
 
-					<!-- Leaf (scalar value) -->
 					<div
 						v-else-if="item.type === 'leaf'"
 						class="cv-row cv-leaf"
@@ -158,7 +156,6 @@ function fmtVal(v: unknown): string {
 						</button>
 					</div>
 
-					<!-- Array -->
 					<div
 						v-else-if="item.type === 'array'"
 						:style="{ paddingLeft: `${item.depth * 16 + 12}px` }"
@@ -175,7 +172,6 @@ function fmtVal(v: unknown): string {
 						</div>
 					</div>
 
-					<!-- Note -->
 					<div
 						v-if="comments[item.path] && visibleComments.has(item.path)"
 						class="cv-note"
@@ -195,7 +191,6 @@ function fmtVal(v: unknown): string {
 	margin: 22px 0;
 }
 
-/* ---- Header ---- */
 .cv-hd {
 	padding: 14px 16px;
 	border-bottom: 1px solid var(--line);
@@ -265,7 +260,6 @@ function fmtVal(v: unknown): string {
 }
 .cv-clear:hover { color: var(--fg-hi); }
 
-/* ---- Body ---- */
 .cv-body {
 	background: var(--bg-0);
 	border-radius: 0 0 12px 12px;
@@ -279,7 +273,6 @@ function fmtVal(v: unknown): string {
 	line-height: 1.7;
 }
 
-/* ---- Rows ---- */
 .cv-row {
 	display: flex;
 	align-items: baseline;
@@ -294,7 +287,6 @@ function fmtVal(v: unknown): string {
 }
 .cv-row:hover { background: var(--hover); }
 
-/* Section header */
 .cv-section { margin-top: 4px; }
 .cv-section--top {
 	margin-top: 14px;
@@ -309,7 +301,6 @@ function fmtVal(v: unknown): string {
 	white-space: nowrap;
 }
 
-/* Leaf */
 .cv-key { color: var(--dim); white-space: nowrap; }
 .cv-val {
 	white-space: normal;
@@ -325,7 +316,6 @@ function fmtVal(v: unknown): string {
 .tk-str   { color: var(--brand-2); }
 .tk-default { color: var(--fg); }
 
-/* Array items */
 .cv-arr-item {
 	display: flex;
 	align-items: baseline;
@@ -336,7 +326,6 @@ function fmtVal(v: unknown): string {
 }
 .cv-arr-dash { color: var(--mute); flex-shrink: 0; }
 
-/* Note button */
 .cv-note-btn {
 	appearance: none;
 	border: 0;
@@ -351,7 +340,6 @@ function fmtVal(v: unknown): string {
 }
 .cv-note-btn:hover { color: var(--brand); }
 
-/* Note / comment box */
 .cv-note {
 	margin-top: 4px;
 	margin-bottom: 6px;

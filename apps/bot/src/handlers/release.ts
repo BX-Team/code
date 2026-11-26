@@ -31,11 +31,7 @@ export interface FailedJob {
 
 export type ReleaseRun = { state: 'failed'; tag: string; jobs: FailedJob[] } | { state: 'held'; tag: string };
 
-/**
- * Reports how a release workflow run on a `v*` tag ended, on the release PR it shipped from: a
- * failure with the jobs that broke, or a held draft that is ready to be checked. A run started
- * by hand is not reported, since it carries no tag to tell it is a release.
- */
+/** A run started by hand carries no `v*` tag to tell it is a release, so it is not reported. */
 export async function onReleaseRun(gh: Github, event: WorkflowRunEvent): Promise<ReleaseRun | null> {
   const run = event.workflow_run;
   const tag = run.head_branch ?? '';

@@ -9,10 +9,7 @@ interface ChangelogConfig {
   label_extractor?: { pattern: string; on_property?: string; target: string }[];
 }
 
-/**
- * The changelog part of the release notes, grouped by the repository's own changelog
- * configuration. The release PR shows exactly this text and the draft release copies it.
- */
+/** The release PR shows exactly this text and the draft release copies it. */
 export function releaseNotes(commits: Commit[], configText: string | null): string {
   const lines = (list: Commit[]) => list.map(line).join('\n');
   const config = parseConfig(configText);

@@ -9,10 +9,7 @@ interface Board {
 
 let board: Board | null = null;
 
-/**
- * Adds an issue or pull request a person opened to the organisation board. Idempotent on
- * GitHub's side, so a redelivery or the board's own auto-add workflow cannot create a duplicate item.
- */
+/** Idempotent on GitHub's side, so a redelivery or the board's own auto-add can't duplicate an item. */
 export async function addToProject(gh: Github, owner: string, byPerson: boolean, contentId: string) {
   if (owner !== ORGANISATION || !byPerson) return false;
 
@@ -26,11 +23,7 @@ export async function addToProject(gh: Github, owner: string, byPerson: boolean,
   return true;
 }
 
-/**
- * Moves a closed issue or pull request on the board: Done when its work landed, Closed/Rejected
- * otherwise. The board's built-in "Item closed" workflow has to stay off, since it cannot tell the
- * two apart and would race this. Items not on the board are left off it.
- */
+/** The board's built-in "Item closed" workflow must stay off: it can't tell Done from Closed and would race this. */
 export async function moveClosed(gh: Github, owner: string, contentId: string, completed: boolean) {
   if (owner !== ORGANISATION) return false;
 

@@ -79,8 +79,7 @@ export function batchScript(options: LaunchOptions): string {
   return `${lines.join('\r\n')}\r\n`;
 }
 
-/** One flag per line — a 90-flag command on one line is unreadable and unpatchable —
- *  but `-jar <file> --nogui` stays together, because that part is read as one thing. */
+/** One flag per line, but `-jar <file> --nogui` stays together, as it is read as one thing. */
 function joinArgs(args: string[], continuation: string, indent: string): string {
   const split = args.indexOf('-jar');
   const flags = ['java', ...args.slice(0, split)].map(quote);

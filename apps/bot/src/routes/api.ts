@@ -10,11 +10,7 @@ import { buildPublishedEmbed } from '../downloads/embeds';
 
 export const api = new Hono<BotEnv>();
 
-/**
- * Receiver for the API's publish notification. The payload carries only the identity of
- * what was published, so the embed is rendered off a read-back and a correction to the
- * row shows up in Discord without the notification having to grow a copy of it.
- */
+// The payload only names the build; the embed comes from a read-back, so a corrected row shows up too.
 api.post('/webhook', async c => {
   const raw = await c.req.arrayBuffer();
   const signature = c.req.header('X-Api-Signature') ?? null;
@@ -31,7 +27,7 @@ api.post('/webhook', async c => {
   const embed = await render(project, event);
   if (!embed) return c.json({ ok: true, skipped: 'nothing to announce' });
 
-  await postEmbeds(c.get('rest'), RELEASES_CHANNEL, [embed]);
+  await postEmbeds(c.get('discord'), RELEASES_CHANNEL, [embed]);
   return c.json({ ok: true, announced: 1 });
 });
 

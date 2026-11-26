@@ -1,5 +1,4 @@
 import { WorkerMailer } from 'worker-mailer';
-import type { Env } from './env';
 
 export function sendCode(env: Env, to: string, code: string) {
   return WorkerMailer.send(

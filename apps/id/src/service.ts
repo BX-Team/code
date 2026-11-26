@@ -1,10 +1,10 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
+import type { BxIdService } from '@bx-team/worker/bxid';
 import { createAuth } from './auth';
-import type { Env } from './env';
 import { record } from './events';
 
 /** What other BX Team Workers may ask BX ID through a service binding; nothing private leaves it. */
-export class IdService extends WorkerEntrypoint<Env> {
+export class IdService extends WorkerEntrypoint<Env> implements BxIdService {
   /** The BX ID signed in by a request's `Cookie` (the site) or `Authorization` (an app), if any. */
   async userId(credentials: { cookie?: string | null; authorization?: string | null }): Promise<string | null> {
     const headers = new Headers();

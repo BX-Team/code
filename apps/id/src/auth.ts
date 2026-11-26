@@ -1,5 +1,6 @@
+import { products } from '@bx-team/worker/bxid';
 import { isOn, limit, type Switch } from '@bx-team/worker/flags';
-import type { ExecutionContext } from '@cloudflare/workers-types';
+import { list } from '@bx-team/worker/http';
 import { betterAuth } from 'better-auth';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { bearer } from 'better-auth/plugins/bearer';
@@ -7,7 +8,7 @@ import { captcha } from 'better-auth/plugins/captcha';
 import { deviceAuthorization } from 'better-auth/plugins/device-authorization';
 import { emailOTP } from 'better-auth/plugins/email-otp';
 import { username } from 'better-auth/plugins/username';
-import type { Env } from './env';
+import { db } from './db';
 import { type Happened, origin, record, rememberApp } from './events';
 import { freshFriendCode } from './friend-code';
 import { sendCode } from './mail';
@@ -49,7 +50,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
     basePath: BASE_PATH,
     secret: env.BETTER_AUTH_SECRET,
     database: env.DB,
-    trustedOrigins: trustedOrigins(env),
+    trustedOrigins: list(env.TRUSTED_ORIGINS),
     disabledPaths: ['/sign-in/username'],
     socialProviders: {
       discord: {
@@ -70,7 +71,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       deleteUser: {
         enabled: true,
         afterDelete: async user => {
-          ctx.waitUntil(env.SKINS.forget(user.id));
+          ctx.waitUntil(Promise.all(products(env).map(product => product.forget(user.id))));
         },
       },
     },
@@ -104,8 +105,8 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
               throw new APIError('FORBIDDEN', { message: 'Verify your email with the provider first' });
             const handle = (user as { username?: string | null }).username;
             const local = user.email.split('@')[0];
-            const names = await freshUsername(env.DB, [handle, user.name, local]);
-            return { data: { ...user, ...names, friendCode: await freshFriendCode(env.DB) } };
+            const names = await freshUsername(db(env), [handle, user.name, local]);
+            return { data: { ...user, ...names, friendCode: await freshFriendCode(db(env)) } };
           },
           after: async (user, hook) => {
             signedUp = true;
@@ -116,11 +117,11 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           before: async (data, hook) => {
             const userId = (hook?.context?.session as { user?: { id?: string } } | null | undefined)?.user?.id;
             if (!userId) return;
-            const old = await env.DB.prepare(
-              `select "name", "username", "displayUsername", "image" from "user" where "id" = ?1`,
-            )
-              .bind(userId)
-              .first<{ name: string; username: string | null; displayUsername: string | null; image: string | null }>();
+            const old = await db(env)
+              .selectFrom('user')
+              .select(['name', 'username', 'displayUsername', 'image'])
+              .where('id', '=', userId)
+              .executeTakeFirst();
             if (!old) return;
             const changes: Happened[] = [];
             if (data.name !== undefined && data.name !== old.name)
@@ -232,7 +233,3 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
 }
 
 export type Auth = ReturnType<typeof createAuth>;
-
-export function trustedOrigins(env: Env) {
-  return env.TRUSTED_ORIGINS.split(',').map(origin => origin.trim());
-}

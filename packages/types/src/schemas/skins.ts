@@ -21,6 +21,17 @@ export const NickSchema = z.string().regex(/^[A-Za-z0-9_]{3,16}$/, 'A nick is 3 
 
 export const ClaimNickSchema = z.object({ name: NickSchema });
 
+/** The body the game sends to Mojang's `join`, which the Riven agent sends here for an offline account instead. */
+export const JoinSchema = z.object({
+  accessToken: z.string().min(1),
+  selectedProfile: z.string().regex(/^[0-9a-f]{32}$/i),
+  serverId: z.string().min(1).max(64),
+});
+
+export const HasJoinedQuerySchema = z.object({ username: z.string().min(1), serverId: z.string().min(1) });
+
+export const GameTokenSchema = z.object({ token: z.string(), expiresAt: z.string() });
+
 /** An offline nick held by one BX ID; `id` is its offline UUID, undashed, as a server derives it. */
 export const ProfileSchema = z.object({ id: z.string(), name: z.string(), skin: SkinSchema.nullable() });
 
@@ -40,3 +51,4 @@ export type MySkins = z.infer<typeof MySkinsSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
 export type HeldNick = z.infer<typeof HeldNickSchema>;
 export type MyProfiles = z.infer<typeof MyProfilesSchema>;
+export type GameToken = z.infer<typeof GameTokenSchema>;

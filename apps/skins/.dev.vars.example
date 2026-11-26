@@ -1,3 +1,3 @@
-# Local vars for `wrangler dev`; `bun dev:id` starts this Worker next to id.
 BASE_URL=http://localhost:8788
 TRUSTED_ORIGINS=http://localhost:3000
+MOJANG_PROXY_KEY=

@@ -20,4 +20,6 @@ Nuxt 4 on Vue 3 and Tailwind v4, built with `nuxt generate` and served as Cloudf
 
 ## Development
 
-Don't start the dev server: the user runs `bun dev:web` themselves. Run `bun install` at the repository root when dependencies change.
+Don't start the dev server: the user runs `bun dev` in this folder themselves. Run `bun install` at the repository root when dependencies change.
+
+`bun run typecheck` runs Golar, the Vue checker for TypeScript 7. CI runs it without blocking until the site's existing errors are fixed.

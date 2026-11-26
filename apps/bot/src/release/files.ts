@@ -60,10 +60,7 @@ export interface Replacement {
   with: string;
 }
 
-/**
- * Regex rewrites, optionally confined to the text between two marker lines. Every pattern
- * must match at least once, so a README edit that drops a link fails the release PR loudly.
- */
+/** Every pattern must match at least once, so a README edit that drops a link fails the release PR loudly. */
 export function replace(
   path: string,
   replacements: Replacement[],
@@ -98,7 +95,6 @@ export function replace(
   };
 }
 
-/** The rewrite a registry entry describes. */
 export function fileBump(file: VersionFile): FileBump {
   switch (file.kind) {
     case 'cargo-manifest':

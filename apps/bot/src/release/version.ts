@@ -47,7 +47,6 @@ function comparePre(a: string, b: string): number {
   return 0;
 }
 
-/** The version a release commit or release PR title names, or null for any other title. */
 export function releaseTitleVersion(title: string): Semver | null {
   const match = RELEASE_TITLE.exec(title.trim());
   return match ? parseSemver(match[1]!) : null;

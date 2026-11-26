@@ -1,4 +1,4 @@
-import type { D1Database } from '@cloudflare/workers-types';
+import type { DB } from './db';
 
 /** The username plugin's own limits; a name made here must pass its validator later on update. */
 const MIN = 3;
@@ -20,7 +20,7 @@ function toUsername(raw: string | null | undefined): string | null {
 
 /** The first candidate that fits, with a number added while it is taken; `player1234` when none fits. */
 export async function freshUsername(
-  db: D1Database,
+  db: DB,
   candidates: (string | null | undefined)[],
 ): Promise<{ username: string; displayUsername: string }> {
   const base = candidates.map(toUsername).find(Boolean) ?? 'player';
@@ -28,7 +28,7 @@ export async function freshUsername(
     const digits = attempt === 0 && base !== 'player' ? '' : String(1000 + Math.floor(Math.random() * 9000));
     const shown = `${base}${digits}`;
     const username = shown.toLowerCase();
-    const taken = await db.prepare(`select 1 from "user" where "username" = ?1`).bind(username).first();
+    const taken = await db.selectFrom('user').select('id').where('username', '=', username).executeTakeFirst();
     if (!taken) return { username, displayUsername: shown };
   }
   throw new Error('No free username after 8 tries');

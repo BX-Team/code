@@ -1,12 +1,9 @@
-import type { REST } from '@discordjs/rest';
 import { createMiddleware } from 'hono/factory';
-import { discordRest } from './discord/rest';
-import type { Env } from './env';
+import { type Discord, discordClient } from './discord/rest';
 
-export type BotEnv = { Bindings: Env; Variables: { rest: REST } };
+export type BotEnv = { Bindings: Env; Variables: { discord: Discord } };
 
-/** Builds the token-bound Discord client once per request. */
-export const withRest = createMiddleware<BotEnv>(async (c, next) => {
-  c.set('rest', discordRest(c.env.DISCORD_BOT_TOKEN));
+export const withDiscord = createMiddleware<BotEnv>(async (c, next) => {
+  c.set('discord', discordClient(c.env.DISCORD_BOT_TOKEN));
   await next();
 });

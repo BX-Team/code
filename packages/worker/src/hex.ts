@@ -1,4 +1,4 @@
-export function hexToBytes(hex: string): Uint8Array | null {
+export function hexToBytes(hex: string): Uint8Array<ArrayBuffer> | null {
   if (hex.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(hex)) return null;
 
   const bytes = new Uint8Array(hex.length / 2);

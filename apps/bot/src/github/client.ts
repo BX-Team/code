@@ -1,6 +1,5 @@
 const API = 'https://api.github.com';
 
-/** A non-2xx answer from the GitHub API, kept with its status so callers can branch on it. */
 export class GithubApiError extends Error {
   constructor(
     readonly status: number,
@@ -21,7 +20,6 @@ export class Github {
     return (await response.json()) as T;
   }
 
-  /** A file's contents at `ref`, or null when it does not exist there. */
   async file(repo: string, path: string, ref: string): Promise<string | null> {
     try {
       const response = await this.send(

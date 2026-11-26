@@ -10,7 +10,9 @@
     "enabled": true
   },
   "vars": {
+    // The BUCKET's public origin; every download URL is built off it.
     "R2_PUBLIC_URL": "https://files.bxteam.org",
+    // Where a publish is announced; empty leaves the publish silent rather than failing.
     "BOT_WEBHOOK_URL": "https://bot.bxteam.org/api/webhook"
   },
   "secrets": {

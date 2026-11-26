@@ -1,4 +1,4 @@
-import { EmbedBuilder } from '@discordjs/builders';
+import type { APIEmbed } from 'discord-api-types/v10';
 
 export const COLORS = {
   brand: 0x00bcc5,
@@ -19,23 +19,23 @@ export interface EmbedOptions {
   timestamp?: boolean;
 }
 
-export function createEmbed(options: EmbedOptions = {}): EmbedBuilder {
-  const embed = new EmbedBuilder().setColor(options.color ?? COLORS.brand);
+export function createEmbed(options: EmbedOptions = {}): APIEmbed {
+  const embed: APIEmbed = { color: options.color ?? COLORS.brand };
 
-  if (options.title) embed.setTitle(options.title);
-  if (options.description) embed.setDescription(options.description);
-  if (options.url) embed.setURL(options.url);
-  if (options.thumbnail) embed.setThumbnail(options.thumbnail);
-  if (options.footer) embed.setFooter({ text: options.footer });
-  if (options.fields?.length) embed.addFields(options.fields);
-  if (options.timestamp !== false) embed.setTimestamp();
+  if (options.title) embed.title = options.title;
+  if (options.description) embed.description = options.description;
+  if (options.url) embed.url = options.url;
+  if (options.thumbnail) embed.thumbnail = { url: options.thumbnail };
+  if (options.footer) embed.footer = { text: options.footer };
+  if (options.fields?.length) embed.fields = options.fields;
+  if (options.timestamp !== false) embed.timestamp = new Date().toISOString();
 
   if (options.author) {
-    embed.setAuthor({
+    embed.author = {
       name: options.author.name,
-      iconURL: isHttpUrl(options.author.iconURL) ? options.author.iconURL : undefined,
+      icon_url: isHttpUrl(options.author.iconURL) ? options.author.iconURL : undefined,
       url: isHttpUrl(options.author.url) ? options.author.url : undefined,
-    });
+    };
   }
 
   return embed;

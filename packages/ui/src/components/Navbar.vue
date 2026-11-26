@@ -19,8 +19,7 @@ const props = withDefaults(
     discordHref?: string;
     searchEnabled?: boolean;
     searchLabel?: string;
-    /** Width of the bar's row — give it the page's own container so the wordmark
-     *  lines up with the content under it. `none` spans the viewport. */
+    /** The page's own container, so the wordmark lines up with the content; `none` spans the viewport. */
     maxWidth?: string;
     gutter?: string;
     /** `NuxtLink` keeps navigation client-side; a plain anchor reloads the page. */

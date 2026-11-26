@@ -21,18 +21,11 @@ import { purge } from '../util/cache';
 import { requireToken } from '../util/token';
 import { announcePublish } from '../util/webhook';
 
-/**
- * `requireToken` sits on every route rather than on a `use('/publish/*')`: a guard
- * mounted on a wildcard path cannot read `:project`, which is what it authorises against.
- */
+// On every route, not `use('/publish/*')`: a guard on a wildcard path can't read `:project`, which it authorises against.
 const guarded = <R extends RouteConfig>(route: R) => ({ ...route, middleware: requireToken });
 
 export const publishRoutes = router()
-  /**
-   * The number the next build takes. A workflow needs it before it uploads, because the
-   * jar's own name carries it, and reading it here rather than from `github.run_number`
-   * is what keeps the sequence gapless when a run fails.
-   */
+  // The jar's name carries it; reading it here, not from `github.run_number`, keeps the sequence gapless.
   .openapi(guarded(nextBuild), async c => {
     const project = c.get('project');
     const version = await ensureVersion(c.env.DB, project.key, c.req.valid('param').version);
@@ -130,7 +123,6 @@ export const publishRoutes = router()
     return c.json({ ok: true }, 200);
   });
 
-/** The publish body: a file and a JSON `metadata` part. */
 function uploaded(form: { file: File; metadata?: string }): { file: File; name: string; body: unknown } {
   const name = fileName(form.file.name);
 
@@ -169,10 +161,7 @@ async function store(
   return { name, fileName, filePath: key, size: bytes.byteLength, sha256: await sha256Hex(bytes) };
 }
 
-/**
- * Commits the children of a publish, compensating what was already written when the batch
- * fails: the object always, and the build row only when this publish is what created it.
- */
+/** On a failed batch it removes the object, and the build row only when this publish created it. */
 async function commit(
   db: AppEnv['Bindings']['DB'],
   bucket: AppEnv['Bindings']['BUCKET'],
