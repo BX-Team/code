@@ -24,6 +24,8 @@ export interface ActivityTable {
   ipAddress: string | null;
   userAgent: string | null;
   createdAt: string;
+  city: string | null;
+  country: string | null;
 }
 
 export interface ConnectedAppTable {
@@ -43,6 +45,15 @@ export interface DeviceCodeTable {
   pollingInterval: number | null;
   clientId: string | null;
   scope: string | null;
+}
+
+export interface DeviceRequestTable {
+  userCode: string;
+  ipAddress: string | null;
+  city: string | null;
+  country: string | null;
+  userAgent: string | null;
+  createdAt: string;
 }
 
 export interface FriendshipTable {
@@ -68,6 +79,9 @@ export interface SessionTable {
   ipAddress: string | null;
   userAgent: string | null;
   userId: string;
+  city: string | null;
+  country: string | null;
+  clientId: string | null;
 }
 
 export interface UserTable {
@@ -97,6 +111,7 @@ export interface Tables {
   activity: ActivityTable;
   connectedApp: ConnectedAppTable;
   deviceCode: DeviceCodeTable;
+  deviceRequest: DeviceRequestTable;
   friendship: FriendshipTable;
   rateLimit: RateLimitTable;
   session: SessionTable;

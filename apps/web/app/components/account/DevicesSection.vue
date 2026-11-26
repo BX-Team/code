@@ -14,7 +14,7 @@ const format = useFormat();
 const sitePath = useSitePath();
 const { sessions, refresh } = useAccountData();
 const busy = ref('');
-const error = ref('');
+const notify = useNotify();
 const open = ref(false);
 
 const sorted = computed(() =>
@@ -32,18 +32,16 @@ function describe(ua?: string | null): { icon: Component; name: string } {
 
 async function revoke(token: string, id: string) {
   busy.value = id;
-  error.value = '';
   const { error: failed } = await auth.revokeSession({ token });
-  if (failed) error.value = t('account.devices.revokeFailed');
+  if (failed) notify.error(failed);
   await refresh();
   busy.value = '';
 }
 
 async function revokeOthers() {
   busy.value = 'others';
-  error.value = '';
   const { error: failed } = await auth.revokeOtherSessions();
-  if (failed) error.value = t('account.devices.othersFailed');
+  if (failed) notify.error(failed);
   await refresh();
   busy.value = '';
 }
@@ -77,7 +75,9 @@ async function revokeOthers() {
 								? $t('account.devices.activeNow')
 								: $t('account.devices.lastActive', { when: format.relative(row.updatedAt.toISOString()) })
 						}}
-						<template v-if="row.ipAddress"> · {{ row.ipAddress }}</template>
+						<template v-if="format.place(row.city, row.country) ?? row.ipAddress">
+								· <span :title="row.ipAddress ?? undefined">{{ format.place(row.city, row.country) ?? row.ipAddress }}</span>
+							</template>
 					</span>
 				</div>
 				<span v-if="row.id === current" class="badge">{{ $t('account.devices.thisDevice') }}</span>
@@ -96,7 +96,6 @@ async function revokeOthers() {
 		<button v-if="sorted.length > FOLDED" type="button" class="btn quiet small list-more" @click="open = !open">
 			{{ open ? $t('account.devices.fewer') : $t('account.devices.all', { n: sorted.length }) }}
 		</button>
-		<p v-if="error" class="hint bad" role="alert">{{ error }}</p>
 	</AccountSection>
 </template>
 

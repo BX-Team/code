@@ -17,6 +17,19 @@ export function valid<Target extends keyof ValidationTargets, Schema extends z.Z
   schema: Schema,
 ) {
   return zValidator(target, schema, result => {
-    if (!result.success) throw badRequest(result.error.issues[0]?.message ?? `Invalid ${target}`);
+    if (!result.success) throw badRequest(result.error.issues[0]?.message ?? `Invalid ${target}`, 'INVALID_INPUT');
   });
+}
+
+/** City and ISO country from a request's `cf`; either may be unknown, as in local dev. */
+export function place(cf: unknown): { city: string | null; country: string | null } {
+  const props = (cf ?? {}) as { city?: unknown; country?: unknown };
+  return {
+    city: typeof props.city === 'string' && props.city ? props.city : null,
+    // `XX` is unknown and `T1` (Tor) fails the pattern: neither is a country to show.
+    country:
+      typeof props.country === 'string' && /^[A-Z]{2}$/.test(props.country) && props.country !== 'XX'
+        ? props.country
+        : null,
+  };
 }

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { auth } from '~/lib/auth';
 
 const { t } = useI18n();
+const errorText = useErrorText();
 const sitePath = useSitePath();
 const session = auth.useSession();
 /** Typing this back confirms the deletion: the username, or the email when there is none. */
@@ -27,7 +28,7 @@ async function remove() {
   busy.value = false;
   if (failed) {
     stale.value = failed.code === 'SESSION_EXPIRED';
-    error.value = stale.value ? t('account.delete.stale') : (failed.message ?? t('account.delete.failed'));
+    error.value = stale.value ? t('account.delete.stale') : errorText(failed);
     return;
   }
   navigateTo(sitePath('/'));

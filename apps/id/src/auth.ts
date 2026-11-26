@@ -1,6 +1,6 @@
 import { products } from '@bx-team/worker/bxid';
 import { isOn, limit, type Switch } from '@bx-team/worker/flags';
-import { list } from '@bx-team/worker/http';
+import { list, place } from '@bx-team/worker/http';
 import { betterAuth } from 'better-auth';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { bearer } from 'better-auth/plugins/bearer';
@@ -9,14 +9,14 @@ import { deviceAuthorization } from 'better-auth/plugins/device-authorization';
 import { emailOTP } from 'better-auth/plugins/email-otp';
 import { username } from 'better-auth/plugins/username';
 import { db } from './db';
-import { type Happened, origin, record, rememberApp } from './events';
+import { type Happened, origin, record, rememberApp, rememberDeviceRequest } from './events';
 import { freshFriendCode } from './friend-code';
 import { sendCode } from './mail';
 import { freshUsername } from './username';
 
 export const BASE_PATH = '/v1/auth';
 
-const DEVICE_CLIENTS = new Set(['riven']);
+export const DEVICE_CLIENTS = new Set(['riven']);
 
 const SOCIAL = new Set(['discord', 'github']);
 
@@ -30,19 +30,17 @@ const REVOKES = new Set(['/revoke-session', '/revoke-sessions', '/revoke-other-s
 
 type HookContext = { path?: string; headers?: Headers; request?: Request; context?: { session?: unknown } } | null;
 
-function from(hook: HookContext) {
-  return origin(hook?.headers ?? hook?.request?.headers);
-}
-
 function pictureSource(image: string | null | undefined): string | null {
   if (!image) return null;
   const host = URL.parse(image)?.hostname ?? '';
   return host.endsWith('discordapp.com') ? 'discord' : host.endsWith('githubusercontent.com') ? 'github' : 'other';
 }
 
-export function createAuth(env: Env, ctx: ExecutionContext) {
+/** `request.cf`, when there is a request, places new sessions and events. */
+export function createAuth(env: Env, ctx: ExecutionContext, request?: Request) {
   let signedUp = false;
   let profileChanges: Happened[] = [];
+  const from = (hook: HookContext) => origin(hook?.headers ?? hook?.request?.headers, request?.cf);
 
   return betterAuth({
     appName: 'BX ID',
@@ -64,6 +62,13 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
         mapProfileToUser: profile => ({ username: profile.login }),
       },
     },
+    session: {
+      additionalFields: {
+        city: { type: 'string', required: false, input: false },
+        country: { type: 'string', required: false, input: false },
+        clientId: { type: 'string', required: false, input: false },
+      },
+    },
     user: {
       additionalFields: {
         friendCode: { type: 'string', required: false, input: false },
@@ -80,15 +85,24 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
         if (hook.path === '/email-otp/send-verification-otp' && !(await isOn(env.FLAGS, 'email-otp')))
           throw new APIError('SERVICE_UNAVAILABLE', {
             message: 'Sign-in by email is off for now; use Discord or GitHub',
+            code: 'EMAIL_SIGN_IN_OFF',
           });
         if (!SOCIAL_PATHS.has(hook.path)) return;
         const provider =
           hook.path === '/callback/:id' ? hook.params?.id : (hook.body as { provider?: unknown })?.provider;
         const key = typeof provider === 'string' ? PROVIDER_SWITCH[provider] : undefined;
         if (key && !(await isOn(env.FLAGS, key)))
-          throw new APIError('SERVICE_UNAVAILABLE', { message: `Sign-in with ${provider} is off for now` });
+          throw new APIError('SERVICE_UNAVAILABLE', {
+            message: `Sign-in with ${provider} is off for now`,
+            code: 'PROVIDER_SIGN_IN_OFF',
+          });
       }),
       after: createAuthMiddleware(async hook => {
+        if (hook.path === '/device/code') {
+          const userCode = (hook.context.returned as { user_code?: unknown } | undefined)?.user_code;
+          if (typeof userCode === 'string') await rememberDeviceRequest(env, userCode, from(hook));
+          return;
+        }
         if (hook.path !== '/device/token') return;
         const userId = hook.context.newSession?.user.id;
         const clientId = (hook.body as { client_id?: unknown } | undefined)?.client_id;
@@ -100,9 +114,15 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
         create: {
           before: async user => {
             if (!(await isOn(env.FLAGS, 'sign-up')))
-              throw new APIError('FORBIDDEN', { message: 'New BX IDs cannot be made right now; try again later' });
+              throw new APIError('FORBIDDEN', {
+                message: 'New BX IDs cannot be made right now; try again later',
+                code: 'SIGN_UP_OFF',
+              });
             if (!user.emailVerified)
-              throw new APIError('FORBIDDEN', { message: 'Verify your email with the provider first' });
+              throw new APIError('FORBIDDEN', {
+                message: 'Verify your email with the provider first',
+                code: 'PROVIDER_EMAIL_UNVERIFIED',
+              });
             const handle = (user as { username?: string | null }).username;
             const local = user.email.split('@')[0];
             const names = await freshUsername(db(env), [handle, user.name, local]);
@@ -142,24 +162,42 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
       },
       session: {
         create: {
+          before: async (session, hook) => {
+            const clientId = hook?.path === '/device/token' ? (hook.body as { client_id?: unknown })?.client_id : null;
+            return {
+              data: {
+                ...session,
+                ...place(request?.cf),
+                clientId: typeof clientId === 'string' ? clientId : null,
+              },
+            };
+          },
           after: async session => {
+            const placed = session as typeof session & { city?: string | null; country?: string | null };
             await record(env, session.userId, {
               kind: 'signed-in',
               ipAddress: session.ipAddress,
               userAgent: session.userAgent,
+              city: placed.city,
+              country: placed.country,
             });
           },
         },
         delete: {
           // Expired sessions are deleted too, on a later look-up; only a player's own action is logged.
           after: async (session, hook) => {
+            const hub = env.HUB.get(env.HUB.idFromName(session.userId));
+            ctx.waitUntil(hub.endSessions([session.id]));
             const kind =
               hook?.path === '/sign-out' ? 'signed-out' : REVOKES.has(hook?.path ?? '') ? 'device-removed' : null;
             if (!kind) return;
+            const placed = session as typeof session & { city?: string | null; country?: string | null };
             await record(env, session.userId, {
               kind,
               ipAddress: session.ipAddress,
               userAgent: session.userAgent,
+              city: placed.city,
+              country: placed.country,
             });
           },
         },
@@ -200,6 +238,7 @@ export function createAuth(env: Env, ctx: ExecutionContext) {
           max: await limit(env.FLAGS, 'otp-sends-per-minute'),
         }),
         '/sign-in/email-otp': async () => ({ window: 60, max: await limit(env.FLAGS, 'otp-tries-per-minute') }),
+        '/device': { window: 600, max: 30 },
       },
     },
     advanced: {

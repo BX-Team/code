@@ -20,13 +20,20 @@ export const picture = new Hono<Bindings>().use(signedIn).post('/', valid('json'
       .where('userId', '=', c.get('userId'))
       .where('providerId', '=', source)
       .executeTakeFirst();
-    if (!account) throw notFound(`No ${source} account is connected`);
+    if (!account) throw notFound(`No ${source} account is connected`, 'PICTURE_NOT_CONNECTED', { provider: source });
     // The provider is asked again: Better Auth keeps no picture per linked account, only the user's one.
     const tokens = await auth.api.getAccessToken({ body: { accountId: account.id }, headers });
     const provider = (await auth.$context).socialProviders.find(p => p.id === source);
     const info = await provider?.getUserInfo(tokens as never).catch(() => null);
     image = info?.user.image ?? null;
-    if (!image) throw new HttpError(502, 'Bad Gateway', `${source} did not return a picture; sign in with it again`);
+    if (!image)
+      throw new HttpError(
+        502,
+        'Bad Gateway',
+        `${source} did not return a picture; sign in with it again`,
+        'PICTURE_UNAVAILABLE',
+        { provider: source },
+      );
   }
 
   await auth.api.updateUser({ body: { image }, headers });

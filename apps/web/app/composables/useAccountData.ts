@@ -6,6 +6,8 @@ export interface AccountSession {
   token: string;
   userAgent?: string | null;
   ipAddress?: string | null;
+  city?: string | null;
+  country?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,9 @@ export function useAccountData() {
       token: s.token,
       userAgent: s.userAgent,
       ipAddress: s.ipAddress,
+      // Session fields of our own come back too, but the client's types leave them out.
+      city: (s as { city?: string | null }).city ?? null,
+      country: (s as { country?: string | null }).country ?? null,
       createdAt: new Date(s.createdAt),
       updatedAt: new Date(s.updatedAt),
     }));

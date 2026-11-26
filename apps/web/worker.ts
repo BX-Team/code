@@ -27,7 +27,7 @@ export default {
   },
 };
 
-/** Where an English page sends a visitor whose language is another one: the i18n module would do it after the English HTML had painted. */
+/** Where an English page sends a visitor of another language, before the English HTML paints. */
 function localizedPath(request: Request, url: URL): string | undefined {
   if (request.method !== 'GET' && request.method !== 'HEAD') return;
   const first = url.pathname.split('/')[1] ?? '';

@@ -7,6 +7,7 @@ import { mountTurnstile } from '~/lib/turnstile';
 
 const { t } = useI18n();
 const sitePath = useSitePath();
+const errorText = useErrorText();
 
 useHead({ title: () => t('account.login.title') });
 
@@ -72,7 +73,7 @@ async function sendCode() {
   widget?.reset();
   busy.value = false;
   if (failed) {
-    error.value = t(failed.status === 429 ? 'account.login.tooManyCodes' : 'account.login.sendFailed');
+    error.value = errorText(failed);
     return;
   }
   otp.value = '';
@@ -86,7 +87,7 @@ async function signIn() {
   const { error: failed } = await auth.signIn.emailOtp({ email: email.value.trim(), otp: otp.value.trim() });
   busy.value = false;
   if (failed) {
-    error.value = t(failed.status === 429 ? 'account.login.tooManyAttempts' : 'account.login.wrongCode');
+    error.value = errorText(failed);
   }
 }
 
@@ -100,7 +101,7 @@ async function social(provider: 'discord' | 'github') {
   });
   if (failed) {
     busy.value = false;
-    error.value = t('account.login.startFailed');
+    error.value = errorText(failed);
   }
 }
 </script>

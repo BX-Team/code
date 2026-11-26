@@ -10,8 +10,7 @@ export type Bindings = { Bindings: Env; Variables: { userId: string } };
 
 export const app = new Hono<Bindings>();
 
-// Before any route: Hono runs middleware only for the routes registered after it.
-// Textures are public, as in the game; the rest needs the session, and so only the site's origins.
+// Before any route, as Hono runs middleware only for later ones: textures are public, the rest is for the site's origins.
 app.use('/v1/skins/textures/*', cors({ origin: '*' }));
 for (const path of ['/v1/skins/me', '/v1/skins/profiles', '/v1/skins/profiles/*']) {
   app.use(path, (c, next) =>

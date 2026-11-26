@@ -805,11 +805,6 @@
       "sent": "We sent a 6-digit code to {email}. It works for 5 minutes.",
       "returned": "Signing in did not go through. Try again.",
       "captcha": "The bot check did not load. Reload the page, or sign in with Discord or GitHub.",
-      "tooManyCodes": "Too many codes asked for. Wait a minute.",
-      "sendFailed": "Could not send the code.",
-      "tooManyAttempts": "Too many attempts. Wait a minute.",
-      "wrongCode": "That code is wrong or has expired.",
-      "startFailed": "Could not start signing in.",
       "continueWith": "Continue with {provider}",
       "or": "or",
       "email": "Email",
@@ -839,7 +834,10 @@
       "connectedLede": "{app} is signed in as {who}. You can go back to it now.",
       "deniedLede": "{app} was not signed in.",
       "see": "See your devices",
-      "another": "Connect another device"
+      "another": "Connect another device",
+      "from": "Asked from {place}",
+      "elsewhere": "This request came from another country than you are in. If you did not start signing in yourself just now, deny it: someone may be trying to get into your BX ID.",
+      "noOrigin": "We do not know where this request came from. Approve only if you started it yourself."
     },
     "overview": {
       "title": "Account",
@@ -866,7 +864,6 @@
       "deleting": "Deleting…",
       "forever": "Delete forever",
       "stale": "For safety, sign in again first: deleting needs a sign-in from the last day.",
-      "failed": "Could not delete the account.",
       "again": "Sign in again"
     },
     "devices": {
@@ -880,9 +877,7 @@
       "thisDevice": "This device",
       "signOut": "Sign out",
       "fewer": "Show fewer",
-      "all": "Show all {n}",
-      "revokeFailed": "Could not sign that device out.",
-      "othersFailed": "Could not sign the other devices out."
+      "all": "Show all {n}"
     },
     "agents": {
       "unknown": "Unknown device",
@@ -915,7 +910,8 @@
       "skinResetAny": "Removed a nick's skin",
       "nickAdded": "Added the nick {name}",
       "nickRemoved": "Removed the nick {name}",
-      "app": "Connected {app}"
+      "app": "Connected {app}",
+      "appRemoved": "Disconnected {app}"
     },
     "friends": {
       "title": "Friends",
@@ -928,8 +924,6 @@
       "accepted": "You and {who} are friends now.",
       "exists": "You have already asked {who}, or you are friends.",
       "asked": "Asked {who}. They will see it next time they open Riven or this page.",
-      "sendFailed": "Could not send the request.",
-      "failed": "That did not go through. Try again.",
       "unreachable": "Friends are not reachable right now. Try again in a minute.",
       "addLabel": "Add by friend code",
       "sending": "Sending…",
@@ -953,16 +947,13 @@
       "notConnected": "Not connected",
       "disconnect": "Disconnect",
       "connect": "Connect",
-      "returned": "Connecting did not go through. Try again.",
-      "startFailed": "Could not start connecting.",
-      "disconnectFailed": "Could not disconnect."
+      "returned": "Connecting did not go through. Try again."
     },
     "picture": {
       "change": "Change picture",
       "from": "Picture from",
       "initial": "Initial",
-      "saving": "Saving…",
-      "failed": "Could not change the picture."
+      "saving": "Saving…"
     },
     "profile": {
       "title": "Profile",
@@ -975,9 +966,7 @@
       "rule": "3 to 30 letters, digits, dots or underscores.",
       "reset": "Reset",
       "saving": "Saving…",
-      "save": "Save",
-      "taken": "That username is taken.",
-      "failed": "Could not save."
+      "save": "Save"
     },
     "riven": {
       "app": "App",
@@ -1029,8 +1018,20 @@
       "classic": "Classic",
       "slim": "Slim",
       "blank": "Add the nick you play with on offline accounts, up to {limit}. Its skins show up here.",
-      "unreachable": "Skins are not reachable right now. Try again in a minute.",
-      "failed": "Something went wrong."
+      "unreachable": "Skins are not reachable right now. Try again in a minute."
+    },
+    "place": {
+      "unknown": "Unknown place"
+    },
+    "disconnect": {
+      "title": "Disconnect {app}",
+      "body": "Signs {app} out on every device and deletes what it kept for this BX ID: nicks, skins and friends. Signing in to it again starts from nothing.",
+      "go": "Disconnect",
+      "confirm": "Delete nicks, skins and friends?",
+      "yes": "Disconnect and delete",
+      "cancel": "Cancel",
+      "busy": "Disconnecting…",
+      "done": "{app} is disconnected."
     }
   },
   "palette": {
@@ -1074,5 +1075,47 @@
       "cpuTime": "CPU time",
       "load": "Mean load"
     }
+  },
+  "errors": {
+    "GENERIC": "Something went wrong. Try again.",
+    "NETWORK": "No connection to BX Team. Check your internet and try again.",
+    "TOO_MANY_REQUESTS": "Too many attempts. Wait a minute and try again.",
+    "UNAUTHORIZED": "Your sign-in has ended. Sign in again.",
+    "UNAVAILABLE": "BX Team is not answering right now. Try again in a minute.",
+    "INVALID_INPUT": "Check what you entered.",
+    "EMAIL_SIGN_IN_OFF": "Sign-in by email is off for now. Use Discord or GitHub.",
+    "PROVIDER_SIGN_IN_OFF": "Sign-in with this service is off for now. Try another one.",
+    "SIGN_UP_OFF": "New BX IDs cannot be made right now. Try again later.",
+    "PROVIDER_EMAIL_UNVERIFIED": "Verify your email with that service first.",
+    "INVALID_OTP": "That code is wrong.",
+    "OTP_EXPIRED": "That code has expired. Ask for a new one.",
+    "TOO_MANY_ATTEMPTS": "Too many wrong codes. Ask for a new one.",
+    "USERNAME_IS_ALREADY_TAKEN": "That username is taken.",
+    "USERNAME_TOO_SHORT": "That username is too short.",
+    "USERNAME_TOO_LONG": "That username is too long.",
+    "INVALID_USERNAME": "A username is letters, digits, dots and underscores.",
+    "FAILED_TO_UNLINK_LAST_ACCOUNT": "This is your only way to sign in, so it cannot be disconnected.",
+    "SOCIAL_ACCOUNT_ALREADY_LINKED": "That account is already connected to another BX ID.",
+    "LINKED_ACCOUNT_ALREADY_EXISTS": "That account is already connected.",
+    "ACCOUNT_NOT_FOUND": "That account is not connected.",
+    "SESSION_EXPIRED": "For safety, sign in again first.",
+    "PICTURE_NOT_CONNECTED": "Connect that account first.",
+    "PICTURE_UNAVAILABLE": "That service did not give us a picture. Sign in with it again.",
+    "FRIEND_CODE_UNKNOWN": "No one has that friend code.",
+    "FRIEND_LIMIT": "A BX ID has at most {max} friends.",
+    "FRIEND_REQUESTS_PENDING": "Too many of your requests are still waiting for an answer.",
+    "FRIEND_REQUEST_UNKNOWN": "That request is no longer there.",
+    "FRIEND_UNKNOWN": "That person is not your friend anymore.",
+    "APP_UNKNOWN": "That app is not connected.",
+    "NICK_MINECRAFT": "{name} is the name of a Minecraft account, so it cannot be a nick.",
+    "NICK_LIMIT": "A BX ID holds at most {max} nicks. Remove one first.",
+    "NICK_TAKEN": "{name} belongs to another BX ID.",
+    "NICK_UNKNOWN": "That nick is not yours anymore.",
+    "MOJANG_UNAVAILABLE": "Mojang is not answering, so the nick cannot be checked. Try again later.",
+    "SKIN_UPLOAD_OFF": "Skin uploads are off for now. Try again later.",
+    "SKIN_TOO_LARGE": "A skin is at most {kib} KiB.",
+    "SKIN_NOT_PNG": "A skin is a PNG image.",
+    "SKIN_SIZE": "A skin is 64×64 or 64×32 pixels, not {width}×{height}.",
+    "SKIN_UNKNOWN": "That skin is no longer there."
   }
 }

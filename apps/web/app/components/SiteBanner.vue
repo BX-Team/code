@@ -3,7 +3,7 @@ import { type Banner, NoticeSchema } from '@bx-team/types/schema/bxid';
 import { onMounted, ref } from 'vue';
 import { AUTH_BASE } from '~/lib/auth';
 
-/** A notice from the `site-banner` flag in Flagship, such as maintenance; the site is static, so it is fetched here. */
+/** The `site-banner` Flagship flag, fetched in the browser as the site is static. */
 const banner = ref<Banner | null>(null);
 
 onMounted(async () => {

@@ -5,7 +5,6 @@ import { record } from './events';
 
 /** What other BX Team Workers may ask BX ID through a service binding; nothing private leaves it. */
 export class IdService extends WorkerEntrypoint<Env> implements BxIdService {
-  /** The BX ID signed in by a request's `Cookie` (the site) or `Authorization` (an app), if any. */
   async userId(credentials: { cookie?: string | null; authorization?: string | null }): Promise<string | null> {
     const headers = new Headers();
     if (credentials.cookie) headers.set('cookie', credentials.cookie);
@@ -22,6 +21,8 @@ export class IdService extends WorkerEntrypoint<Env> implements BxIdService {
       detail: Record<string, string>;
       ipAddress: string | null;
       userAgent: string | null;
+      city?: string | null;
+      country?: string | null;
     },
   ): Promise<void> {
     await record(this.env, userId, event);

@@ -5,10 +5,7 @@ import { titleType } from '../release/version';
 
 const LABELLED = ['opened', 'reopened', 'edited'];
 
-/**
- * Labels a person's pull request by its title type. A retitle swaps the label the old title
- * gave for the new one; labels put on by hand are never touched.
- */
+/** Labels a person's PR by its title type; a retitle swaps that label, hand-set labels are never touched. */
 export async function labelByType(gh: Github, event: PullRequestEvent): Promise<string | false> {
   const pull = event.pull_request;
   if (!LABELLED.includes(event.action) || pull.user.type === 'Bot') return false;

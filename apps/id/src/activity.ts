@@ -10,10 +10,10 @@ const PAGE = 20;
 export const activity = new Hono<Bindings>().use(signedIn).get('/', async c => {
   const before = c.req.query('before');
   const [at, id] = before ? before.split('|') : [];
-  if (before && (!at || !id)) throw badRequest('Bad cursor');
+  if (before && (!at || !id)) throw badRequest('Bad cursor', 'BAD_CURSOR');
   let query = db(c.env)
     .selectFrom('activity')
-    .select(['id', 'kind', 'detail', 'ipAddress', 'userAgent', 'createdAt'])
+    .select(['id', 'kind', 'detail', 'ipAddress', 'userAgent', 'city', 'country', 'createdAt'])
     .where('userId', '=', c.get('userId'));
   if (at && id)
     query = query.where(eb => eb.or([eb('createdAt', '<', at), eb.and([eb('createdAt', '=', at), eb('id', '<', id)])]));

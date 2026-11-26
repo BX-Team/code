@@ -2,9 +2,11 @@
 import type { Friend, Friends, PlayUser } from '@bx-team/types/schema/play';
 import { UserPlus } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
-import { acceptFriend, addFriend, fetchFriends, PlayError, playerName, removeFriend } from '~/lib/play';
+import { acceptFriend, addFriend, fetchFriends, playerName, removeFriend } from '~/lib/play';
 
 const { t } = useI18n();
+const errorText = useErrorText();
+const notify = useNotify();
 const data = ref<Friends | null>(null);
 const loadError = ref('');
 const code = ref('');
@@ -66,7 +68,7 @@ async function add() {
     code.value = '';
     await load();
   } catch (error) {
-    addNote.value = { text: error instanceof PlayError ? error.message : t('account.friends.sendFailed'), bad: true };
+    addNote.value = { text: errorText(error), bad: true };
   } finally {
     adding.value = false;
   }
@@ -77,8 +79,8 @@ async function act(id: string, action: () => Promise<void>) {
   try {
     await action();
     await load();
-  } catch {
-    loadError.value = t('account.friends.failed');
+  } catch (error) {
+    notify.error(error);
   } finally {
     busy.value = '';
     confirming.value = '';
@@ -151,7 +153,7 @@ function remove(id: string) {
 				<li v-for="friend in sorted" :key="friend.user.id">
 					<span class="who">
 						<AccountAvatar :id="friend.user.id" :name="label(friend.user)" :image="friend.user.image" :size="36" />
-						<span class="dot" :class="{ on: friend.presence.online }" :title="friend.presence.online ? $t('account.friends.online') : $t('account.friends.offline')" />
+						<span class="dot" :class="{ on: friend.presence.online }" :title="status(friend)" />
 					</span>
 					<div class="grow">
 						<span class="name">{{ label(friend.user) }}</span>

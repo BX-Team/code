@@ -15,7 +15,7 @@ const current = computed(() => pictureSource(user.value?.image));
 
 const open = ref(false);
 const busy = ref<PictureSource | null>(null);
-const error = ref('');
+const notify = useNotify();
 const root = ref<HTMLElement>();
 
 const options = computed(() => {
@@ -28,12 +28,11 @@ const options = computed(() => {
 
 async function pick(source: PictureSource) {
   busy.value = source;
-  error.value = '';
   try {
     await setPicture(source);
     open.value = false;
   } catch (e) {
-    error.value = e instanceof Error ? e.message : t('account.picture.failed');
+    notify.error(e);
   } finally {
     busy.value = null;
   }
@@ -89,7 +88,6 @@ onBeforeUnmount(() => {
 				<span v-else-if="busy === option.id" class="pm__note">{{ $t('account.picture.saving') }}</span>
 				<Check v-else-if="current === option.id" :size="15" :stroke-width="2" class="pm__check" />
 			</button>
-			<p v-if="error" class="pm__error" role="alert">{{ error }}</p>
 		</div>
 	</div>
 </template>
@@ -198,11 +196,5 @@ onBeforeUnmount(() => {
 
 .pm__check {
 	color: var(--accent);
-}
-
-.pm__error {
-	margin: 4px 10px 6px;
-	font: 400 12.5px/1.45 var(--font-sans);
-	color: var(--warn);
 }
 </style>

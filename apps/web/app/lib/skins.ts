@@ -7,6 +7,7 @@ import {
   ProfileSchema,
   type SkinModel,
 } from '@bx-team/types/schema/skins';
+import { apiError } from '~/lib/errors';
 
 /** Skins is its own Worker; `bun dev` in `apps/skins` runs it on :8788. */
 export const SKINS_BASE =
@@ -14,10 +15,7 @@ export const SKINS_BASE =
 
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const response = await fetch(`${SKINS_BASE}/v1/skins${path}`, { credentials: 'include', ...init });
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(body?.message ?? `Skins answered ${response.status}`);
-  }
+  if (!response.ok) throw await apiError(response);
   return response;
 }
 

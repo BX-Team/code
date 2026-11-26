@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { KeyRound, LayoutGrid, ShieldCheck } from '@lucide/vue';
 
-/** The frame of the BX ID forms: one narrow card under the site's bar; `pitch` adds what an account is for, product-neutral. */
+/** The frame of the BX ID forms; `pitch` adds what an account is for. */
 defineProps<{ title: string; lead?: string; pitch?: boolean }>();
 
 useHead({ meta: [{ name: 'robots', content: 'noindex' }] });

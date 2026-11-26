@@ -23,7 +23,7 @@ export const REPOSITORY = 'BX-Team/claude-skills';
 export const MARKETPLACE = REPOSITORY;
 export const PLUGIN = 'minecraft-server';
 
-/** claude.ai wants the skill's own folder at the root of the archive. The files are read from `master`, so the zip is never a stale copy. */
+/** claude.ai wants the skill's folder at the archive root; files come from `master`, so the zip is never stale. */
 export async function downloadSkill(name: string): Promise<void> {
   const prefix = `skills/${name}/`;
   const raw = await $fetch(`${GITHUB_API}/repos/${REPOSITORY}/git/trees/master`, {

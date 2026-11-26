@@ -25,6 +25,8 @@ export interface BxIdService {
       detail: Record<string, string>;
       ipAddress: string | null;
       userAgent: string | null;
+      city?: string | null;
+      country?: string | null;
     },
   ): Promise<void>;
 }

@@ -38,7 +38,7 @@ export function zip(entries: ZipEntry[], when = new Date()): Blob {
     const header = new DataView(new ArrayBuffer(30));
     header.setUint32(0, 0x04034b50, true);
     header.setUint16(4, 20, true);
-    // Bit 11 says the file name is UTF-8, which matters for nothing here but is correct.
+    // Bit 11: the file name is UTF-8.
     header.setUint16(6, 0x0800, true);
     header.setUint16(8, 0, true);
     header.setUint16(10, time, true);

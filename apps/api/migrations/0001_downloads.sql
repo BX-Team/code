@@ -29,8 +29,7 @@ create table if not exists versions (
     unique (project, key)
 );
 
--- `created_at` on a build and on a release is written by the application as an ISO 8601
--- instant, because the default below has no zone and these two are the ones served.
+-- `created_at` of builds and releases is written by the app as ISO 8601: the default below has no zone.
 create table if not exists builds (
     id         integer primary key,
     version_id integer not null references versions(id) on delete cascade,

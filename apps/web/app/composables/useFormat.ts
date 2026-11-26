@@ -6,7 +6,14 @@ export function useFormat() {
   const { t, locale } = useI18n();
   const tag = computed(() => (locale.value === 'ru' ? 'ru-RU' : 'en-US'));
 
+  const regions = computed(() => new Intl.DisplayNames([tag.value], { type: 'region' }));
+
   return {
+    /** "Moscow, Russia" from Cloudflare's city and ISO country; `null` when neither is known. */
+    place: (city?: string | null, country?: string | null) => {
+      const land = country ? (regions.value.of(country) ?? country) : null;
+      return [city, land].filter(Boolean).join(', ') || null;
+    },
     bytes: (bytes: number) => formatBytes(bytes, [t('format.bytes'), t('format.kb'), t('format.mb')]),
     /** Day, month and year, such as "Nov 26, 2026". */
     date: (value: string | Date) =>

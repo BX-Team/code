@@ -5,6 +5,7 @@ import { cors } from 'hono/cors';
 import { activity } from './activity';
 import { apps } from './apps';
 import { BASE_PATH, createAuth } from './auth';
+import { device } from './device';
 import { notice } from './notice';
 import { picture } from './picture';
 import { PLAY_PATH, play } from './play/routes';
@@ -27,9 +28,12 @@ app.route(`${BASE_PATH}/apps`, apps);
 app.route(`${BASE_PATH}/activity`, activity);
 app.route(`${BASE_PATH}/picture`, picture);
 app.route(`${BASE_PATH}/notice`, notice);
+app.route(`${BASE_PATH}/device-origin`, device);
 app.route(PLAY_PATH, play);
 
-app.on(['GET', 'POST'], `${BASE_PATH}/*`, c => createAuth(c.env, c.executionCtx as never).handler(c.req.raw));
+app.on(['GET', 'POST'], `${BASE_PATH}/*`, c =>
+  createAuth(c.env, c.executionCtx as never, c.req.raw).handler(c.req.raw),
+);
 
 app.onError(errorHandler);
 app.notFound(notFoundHandler);

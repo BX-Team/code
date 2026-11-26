@@ -36,7 +36,7 @@ const sitePath = useSitePath();
 <style scoped>
 .showcase {
 	min-width: 0;
-	/* Rows shared with the cards beside it, so a summary that wraps longer in one language does not push its shot out of line. */
+	/* Rows shared with the cards beside it, so a longer summary does not push its shot out of line. */
 	display: grid;
 	grid-row: span 3;
 	grid-template-rows: subgrid;

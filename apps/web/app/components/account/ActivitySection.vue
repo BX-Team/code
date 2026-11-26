@@ -10,6 +10,7 @@ import {
   Shirt,
   Sparkles,
   Unlink,
+  Unplug,
   UserMinus,
   UserPen,
   UserPlus,
@@ -99,14 +100,16 @@ function describe(event: ActivityEvent): { icon: Component; title: string } {
       return { icon: UserMinus, title: t(key('nickRemoved'), { name: d.name }) };
     case 'app':
       return { icon: Sparkles, title: t(key('app'), { app: APPS[d.clientId ?? '']?.name ?? d.clientId }) };
+    case 'app-removed':
+      return { icon: Unplug, title: t(key('appRemoved'), { app: APPS[d.clientId ?? '']?.name ?? d.clientId }) };
   }
 }
 
-/** Where it happened: the device, unless the title already names it, and the address. */
+/** The device, unless the title names it, and the place, or the IP when the place is unknown. */
 function where(event: ActivityEvent): string {
   const named = ['signed-in', 'signed-out', 'device-removed'].includes(event.kind);
   const device = event.userAgent && !named ? describeAgent(event.userAgent, t).name : '';
-  return [device, event.ipAddress ?? ''].filter(Boolean).join(' · ');
+  return [device, format.place(event.city, event.country) ?? event.ipAddress ?? ''].filter(Boolean).join(' · ');
 }
 </script>
 
@@ -123,7 +126,7 @@ function where(event: ActivityEvent): string {
 					<span class="mark"><component :is="describe(event).icon" :size="17" :stroke-width="1.7" /></span>
 					<div class="grow">
 						<span class="name">{{ describe(event).title }}</span>
-						<span v-if="where(event)" class="sub">{{ where(event) }}</span>
+						<span v-if="where(event)" class="sub" :title="event.ipAddress ?? undefined">{{ where(event) }}</span>
 					</div>
 					<span class="when">{{ format.relative(event.createdAt) }}</span>
 				</li>
@@ -137,7 +140,7 @@ function where(event: ActivityEvent): string {
 </template>
 
 <style scoped>
-/* The card takes the height of the card beside it instead of setting it, so the list scrolls inside rather than stretching the row. */
+/* Takes the row height from the card beside it, so the list scrolls inside. */
 .activity {
 	min-height: 440px;
 }

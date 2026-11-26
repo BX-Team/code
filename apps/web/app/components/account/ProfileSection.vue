@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { auth } from '~/lib/auth';
 
-const { t } = useI18n();
+const errorText = useErrorText();
 const session = auth.useSession();
 const user = computed(() => session.value.data?.user);
 const saved = computed(() => ({
@@ -41,10 +41,7 @@ async function save() {
   );
   busy.value = false;
   if (failed) {
-    error.value =
-      failed.code === 'USERNAME_IS_ALREADY_TAKEN'
-        ? t('account.profile.taken')
-        : (failed.message ?? t('account.profile.failed'));
+    error.value = errorText(failed);
     return;
   }
   done.value = true;

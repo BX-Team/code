@@ -21,5 +21,6 @@ useHead({
 			<NuxtPage />
 		</NuxtLayout>
 		<CommandPalette />
+		<SiteToaster />
 	</template>
 </template>

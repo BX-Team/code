@@ -27,6 +27,7 @@ export const ActivityKindSchema = z.enum([
   'nick-added',
   'nick-removed',
   'app',
+  'app-removed',
 ]);
 
 export const ActivityEventSchema = z.object({
@@ -36,6 +37,10 @@ export const ActivityEventSchema = z.object({
   ipAddress: z.string().nullable(),
   /** The device the event is about: the one signed in or out, else the one that made the change. */
   userAgent: z.string().nullable(),
+  /** Where Cloudflare placed the request; older events and local dev have none. */
+  city: z.string().nullable().optional(),
+  /** ISO 3166-1 alpha-2. */
+  country: z.string().nullable().optional(),
   createdAt: z.string(),
 });
 
@@ -43,6 +48,22 @@ export const ActivityPageSchema = z.object({ events: z.array(ActivityEventSchema
 
 export type ActivityEvent = z.infer<typeof ActivityEventSchema>;
 export type ActivityPage = z.infer<typeof ActivityPageSchema>;
+
+/** A city and an ISO country code, as Cloudflare places a request; either may be unknown. */
+export const PlaceSchema = z.object({ city: z.string().nullable(), country: z.string().nullable() });
+
+/** Who asked for a device code, and where the person approving it is, for the approval page. */
+export const DeviceOriginSchema = z.object({
+  request: PlaceSchema.extend({
+    ipAddress: z.string().nullable(),
+    userAgent: z.string().nullable(),
+    createdAt: z.string(),
+  }).nullable(),
+  here: PlaceSchema,
+});
+
+export type Place = z.infer<typeof PlaceSchema>;
+export type DeviceOrigin = z.infer<typeof DeviceOriginSchema>;
 
 /** A line the site shows above every page, set from a Flagship flag; `null` shows nothing. */
 export const BannerSchema = z.object({ text: z.string().min(1).max(300), tone: z.enum(['info', 'warning']) });

@@ -18,7 +18,7 @@ const PROVIDERS: { id: Provider; name: string; icon: string }[] = [
 const linked = ref<Map<string, string> | null>(null);
 const busy = ref('');
 const { refresh } = useAccountData();
-const error = ref('');
+const notify = useNotify();
 
 const { t } = useI18n();
 const sitePath = useSitePath();
@@ -34,7 +34,6 @@ async function load() {
 
 async function connect(provider: Provider) {
   busy.value = provider;
-  error.value = '';
   const { error: failed } = await auth.linkSocial({
     provider,
     callbackURL: `${location.origin}${sitePath('/account/security')}`,
@@ -42,7 +41,7 @@ async function connect(provider: Provider) {
   });
   if (failed) {
     busy.value = '';
-    error.value = t('account.methods.startFailed');
+    notify.error(failed);
   }
 }
 
@@ -50,11 +49,10 @@ async function disconnect(provider: Provider) {
   const accountId = linked.value?.get(provider);
   if (!accountId) return;
   busy.value = provider;
-  error.value = '';
   const { error: failed } = await auth.unlinkAccount({ accountId });
   busy.value = '';
   if (failed) {
-    error.value = failed.message ?? t('account.methods.disconnectFailed');
+    notify.error(failed);
     return;
   }
   await Promise.all([load(), refresh()]);
@@ -94,7 +92,7 @@ async function disconnect(provider: Provider) {
 				</div>
 			</li>
 		</ul>
-		<p v-if="error || returned" class="hint bad" role="alert">{{ error || returned }}</p>
+		<p v-if="returned" class="hint bad" role="alert">{{ returned }}</p>
 	</AccountSection>
 </template>
 

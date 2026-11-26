@@ -119,7 +119,16 @@ export const NextBuildSchema = z.object({ project: z.string(), version: z.string
 
 export const OkSchema = z.object({ ok: z.boolean() }).openapi('Ok');
 
-export const ErrorSchema = z.object({ ok: z.literal(false), error: z.string(), message: z.string() }).openapi('Error');
+export const ErrorSchema = z
+  .object({
+    ok: z.literal(false),
+    error: z.string(),
+    /** Stable and machine-readable, such as `NICK_TAKEN`; clients translate this, not `message`. */
+    code: z.string(),
+    message: z.string(),
+    params: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  })
+  .openapi('Error');
 
 export type Channel = z.infer<typeof ChannelSchema>;
 export type Support = z.infer<typeof SupportSchema>;

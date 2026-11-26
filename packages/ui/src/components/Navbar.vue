@@ -250,8 +250,7 @@ function openSearch() {
 	height: 52px;
 }
 
-/* The blur sits on a layer behind the row, not on the header: a filtered header would become the
-   containing block of the fixed scrim, which then only appears once a filter transition ends. */
+/* The blur is on a layer behind the row: a filtered header would contain the fixed scrim and delay it. */
 .bx-nav::before {
 	content: '';
 	position: absolute;
@@ -276,8 +275,7 @@ function openSearch() {
 	padding: 0 var(--bx-nav-pad);
 }
 
-/* `contents`, not `flex`: a hidden toggle would still leave the row's gap in front
-   of the wordmark, pushing it off the edge on the sections that have a sidebar. */
+/* `contents`, not `flex`: a hidden toggle would leave a gap before the wordmark on pages with a sidebar. */
 .bx-nav__lead {
 	display: contents;
 }

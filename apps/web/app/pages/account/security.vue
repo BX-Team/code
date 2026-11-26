@@ -6,6 +6,10 @@ const { t } = useI18n();
 useHead({ title: () => t('account.securityTab') });
 
 const session = auth.useSession();
+const { refresh } = useAccountData();
+
+// The shell loads these once; devices and links change elsewhere, as on the device page.
+onMounted(refresh);
 </script>
 
 <template>

@@ -1,13 +1,20 @@
 import type { ActivityEvent } from '@bx-team/types/schema/bxid';
 import { batch } from '@bx-team/worker/db';
 import { limit } from '@bx-team/worker/flags';
+import { place } from '@bx-team/worker/http';
 import { db } from './db';
 
-export interface Happened {
+/** Where a request came from, with the city and country Cloudflare places it in. */
+export interface Origin {
+  ipAddress: string | null;
+  userAgent: string | null;
+  city: string | null;
+  country: string | null;
+}
+
+export interface Happened extends Partial<Origin> {
   kind: ActivityEvent['kind'];
   detail?: Record<string, string | null>;
-  ipAddress?: string | null;
-  userAgent?: string | null;
 }
 
 type Stores = Pick<Env, 'DB' | 'FLAGS'>;
@@ -25,6 +32,8 @@ export async function record(env: Stores, userId: string, event: Happened) {
         detail: event.detail ? JSON.stringify(event.detail) : null,
         ipAddress: event.ipAddress ?? null,
         userAgent: event.userAgent ?? null,
+        city: event.city ?? null,
+        country: event.country ?? null,
         createdAt: new Date().toISOString(),
       }),
       q
@@ -41,22 +50,43 @@ export async function record(env: Stores, userId: string, event: Happened) {
   }
 }
 
-/** Where a request came from, as Better Auth stores it on sessions. */
-export function origin(headers?: Headers | null): Pick<Happened, 'ipAddress' | 'userAgent'> {
-  return { ipAddress: headers?.get('cf-connecting-ip') ?? null, userAgent: headers?.get('user-agent') ?? null };
+export function origin(headers?: Headers | null, cf?: unknown): Origin {
+  return {
+    ipAddress: headers?.get('cf-connecting-ip') ?? null,
+    userAgent: headers?.get('user-agent') ?? null,
+    ...place(cf),
+  };
 }
 
 /** Notes the first sign-in of an app; later ones only show as sign-ins. */
-export async function rememberApp(
-  env: Stores,
-  userId: string,
-  clientId: string,
-  from: Pick<Happened, 'ipAddress' | 'userAgent'>,
-) {
+export async function rememberApp(env: Stores, userId: string, clientId: string, from: Origin) {
   const inserted = await db(env as Env)
     .insertInto('connectedApp')
     .values({ userId, clientId, createdAt: new Date().toISOString() })
     .onConflict(oc => oc.doNothing())
     .executeTakeFirst();
   if (inserted.numInsertedOrUpdatedRows) await record(env, userId, { kind: 'app', detail: { clientId }, ...from });
+}
+
+/** Device codes live 30 minutes; a day keeps the table small without racing a slow approval. */
+const KEPT_MS = 24 * 60 * 60 * 1000;
+
+/** Better Auth's own form of a typed code: no dashes or spaces, upper case. */
+export const normalizeUserCode = (code: string) => code.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+/** Notes who asked for a device code; failing here never fails the sign-in it is about. */
+export async function rememberDeviceRequest(env: Env, userCode: string, from: Origin) {
+  try {
+    const q = db(env);
+    const now = Date.now();
+    await batch(env.DB, [
+      q.deleteFrom('deviceRequest').where('createdAt', '<', new Date(now - KEPT_MS).toISOString()),
+      q
+        .insertInto('deviceRequest')
+        .values({ userCode, ...from, createdAt: new Date(now).toISOString() })
+        .onConflict(oc => oc.column('userCode').doUpdateSet({ ...from, createdAt: new Date(now).toISOString() })),
+    ]);
+  } catch (e) {
+    console.error('device request not recorded', e);
+  }
 }

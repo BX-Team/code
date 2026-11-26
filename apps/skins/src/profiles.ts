@@ -10,10 +10,10 @@ import {
   SkinModelSchema,
 } from '@bx-team/types/schema/skins';
 import { bxid } from '@bx-team/worker/bxid';
-import { badRequest, HttpError, notFound, payloadTooLarge, unavailable } from '@bx-team/worker/error';
+import { badRequest, conflict, notFound, payloadTooLarge, unavailable } from '@bx-team/worker/error';
 import { isOn, limit } from '@bx-team/worker/flags';
 import { sha256Hex } from '@bx-team/worker/hex';
-import { valid } from '@bx-team/worker/http';
+import { place, valid } from '@bx-team/worker/http';
 import type { Selectable } from 'kysely';
 import { z } from 'zod';
 import { app, type Ctx, db, signedIn } from './app';
@@ -31,9 +31,10 @@ type Row = Selectable<ProfileTable>;
 
 app.get(`${PATH}/textures/:userId/:model/:file`, async c => {
   const { userId, model, file } = c.req.param();
-  if (!SkinModelSchema.safeParse(model).success || !/^[0-9a-f]{64}\.png$/.test(file)) throw notFound('No such skin');
+  if (!SkinModelSchema.safeParse(model).success || !/^[0-9a-f]{64}\.png$/.test(file))
+    throw notFound('No such skin', 'SKIN_UNKNOWN');
   const object = await c.env.TEXTURES.get(`${userId}/${model}/${file}`);
-  if (!object) throw notFound('No such skin');
+  if (!object) throw notFound('No such skin', 'SKIN_UNKNOWN');
   return new Response(object.body, {
     headers: {
       'Content-Type': 'image/png',
@@ -63,7 +64,7 @@ app.post(`${PATH}/profiles`, valid('json', ClaimNickSchema), async c => {
 
   if (row && row.userId === userId && !row.heldUntil) return c.json(profile(c.env, row));
   // Servers that let in both Mojang's players and ours tell them apart only by name.
-  if (await mojangHas(c.env, name)) throw new HttpError(409, 'Conflict', `${name} is a Minecraft account's name`);
+  if (await mojangHas(c.env, name)) throw conflict(`${name} is a Minecraft account's name`, 'NICK_MINECRAFT', { name });
   if (row && row.userId !== userId) {
     if (!row.heldUntil || new Date(row.heldUntil) > now) throw taken(name);
     await db(c.env)
@@ -80,7 +81,7 @@ app.post(`${PATH}/profiles`, valid('json', ClaimNickSchema), async c => {
     .where('heldUntil', 'is', null)
     .executeTakeFirstOrThrow();
   const max = await limit(c.env.FLAGS, 'nicks-per-account');
-  if (count >= max) throw badRequest(`A BX ID holds at most ${max} nicks; remove one first`);
+  if (count >= max) throw badRequest(`A BX ID holds at most ${max} nicks; remove one first`, 'NICK_LIMIT', { max });
 
   const id = await offlineUuid(name);
   if (row && row.userId === userId) {
@@ -119,14 +120,20 @@ app.put(
   valid('query', z.object({ model: SkinModelSchema.default('classic') })),
   async c => {
     const userId = c.get('userId');
-    if (!(await isOn(c.env.FLAGS, 'skin-upload'))) throw unavailable('Skin uploads are off for now; try again later');
+    if (!(await isOn(c.env.FLAGS, 'skin-upload')))
+      throw unavailable('Skin uploads are off for now; try again later', 'SKIN_UPLOAD_OFF');
     const row = await owned(c.env, userId, c.req.param('name'));
     const { model } = c.req.valid('query');
     const bytes = new Uint8Array(await c.req.arrayBuffer());
-    if (bytes.length > MAX_BYTES) throw payloadTooLarge(`A skin is at most ${MAX_BYTES / 1024} KiB`);
+    if (bytes.length > MAX_BYTES)
+      throw payloadTooLarge(`A skin is at most ${MAX_BYTES / 1024} KiB`, 'SKIN_TOO_LARGE', { kib: MAX_BYTES / 1024 });
     const size = pngSize(bytes);
-    if (!size) throw badRequest('A skin is a PNG image');
-    if (!isSkinSize(size)) throw badRequest(`A skin is 64×64 or 64×32 pixels, not ${size.width}×${size.height}`);
+    if (!size) throw badRequest('A skin is a PNG image', 'SKIN_NOT_PNG');
+    if (!isSkinSize(size))
+      throw badRequest(`A skin is 64×64 or 64×32 pixels, not ${size.width}×${size.height}`, 'SKIN_SIZE', {
+        width: size.width,
+        height: size.height,
+      });
     const hash = await sha256Hex(bytes.buffer);
     await c.env.TEXTURES.put(key(userId, model, hash), bytes, { httpMetadata: { contentType: 'image/png' } });
     return c.json(await wear(c, row, model, hash));
@@ -141,7 +148,7 @@ app.post(`${PATH}/profiles/:name/skin`, valid('json', SelectSkinSchema), async c
   if (!(await c.env.TEXTURES.head(key(userId, model, hash)))) {
     const other = model === 'slim' ? 'classic' : 'slim';
     const source = await c.env.TEXTURES.get(key(userId, other, hash));
-    if (!source) throw notFound('No such skin');
+    if (!source) throw notFound('No such skin', 'SKIN_UNKNOWN');
     await c.env.TEXTURES.put(key(userId, model, hash), await source.arrayBuffer(), {
       httpMetadata: { contentType: 'image/png' },
     });
@@ -159,7 +166,7 @@ app.delete(`${PATH}/profiles/:name/skin`, async c => {
 });
 
 function taken(name: string) {
-  return new HttpError(409, 'Conflict', `${name} belongs to another BX ID`);
+  return conflict(`${name} belongs to another BX ID`, 'NICK_TAKEN', { name });
 }
 
 function key(userId: string, model: SkinModel, hash: string) {
@@ -210,7 +217,7 @@ async function owned(env: Env, userId: string, name: string): Promise<Row> {
         .where('heldUntil', 'is', null)
         .executeTakeFirst()
     : undefined;
-  if (!row) throw notFound('No such nick');
+  if (!row) throw notFound('No such nick', 'NICK_UNKNOWN');
   return row;
 }
 
@@ -232,6 +239,7 @@ function announce(
       ...event,
       ipAddress: headers.get('cf-connecting-ip'),
       userAgent: headers.get('user-agent'),
+      ...place(c.req.raw.cf),
     }),
   );
 }
@@ -243,7 +251,7 @@ async function mojangHas(env: Env, name: string): Promise<boolean> {
   }).catch(() => null);
   if (response?.status === 200) return true;
   if (response?.status === 204 || response?.status === 404) return false;
-  throw unavailable('Cannot check the name with Mojang right now; try again later');
+  throw unavailable('Cannot check the name with Mojang right now; try again later', 'MOJANG_UNAVAILABLE');
 }
 
 /** Skins this BX ID uploaded, newest first, one entry per image. */

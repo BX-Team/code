@@ -68,10 +68,7 @@ app.get(`${SESSION}/minecraft/hasJoined`, valid('query', HasJoinedQuerySchema), 
   return mojang(c, new URL(c.req.url).search);
 });
 
-/**
- * The same for servers that ask Mojang themselves first, in authlib-injector's layout (`<root>/sessionserver/...`),
- * as DivineMC's and Leaves' extra Yggdrasil services do: Riven's players only, never Mojang again.
- */
+/** The same in authlib-injector's layout, for servers that ask Mojang first (DivineMC, Leaves): Riven's players only. */
 app.get('/v1/skins/sessionserver/session/minecraft/hasJoined', valid('query', HasJoinedQuerySchema), async c => {
   const row = await joined(c);
   return row ? c.json(await gameProfile(c.env, row, true)) : c.body(null, 204);

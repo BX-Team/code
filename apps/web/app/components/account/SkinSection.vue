@@ -15,6 +15,7 @@ const model = ref<SkinModel>('classic');
 const loaded = ref(false);
 const busy = ref(false);
 const error = ref('');
+const notify = useNotify();
 const adding = ref(false);
 const draft = ref('');
 const field = ref<HTMLInputElement | null>(null);
@@ -74,11 +75,10 @@ function take(list: Profile[], released: HeldNick[], max: number) {
 
 async function act(work: () => Promise<void>) {
   busy.value = true;
-  error.value = '';
   try {
     await work();
   } catch (e) {
-    error.value = e instanceof Error ? e.message : t('account.skins.failed');
+    notify.error(e);
   } finally {
     busy.value = false;
   }

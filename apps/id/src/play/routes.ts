@@ -36,6 +36,7 @@ play.get('/connect', async c => {
   if (origin && !list(c.env.TRUSTED_ORIGINS).includes(origin)) throw forbidden('This origin may not connect');
   const forwarded = new Request(c.req.raw);
   forwarded.headers.set('X-User-Id', c.get('userId'));
+  forwarded.headers.set('X-Session-Id', c.get('sessionId'));
   return hub(c.env, c.get('userId')).fetch(forwarded);
 });
 
@@ -59,12 +60,13 @@ play.post('/friends', valid('json', FriendRequestSchema), async c => {
   const { code } = c.req.valid('json');
   const userId = c.get('userId');
   const target = await findByFriendCode(db(c.env), normalizeFriendCode(code));
-  if (!target || target.id === userId) throw notFound('No one has that friend code');
+  if (!target || target.id === userId) throw notFound('No one has that friend code', 'FRIEND_CODE_UNKNOWN');
 
   const mine = await friendships(db(c.env), userId);
-  if (mine.accepted.length >= MAX_FRIENDS) throw badRequest(`A BX ID has at most ${MAX_FRIENDS} friends`);
+  if (mine.accepted.length >= MAX_FRIENDS)
+    throw badRequest(`A BX ID has at most ${MAX_FRIENDS} friends`, 'FRIEND_LIMIT', { max: MAX_FRIENDS });
   if (mine.outgoing.length >= (await limit(c.env.FLAGS, 'pending-friend-requests')))
-    throw badRequest('Too many requests are waiting for an answer');
+    throw badRequest('Too many requests are waiting for an answer', 'FRIEND_REQUESTS_PENDING');
 
   const outcome = await request(db(c.env), userId, target.id);
   const [me] = await profiles(db(c.env), [userId]);
@@ -76,7 +78,7 @@ play.post('/friends', valid('json', FriendRequestSchema), async c => {
 play.post('/friends/:id/accept', async c => {
   const userId = c.get('userId');
   const from = c.req.param('id');
-  if (!(await accept(db(c.env), userId, from))) throw notFound('No such friend request');
+  if (!(await accept(db(c.env), userId, from))) throw notFound('No such friend request', 'FRIEND_REQUEST_UNKNOWN');
   const users = byId(await profiles(db(c.env), [userId, from]));
   const me = users.get(userId);
   const them = users.get(from);
@@ -87,7 +89,7 @@ play.post('/friends/:id/accept', async c => {
 play.delete('/friends/:id', async c => {
   const userId = c.get('userId');
   const other = c.req.param('id');
-  if (!(await remove(db(c.env), userId, other))) throw notFound('No such friend');
+  if (!(await remove(db(c.env), userId, other))) throw notFound('No such friend', 'FRIEND_UNKNOWN');
   await deliver(c.env, other, { type: 'friend_removed', userId });
   return c.body(null, 204);
 });
@@ -109,7 +111,8 @@ play.get('/lobbies/:id', async c => c.json(unwrap(await lobby(c.env, c.req.param
 play.post('/lobbies/:id/invite', valid('json', InviteSchema), async c => {
   const userId = c.get('userId');
   const { userId: invitee } = c.req.valid('json');
-  if (!(await areFriends(db(c.env), userId, invitee))) throw badRequest('Only friends can be invited');
+  if (!(await areFriends(db(c.env), userId, invitee)))
+    throw badRequest('Only friends can be invited', 'INVITE_NOT_FRIEND');
   const value = unwrap(await lobby(c.env, c.req.param('id')).invite(userId, invitee));
   const [from] = await profiles(db(c.env), [userId]);
   if (from) await deliver(c.env, invitee, { type: 'invite', lobby: value, from });
@@ -143,7 +146,7 @@ play.delete('/lobbies/:id', async c => {
 
 async function requireOpenLobbies(env: Env) {
   if (!(await isOn(env.FLAGS, 'open-lobbies')))
-    throw forbidden('Worlds open to all friends are off for now; invite them');
+    throw forbidden('Worlds open to all friends are off for now; invite them', 'OPEN_LOBBIES_OFF');
 }
 
 function hub(env: Env, userId: string) {
@@ -152,7 +155,7 @@ function hub(env: Env, userId: string) {
 
 function lobby(env: Env, raw: string) {
   const id = lobbyId(env, raw);
-  if (!id) throw notFound('No such lobby');
+  if (!id) throw notFound('No such lobby', 'LOBBY_UNKNOWN');
   return env.LOBBY.get(id);
 }
 
