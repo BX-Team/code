@@ -119,6 +119,11 @@ play.post('/lobbies/:id/invite', valid('json', InviteSchema), async c => {
   return c.json(value);
 });
 
+play.post('/lobbies/:id/kick', valid('json', InviteSchema), async c => {
+  const { userId } = c.req.valid('json');
+  return c.json(unwrap(await lobby(c.env, c.req.param('id')).kick(c.get('userId'), userId)));
+});
+
 play.post('/lobbies/:id/join', async c => {
   const userId = c.get('userId');
   const stub = lobby(c.env, c.req.param('id'));

@@ -44,7 +44,25 @@ export class Lobby extends DurableObject<Env> {
     if (lobby.host !== by) return fail(403, 'Only the host invites');
     if (lobby.members.includes(userId)) return ok(lobby);
     if (!lobby.invited.includes(userId)) lobby.invited.push(userId);
-    await this.ctx.storage.put('lobby', lobby);
+    const kicked = (await this.kicked()).filter(id => id !== userId);
+    await this.ctx.storage.put({ lobby, kicked });
+    return ok(lobby);
+  }
+
+  /** The host sends a player out, or takes an invite back; an open lobby lets them in again only on a new invite. */
+  async kick(by: string, userId: string): Promise<Outcome<LobbyState>> {
+    const lobby = await this.state();
+    if (!lobby?.members.includes(by)) return missing;
+    if (lobby.host !== by) return fail(403, 'Only the host sends players out');
+    if (userId === by) return fail(400, 'The host closes the lobby instead');
+    const was = lobby.members.includes(userId) || lobby.invited.includes(userId);
+    lobby.members = lobby.members.filter(id => id !== userId);
+    lobby.invited = lobby.invited.filter(id => id !== userId);
+    const kicked = await this.kicked();
+    if (!kicked.includes(userId)) kicked.push(userId);
+    await this.ctx.storage.put({ lobby, kicked });
+    // The player hears it too: a lobby without them tells their launcher to disconnect.
+    await this.notify(was ? [...lobby.members, userId] : lobby.members, { type: 'lobby', lobby });
     return ok(lobby);
   }
 
@@ -59,7 +77,8 @@ export class Lobby extends DurableObject<Env> {
     const lobby = await this.state();
     if (!lobby) return missing;
     if (lobby.members.includes(userId)) return ok(lobby);
-    if (!lobby.invited.includes(userId) && !(lobby.open && friend)) return missing;
+    const walkIn = lobby.open && friend && !(await this.kicked()).includes(userId);
+    if (!lobby.invited.includes(userId) && !walkIn) return missing;
     if (lobby.members.length >= size) return fail(400, 'The lobby is full');
     lobby.invited = lobby.invited.filter(id => id !== userId);
     lobby.members.push(userId);
@@ -117,6 +136,10 @@ export class Lobby extends DurableObject<Env> {
 
   private state() {
     return this.ctx.storage.get<LobbyState>('lobby');
+  }
+
+  private async kicked() {
+    return (await this.ctx.storage.get<string[]>('kicked')) ?? [];
   }
 
   private async notify(users: string[], event: ServerEvent) {
